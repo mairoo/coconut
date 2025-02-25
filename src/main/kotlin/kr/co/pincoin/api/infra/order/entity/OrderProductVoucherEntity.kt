@@ -12,13 +12,13 @@ class OrderProductVoucherEntity private constructor(
     @Column(name = "id")
     val id: Long? = null,
 
-    @Column(name = "order_product_id", nullable = false)
+    @Column(name = "order_product_id")
     val orderProductId: Long,
 
     @Column(name = "voucher_id")
     val voucherId: Long? = null,
 
-    @Column(name = "code", nullable = false)
+    @Column(name = "code")
     val code: String,
 
     @Column(name = "revoked")

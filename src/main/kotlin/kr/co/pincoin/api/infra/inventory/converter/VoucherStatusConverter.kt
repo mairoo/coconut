@@ -6,17 +6,9 @@ import kr.co.pincoin.api.domain.inventory.enums.VoucherStatus
 
 @Converter
 class VoucherStatusConverter : AttributeConverter<VoucherStatus, Int> {
-    override fun convertToDatabaseColumn(
-        attribute: VoucherStatus?,
-    ): Int =
-        attribute?.value ?: VoucherStatus.PURCHASED.value
+    override fun convertToDatabaseColumn(attribute: VoucherStatus): Int =
+        attribute.value
 
-    override fun convertToEntityAttribute(
-        dbData: Int?,
-    ): VoucherStatus =
-        when (dbData) {
-            VoucherStatus.SOLD.value -> VoucherStatus.SOLD
-            VoucherStatus.REVOKED.value -> VoucherStatus.REVOKED
-            else -> VoucherStatus.PURCHASED
-        }
+    override fun convertToEntityAttribute(dbData: Int): VoucherStatus =
+        VoucherStatus.from(dbData)
 }

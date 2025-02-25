@@ -23,7 +23,7 @@ class OrderEntity private constructor(
     @Column(name = "id")
     val id: Long? = null,
 
-    @Column(name = "order_no", nullable = false, unique = true)
+    @Column(name = "order_no")
     val orderNo: UUID = UUID.randomUUID(),
 
     @Column(name = "user_id", columnDefinition = "int4")
@@ -41,18 +41,18 @@ class OrderEntity private constructor(
     @Column(name = "ip_address", columnDefinition = "inet")
     val ipAddress: String,
 
-    @Column(name = "payment_method", nullable = false)
+    @Column(name = "payment_method")
     @Convert(converter = OrderPaymentMethodConverter::class)
     val paymentMethod: OrderPaymentMethod = OrderPaymentMethod.BANK_TRANSFER,
 
     @Column(name = "transaction_id")
     val transactionId: String,
 
-    @Column(name = "status", nullable = false)
+    @Column(name = "status")
     @Convert(converter = OrderStatusConverter::class)
     val status: OrderStatus = OrderStatus.PAYMENT_PENDING,
 
-    @Column(name = "visible", nullable = false)
+    @Column(name = "visible")
     @Convert(converter = OrderVisibilityConverter::class)
     val visible: OrderVisibility = OrderVisibility.VISIBLE,
 
@@ -62,7 +62,7 @@ class OrderEntity private constructor(
     @Column(name = "total_selling_price", precision = 11, scale = 2)
     val totalSellingPrice: BigDecimal = BigDecimal.ZERO,
 
-    @Column(name = "currency", nullable = false)
+    @Column(name = "currency")
     @Convert(converter = OrderCurrencyConverter::class)
     val currency: OrderCurrency = OrderCurrency.KRW,
 

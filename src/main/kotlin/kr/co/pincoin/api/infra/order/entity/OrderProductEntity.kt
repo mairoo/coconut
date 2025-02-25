@@ -13,16 +13,16 @@ class OrderProductEntity private constructor(
     @Column(name = "id")
     val id: Long? = null,
 
-    @Column(name = "order_id", nullable = false)
+    @Column(name = "order_id")
     val orderId: Long,
 
-    @Column(name = "name", nullable = false)
+    @Column(name = "name")
     val name: String,
 
     @Column(name = "subtitle")
     val subtitle: String = "",
 
-    @Column(name = "code", nullable = false)
+    @Column(name = "code")
     val code: String,
 
     @Column(name = "list_price", precision = 11, scale = 2)

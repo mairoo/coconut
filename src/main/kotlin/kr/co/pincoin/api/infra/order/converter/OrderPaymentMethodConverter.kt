@@ -6,11 +6,9 @@ import kr.co.pincoin.api.domain.order.enums.OrderPaymentMethod
 
 @Converter
 class OrderPaymentMethodConverter : AttributeConverter<OrderPaymentMethod, Int> {
-    override fun convertToDatabaseColumn(attribute: OrderPaymentMethod): Int {
-        return attribute.value
-    }
+    override fun convertToDatabaseColumn(attribute: OrderPaymentMethod): Int =
+        attribute.value
 
-    override fun convertToEntityAttribute(dbData: Int): OrderPaymentMethod {
-        return OrderPaymentMethod.from(dbData)
-    }
+    override fun convertToEntityAttribute(dbData: Int): OrderPaymentMethod =
+        OrderPaymentMethod.from(dbData)
 }

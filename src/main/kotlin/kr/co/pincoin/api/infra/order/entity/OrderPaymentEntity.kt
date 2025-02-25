@@ -16,10 +16,10 @@ class OrderPaymentEntity private constructor(
     @Column(name = "id")
     val id: Long? = null,
 
-    @Column(name = "order_id", nullable = false)
+    @Column(name = "order_id")
     val orderId: Long,
 
-    @Column(name = "account", nullable = false)
+    @Column(name = "account")
     @Convert(converter = PaymentBankAccountConverter::class)
     val account: PaymentBankAccount = PaymentBankAccount.KB,
 

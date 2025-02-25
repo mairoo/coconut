@@ -6,11 +6,9 @@ import kr.co.pincoin.api.domain.order.enums.OrderStatus
 
 @Converter
 class OrderStatusConverter : AttributeConverter<OrderStatus, Int> {
-    override fun convertToDatabaseColumn(attribute: OrderStatus): Int {
-        return attribute.value
-    }
+    override fun convertToDatabaseColumn(attribute: OrderStatus): Int =
+        attribute.value
 
-    override fun convertToEntityAttribute(dbData: Int): OrderStatus {
-        return OrderStatus.from(dbData)
-    }
+    override fun convertToEntityAttribute(dbData: Int): OrderStatus =
+        OrderStatus.from(dbData)
 }

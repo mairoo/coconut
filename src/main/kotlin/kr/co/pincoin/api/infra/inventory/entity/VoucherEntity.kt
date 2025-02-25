@@ -20,7 +20,7 @@ class VoucherEntity private constructor(
     @Column(name = "remarks")
     val remarks: String,
 
-    @Column(name = "status", nullable = false)
+    @Column(name = "status")
     @Convert(converter = VoucherStatusConverter::class)
     val status: VoucherStatus,
 

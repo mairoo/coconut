@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository
 @Repository
 class TestimonialAnswerQueryRepositoryImpl(
     private val queryFactory: JPAQueryFactory,
-) : TestimonialQueryRepository {
+) : TestimonialAnswerQueryRepository {
 }

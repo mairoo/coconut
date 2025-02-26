@@ -23,8 +23,6 @@ fun PurchaseOrderPayment?.toEntity(): PurchaseOrderPaymentEntity? =
     this?.let { model ->
         PurchaseOrderPaymentEntity.of(
             id = model.id,
-            created = model.created,
-            modified = model.modified,
             isRemoved = model.isRemoved,
             orderId = model.orderId,
             account = model.account,

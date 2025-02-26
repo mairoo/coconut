@@ -6,7 +6,6 @@ import kr.co.pincoin.api.infra.common.jpa.DateTimeFields
 import kr.co.pincoin.api.infra.common.jpa.RemovalFields
 import kr.co.pincoin.api.infra.order.converter.PaymentBankAccountConverter
 import java.math.BigDecimal
-import java.time.ZonedDateTime
 
 @Entity
 @Table(name = "shop_purchaseorderpayment")
@@ -35,8 +34,6 @@ class PurchaseOrderPaymentEntity private constructor(
     companion object {
         fun of(
             id: Long? = null,
-            created: ZonedDateTime? = null,
-            modified: ZonedDateTime? = null,
             isRemoved: Boolean = false,
             orderId: Long,
             account: PaymentBankAccount,

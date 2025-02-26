@@ -44,9 +44,8 @@ class ProfileEntity private constructor(
     @Column(name = "average_price", precision = 11, scale = 2)
     val averagePrice: BigDecimal,
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", unique = true)
-    val user: UserEntity,
+    @Column(name = "user_id", unique = true)
+    val userId: Int,
 
     @Column(name = "memo", columnDefinition = "text")
     val memo: String,
@@ -103,7 +102,7 @@ class ProfileEntity private constructor(
             lastPurchased: ZonedDateTime? = null,
             maxPrice: BigDecimal,
             averagePrice: BigDecimal,
-            user: UserEntity,
+            userId: Int,
             memo: String,
             phoneVerifiedStatus: Int,
             dateOfBirth: LocalDate? = null,
@@ -129,7 +128,7 @@ class ProfileEntity private constructor(
             lastPurchased = lastPurchased,
             maxPrice = maxPrice,
             averagePrice = averagePrice,
-            user = user,
+            userId = userId,
             memo = memo,
             phoneVerifiedStatus = phoneVerifiedStatus,
             dateOfBirth = dateOfBirth,

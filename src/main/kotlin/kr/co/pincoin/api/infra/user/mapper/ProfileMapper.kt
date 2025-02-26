@@ -2,7 +2,6 @@ package kr.co.pincoin.api.infra.user.mapper
 
 import kr.co.pincoin.api.domain.user.model.Profile
 import kr.co.pincoin.api.infra.user.entity.ProfileEntity
-import kr.co.pincoin.api.infra.user.entity.UserEntity
 
 fun ProfileEntity?.toModel(): Profile? =
     this?.let { entity ->
@@ -20,7 +19,7 @@ fun ProfileEntity?.toModel(): Profile? =
             lastPurchased = entity.lastPurchased,
             maxPrice = entity.maxPrice,
             averagePrice = entity.averagePrice,
-            userId = entity.user.id ?: 0,
+            userId = entity.userId,
             memo = entity.memo,
             phoneVerifiedStatus = entity.phoneVerifiedStatus,
             dateOfBirth = entity.dateOfBirth,
@@ -40,7 +39,7 @@ fun ProfileEntity?.toModel(): Profile? =
 fun List<ProfileEntity>?.toModelList(): List<Profile> =
     this?.mapNotNull { it.toModel() } ?: emptyList()
 
-fun Profile?.toEntity(userEntity: UserEntity): ProfileEntity? =
+fun Profile?.toEntity(): ProfileEntity? =
     this?.let { model ->
         ProfileEntity.of(
             id = model.id,
@@ -54,7 +53,7 @@ fun Profile?.toEntity(userEntity: UserEntity): ProfileEntity? =
             lastPurchased = model.lastPurchased,
             maxPrice = model.maxPrice,
             averagePrice = model.averagePrice,
-            user = userEntity,
+            userId = model.userId,
             memo = model.memo,
             phoneVerifiedStatus = model.phoneVerifiedStatus,
             dateOfBirth = model.dateOfBirth,

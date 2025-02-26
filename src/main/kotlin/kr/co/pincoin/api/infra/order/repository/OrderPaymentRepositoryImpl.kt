@@ -1,5 +1,6 @@
 package kr.co.pincoin.api.infra.order.repository
 
+import kr.co.pincoin.api.domain.order.model.OrderPayment
 import kr.co.pincoin.api.domain.order.repository.OrderPaymentRepository
 import org.springframework.stereotype.Repository
 
@@ -7,4 +8,7 @@ import org.springframework.stereotype.Repository
 class OrderPaymentRepositoryImpl(
     private val jpaRepository: OrderPaymentJpaRepository,
 ) : OrderPaymentRepository {
+    override fun save(orderPayment: OrderPayment): OrderPayment {
+        TODO("Not yet implemented")
+    }
 }

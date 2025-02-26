@@ -25,36 +25,6 @@ class Category private constructor(
     val naverBrandName: String,
     val naverMakerName: String,
 ) {
-    private fun copy(
-        title: String = this.title,
-        slug: String = this.slug,
-        thumbnail: String = this.thumbnail,
-        description: String = this.description,
-        description1: String = this.description1,
-        discountRate: BigDecimal = this.discountRate,
-        pg: Boolean = this.pg,
-        pgDiscountRate: BigDecimal = this.pgDiscountRate,
-        naverSearchTag: String = this.naverSearchTag,
-        naverBrandName: String = this.naverBrandName,
-        naverMakerName: String = this.naverMakerName
-    ): Category = Category(
-        id = this.id,
-        created = this.created,
-        modified = this.modified,
-        storeId = this.storeId,
-        title = title,
-        slug = slug,
-        thumbnail = thumbnail,
-        description = description,
-        description1 = description1,
-        discountRate = discountRate,
-        pg = pg,
-        pgDiscountRate = pgDiscountRate,
-        naverSearchTag = naverSearchTag,
-        naverBrandName = naverBrandName,
-        naverMakerName = naverMakerName
-    )
-
     fun changeBasicInfo(
         newTitle: String? = null,
         newSlug: String? = null
@@ -93,6 +63,36 @@ class Category private constructor(
         naverSearchTag = newNaverSearchTag ?: naverSearchTag,
         naverBrandName = newNaverBrandName ?: naverBrandName,
         naverMakerName = newNaverMakerName ?: naverMakerName
+    )
+
+    private fun copy(
+        title: String = this.title,
+        slug: String = this.slug,
+        thumbnail: String = this.thumbnail,
+        description: String = this.description,
+        description1: String = this.description1,
+        discountRate: BigDecimal = this.discountRate,
+        pg: Boolean = this.pg,
+        pgDiscountRate: BigDecimal = this.pgDiscountRate,
+        naverSearchTag: String = this.naverSearchTag,
+        naverBrandName: String = this.naverBrandName,
+        naverMakerName: String = this.naverMakerName
+    ): Category = Category(
+        id = this.id,
+        created = this.created,
+        modified = this.modified,
+        storeId = this.storeId,
+        title = title,
+        slug = slug,
+        thumbnail = thumbnail,
+        description = description,
+        description1 = description1,
+        discountRate = discountRate,
+        pg = pg,
+        pgDiscountRate = pgDiscountRate,
+        naverSearchTag = naverSearchTag,
+        naverBrandName = naverBrandName,
+        naverMakerName = naverMakerName
     )
 
     companion object {

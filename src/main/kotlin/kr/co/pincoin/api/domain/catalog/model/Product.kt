@@ -40,50 +40,6 @@ class Product private constructor(
     val naverPartnerTitlePg: String,
     val naverAttribute: String,
 ) {
-    private fun copy(
-        name: String = this.name,
-        subtitle: String = this.subtitle,
-        code: String = this.code,
-        listPrice: BigDecimal = this.listPrice,
-        sellingPrice: BigDecimal = this.sellingPrice,
-        pg: Boolean = this.pg,
-        pgSellingPrice: BigDecimal = this.pgSellingPrice,
-        status: ProductStatus = this.status,
-        stockQuantity: Int = this.stockQuantity,
-        stock: ProductStock = this.stock,
-        minimumStockLevel: Int = this.minimumStockLevel,
-        maximumStockLevel: Int = this.maximumStockLevel,
-        reviewCount: Int = this.reviewCount,
-        reviewCountPg: Int = this.reviewCountPg
-    ): Product = Product(
-        id = this.id,
-        created = this.created,
-        modified = this.modified,
-        isRemoved = this.isRemoved,
-        name = name,
-        subtitle = subtitle,
-        code = this.code,
-        listPrice = listPrice,
-        sellingPrice = sellingPrice,
-        pg = pg,
-        pgSellingPrice = pgSellingPrice,
-        description = this.description,
-        storeId = this.storeId,
-        categoryId = this.categoryId,
-        position = this.position,
-        status = status,
-        stockQuantity = stockQuantity,
-        stock = stock,
-        minimumStockLevel = minimumStockLevel,
-        maximumStockLevel = maximumStockLevel,
-        reviewCount = reviewCount,
-        reviewCountPg = reviewCountPg,
-        naverPartner = this.naverPartner,
-        naverPartnerTitle = this.naverPartnerTitle,
-        naverPartnerTitlePg = this.naverPartnerTitlePg,
-        naverAttribute = this.naverAttribute
-    )
-
     fun changeBasicInfo(
         newName: String? = null,
         newSubtitle: String? = null,
@@ -142,6 +98,50 @@ class Product private constructor(
 
     fun decreaseReviewCountPg(): Product = copy(
         reviewCountPg = if (reviewCountPg > 0) reviewCountPg - 1 else 0
+    )
+
+    private fun copy(
+        name: String = this.name,
+        subtitle: String = this.subtitle,
+        code: String = this.code,
+        listPrice: BigDecimal = this.listPrice,
+        sellingPrice: BigDecimal = this.sellingPrice,
+        pg: Boolean = this.pg,
+        pgSellingPrice: BigDecimal = this.pgSellingPrice,
+        status: ProductStatus = this.status,
+        stockQuantity: Int = this.stockQuantity,
+        stock: ProductStock = this.stock,
+        minimumStockLevel: Int = this.minimumStockLevel,
+        maximumStockLevel: Int = this.maximumStockLevel,
+        reviewCount: Int = this.reviewCount,
+        reviewCountPg: Int = this.reviewCountPg
+    ): Product = Product(
+        id = this.id,
+        created = this.created,
+        modified = this.modified,
+        isRemoved = this.isRemoved,
+        name = name,
+        subtitle = subtitle,
+        code = this.code,
+        listPrice = listPrice,
+        sellingPrice = sellingPrice,
+        pg = pg,
+        pgSellingPrice = pgSellingPrice,
+        description = this.description,
+        storeId = this.storeId,
+        categoryId = this.categoryId,
+        position = this.position,
+        status = status,
+        stockQuantity = stockQuantity,
+        stock = stock,
+        minimumStockLevel = minimumStockLevel,
+        maximumStockLevel = maximumStockLevel,
+        reviewCount = reviewCount,
+        reviewCountPg = reviewCountPg,
+        naverPartner = this.naverPartner,
+        naverPartnerTitle = this.naverPartnerTitle,
+        naverPartnerTitlePg = this.naverPartnerTitlePg,
+        naverAttribute = this.naverAttribute
     )
 
     companion object {

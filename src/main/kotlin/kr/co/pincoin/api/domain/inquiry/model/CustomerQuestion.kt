@@ -1,5 +1,6 @@
 package kr.co.pincoin.api.domain.inquiry.model
 
+import kr.co.pincoin.api.domain.inquiry.enums.CustomerQuestionCategory
 import java.time.ZonedDateTime
 
 class CustomerQuestion private constructor(
@@ -19,7 +20,7 @@ class CustomerQuestion private constructor(
     description: String,
     keywords: String,
     content: String,
-    category: Int,
+    category: CustomerQuestionCategory,
     orderId: Long?,
     ownerId: Int?,
 ) {
@@ -38,7 +39,7 @@ class CustomerQuestion private constructor(
     var content: String = content
         private set
 
-    var category: Int = category
+    var category: CustomerQuestionCategory = category
         private set
 
     var orderId: Long? = orderId
@@ -57,7 +58,7 @@ class CustomerQuestion private constructor(
             description: String,
             keywords: String,
             content: String,
-            category: Int,
+            category: CustomerQuestionCategory,
             orderId: Long? = null,
             ownerId: Int? = null,
             storeId: Long,

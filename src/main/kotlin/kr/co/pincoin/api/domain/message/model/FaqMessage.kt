@@ -1,5 +1,6 @@
 package kr.co.pincoin.api.domain.message.model
 
+import kr.co.pincoin.api.domain.message.enums.FaqMessageCategory
 import java.time.ZonedDateTime
 
 class FaqMessage private constructor(
@@ -19,7 +20,7 @@ class FaqMessage private constructor(
     description: String,
     keywords: String,
     content: String,
-    category: Int,
+    category: FaqMessageCategory,
     position: Int,
     ownerId: Int?,
 ) {
@@ -38,7 +39,7 @@ class FaqMessage private constructor(
     var content: String = content
         private set
 
-    var category: Int = category
+    var category: FaqMessageCategory = category
         private set
 
     var position: Int = position
@@ -57,7 +58,7 @@ class FaqMessage private constructor(
             description: String,
             keywords: String,
             content: String,
-            category: Int,
+            category: FaqMessageCategory,
             position: Int,
             ownerId: Int? = null,
             storeId: Long,

@@ -1,5 +1,6 @@
 package kr.co.pincoin.api.domain.message.model
 
+import kr.co.pincoin.api.domain.message.enums.NoticeMessageCategory
 import java.time.ZonedDateTime
 
 class NoticeMessage private constructor(
@@ -19,7 +20,7 @@ class NoticeMessage private constructor(
     description: String,
     keywords: String,
     content: String,
-    category: Int,
+    category: NoticeMessageCategory,
     ownerId: Int?,
 ) {
     var isRemoved: Boolean = isRemoved ?: false
@@ -37,7 +38,7 @@ class NoticeMessage private constructor(
     var content: String = content
         private set
 
-    var category: Int = category
+    var category: NoticeMessageCategory = category
         private set
 
     var ownerId: Int? = ownerId
@@ -53,7 +54,7 @@ class NoticeMessage private constructor(
             description: String,
             keywords: String,
             content: String,
-            category: Int,
+            category: NoticeMessageCategory,
             ownerId: Int? = null,
             storeId: Long,
         ): NoticeMessage =

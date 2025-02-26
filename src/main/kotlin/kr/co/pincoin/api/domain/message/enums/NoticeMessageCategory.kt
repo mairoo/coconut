@@ -1,6 +1,6 @@
 package kr.co.pincoin.api.domain.message.enums
 
-enum class NoticeCategory(val value: Int) {
+enum class NoticeMessageCategory(val value: Int) {
     COMMON(0),
     EVENT(1),
     PRICE(2);

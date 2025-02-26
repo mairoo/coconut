@@ -1,8 +1,10 @@
 package kr.co.pincoin.api.infra.message.entity
 
 import jakarta.persistence.*
+import kr.co.pincoin.api.domain.message.enums.NoticeMessageCategory
 import kr.co.pincoin.api.infra.common.jpa.DateTimeFields
 import kr.co.pincoin.api.infra.common.jpa.RemovalFields
+import kr.co.pincoin.api.infra.message.converter.NoticeMessageCategoryConverter
 
 @Entity
 @Table(name = "shop_noticemessage")
@@ -25,7 +27,8 @@ class NoticeMessageEntity private constructor(
     val content: String,
 
     @Column(name = "category")
-    val category: Int,
+    @Convert(converter = NoticeMessageCategoryConverter::class)
+    val category: NoticeMessageCategory,
 
     @Column(name = "owner_id")
     val ownerId: Int? = null,
@@ -46,7 +49,7 @@ class NoticeMessageEntity private constructor(
             description: String,
             keywords: String,
             content: String,
-            category: Int,
+            category: NoticeMessageCategory,
             ownerId: Int? = null,
             storeId: Long
         ) = NoticeMessageEntity(

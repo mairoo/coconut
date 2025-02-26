@@ -1,8 +1,10 @@
 package kr.co.pincoin.api.infra.message.entity
 
 import jakarta.persistence.*
+import kr.co.pincoin.api.domain.message.enums.FaqMessageCategory
 import kr.co.pincoin.api.infra.common.jpa.DateTimeFields
 import kr.co.pincoin.api.infra.common.jpa.RemovalFields
+import kr.co.pincoin.api.infra.message.converter.FaqMessageCategoryConverter
 
 @Entity
 @Table(name = "shop_faqmessage")
@@ -25,7 +27,8 @@ class FaqMessageEntity private constructor(
     val content: String,
 
     @Column(name = "category")
-    val category: Int,
+    @Convert(converter = FaqMessageCategoryConverter::class)
+    val category: FaqMessageCategory,
 
     @Column(name = "position")
     val position: Int,
@@ -49,7 +52,7 @@ class FaqMessageEntity private constructor(
             description: String,
             keywords: String,
             content: String,
-            category: Int,
+            category: FaqMessageCategory,
             position: Int,
             ownerId: Int? = null,
             storeId: Long

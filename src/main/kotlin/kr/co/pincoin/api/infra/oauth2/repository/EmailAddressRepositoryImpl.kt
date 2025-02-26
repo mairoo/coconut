@@ -4,5 +4,7 @@ import kr.co.pincoin.api.domain.oauth2.repository.EmailAddressRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-class EmailAddressRepositoryImpl() : EmailAddressRepository {
+class EmailAddressRepositoryImpl(
+    private val jpaRepository: EmailAddressJpaRepository,
+) : EmailAddressRepository {
 }

@@ -4,5 +4,7 @@ import kr.co.pincoin.api.domain.user.repository.UserRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-class UserRepositoryImpl() : UserRepository {
+class UserRepositoryImpl(
+    private val jpaRepository: UserJpaRepository,
+) : UserRepository {
 }

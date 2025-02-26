@@ -4,5 +4,7 @@ import kr.co.pincoin.api.domain.user.repository.ProfileRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-class ProfileRepositoryImpl() : ProfileRepository {
+class ProfileRepositoryImpl(
+    private val jpaRepository: ProfileJpaRepository,
+) : ProfileRepository {
 }

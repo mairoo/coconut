@@ -4,5 +4,7 @@ import kr.co.pincoin.api.domain.order.repository.OrderProductVoucherRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-class OrderProductVoucherRepositoryImpl() : OrderProductVoucherRepository {
+class OrderProductVoucherRepositoryImpl(
+    private val jpaRepository: OrderProductVoucherJpaRepository,
+) : OrderProductVoucherRepository {
 }

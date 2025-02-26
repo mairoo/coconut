@@ -4,5 +4,7 @@ import kr.co.pincoin.api.domain.inventory.repository.PurchaseOrderPaymentReposit
 import org.springframework.stereotype.Repository
 
 @Repository
-class PurchaseOrderPaymentRepositoryImpl() : PurchaseOrderPaymentRepository {
+class PurchaseOrderPaymentRepositoryImpl(
+    private val jpaRepository: PurchaseOrderPaymentJpaRepository,
+) : PurchaseOrderPaymentRepository {
 }

@@ -4,5 +4,7 @@ import kr.co.pincoin.api.domain.oauth2.repository.EmailConfirmationRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-class EmailConfirmationRepositoryImpl() : EmailConfirmationRepository {
+class EmailConfirmationRepositoryImpl(
+    private val jpaRepository: EmailConfirmationJpaRepository,
+) : EmailConfirmationRepository {
 }

@@ -4,5 +4,7 @@ import kr.co.pincoin.api.domain.inquiry.repository.CustomerQuestionAnswerReposit
 import org.springframework.stereotype.Repository
 
 @Repository
-class CustomerQuestionAnswerRepositoryImpl() : CustomerQuestionAnswerRepository {
+class CustomerQuestionAnswerRepositoryImpl(
+    private val jpaRepository: CustomerQuestionAnswerJpaRepository,
+) : CustomerQuestionAnswerRepository {
 }

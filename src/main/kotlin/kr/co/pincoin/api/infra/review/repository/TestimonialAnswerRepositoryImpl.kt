@@ -4,5 +4,7 @@ import kr.co.pincoin.api.domain.review.repository.TestimonialAnswerRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-class TestimonialAnswerRepositoryImpl() : TestimonialAnswerRepository {
+class TestimonialAnswerRepositoryImpl(
+    private val jpaRepository: TestimonialAnswerJpaRepository,
+) : TestimonialAnswerRepository {
 }

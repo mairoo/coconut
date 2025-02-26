@@ -4,5 +4,7 @@ import kr.co.pincoin.api.domain.message.repository.FaqMessageRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-class FaqMessageRepositoryImpl() : FaqMessageRepository {
+class FaqMessageRepositoryImpl(
+    private val jpaRepository: FaqMessageJpaRepository,
+) : FaqMessageRepository {
 }

@@ -4,5 +4,7 @@ import kr.co.pincoin.api.domain.catalog.repository.CategoryRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-class CategoryRepositoryImpl() : CategoryRepository {
+class CategoryRepositoryImpl(
+    private val jpaRepository: CategoryJpaRepository,
+) : CategoryRepository {
 }

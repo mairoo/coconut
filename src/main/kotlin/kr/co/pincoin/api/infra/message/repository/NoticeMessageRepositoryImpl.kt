@@ -4,5 +4,7 @@ import kr.co.pincoin.api.domain.message.repository.NoticessMessageRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-class NoticeMessageRepositoryImpl() : NoticessMessageRepository {
+class NoticeMessageRepositoryImpl(
+    private val jpaRepository: NoticeMessageJpaRepository,
+) : NoticessMessageRepository {
 }

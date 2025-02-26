@@ -4,5 +4,7 @@ import kr.co.pincoin.api.domain.oauth2.repository.SocialAccountRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-class SocialAccountRepositoryImpl() : SocialAccountRepository {
+class SocialAccountRepositoryImpl(
+    private val jpaRepository: SocialAccountJpaRepository,
+) : SocialAccountRepository {
 }

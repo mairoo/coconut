@@ -1,5 +1,7 @@
 package kr.co.pincoin.api.domain.catalog.model
 
+import kr.co.pincoin.api.domain.catalog.enums.ProductStatus
+import kr.co.pincoin.api.domain.catalog.enums.ProductStock
 import java.math.BigDecimal
 import java.time.ZonedDateTime
 
@@ -26,9 +28,9 @@ class Product private constructor(
     pgSellingPrice: BigDecimal,
     description: String,
     position: Int,
-    status: Int,
+    status: ProductStatus,
     stockQuantity: Int,
-    stock: Int,
+    stock: ProductStock,
     minimumStockLevel: Int,
     maximumStockLevel: Int,
     reviewCount: Int,
@@ -65,13 +67,13 @@ class Product private constructor(
     var position: Int = position
         private set
 
-    var status: Int = status
+    var status: ProductStatus = status
         private set
 
     var stockQuantity: Int = stockQuantity
         private set
 
-    var stock: Int = stock
+    var stock: ProductStock = stock
         private set
 
     var minimumStockLevel: Int = minimumStockLevel
@@ -115,9 +117,9 @@ class Product private constructor(
             storeId: Long,
             categoryId: Long,
             position: Int,
-            status: Int = 1,
+            status: ProductStatus = ProductStatus.ENABLED,
             stockQuantity: Int = 0,
-            stock: Int = 1,
+            stock: ProductStock = ProductStock.IN_STOCK,
             minimumStockLevel: Int = 0,
             maximumStockLevel: Int = 0,
             reviewCount: Int = 0,

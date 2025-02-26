@@ -3,6 +3,8 @@ package kr.co.pincoin.api.infra.catalog.repository
 import com.querydsl.core.types.dsl.BooleanExpression
 import com.querydsl.jpa.impl.JPAQuery
 import com.querydsl.jpa.impl.JPAQueryFactory
+import kr.co.pincoin.api.domain.catalog.enums.ProductStatus
+import kr.co.pincoin.api.domain.catalog.enums.ProductStock
 import kr.co.pincoin.api.infra.catalog.entity.QCategoryEntity
 import kr.co.pincoin.api.infra.catalog.entity.QProductEntity
 import kr.co.pincoin.api.infra.catalog.repository.criteria.ProductSearchCriteria
@@ -12,7 +14,6 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.support.PageableExecutionUtils
 import org.springframework.stereotype.Repository
-import java.math.BigDecimal
 
 @Repository
 class ProductQueryRepositoryImpl(
@@ -115,15 +116,13 @@ class ProductQueryRepositoryImpl(
     ): Array<BooleanExpression?> = arrayOf(
         // Product 조건
         eqProductName(criteria.name),
+        eqProductSubtitle(criteria.subtitle),
         eqProductCode(criteria.code),
-        eqProductStoreId(criteria.storeId),
         eqProductCategoryId(criteria.categoryId),
-        goeProductSellingPrice(criteria.minSellingPrice),
-        loeProductSellingPrice(criteria.maxSellingPrice),
         eqProductPg(criteria.pg),
         eqProductStatus(criteria.status),
         isProductRemoved(criteria.isRemoved),
-        isProductInStock(criteria.inStock),
+        eqProductStock(criteria.stock),
 
         // Category 조건
         eqCategoryTitle(criteria.categoryTitle),
@@ -137,38 +136,26 @@ class ProductQueryRepositoryImpl(
     private fun eqProductName(name: String?): BooleanExpression? =
         name?.let { product.name.eq(it) }
 
+    private fun eqProductSubtitle(subtitle: String?): BooleanExpression? =
+        subtitle?.let { product.subtitle.eq(it) }
+
     private fun eqProductCode(code: String?): BooleanExpression? =
         code?.let { product.code.eq(it) }
-
-    private fun eqProductStoreId(storeId: Long?): BooleanExpression? =
-        storeId?.let { product.storeId.eq(it) }
 
     private fun eqProductCategoryId(categoryId: Long?): BooleanExpression? =
         categoryId?.let { product.categoryId.eq(it) }
 
-    private fun goeProductSellingPrice(minPrice: BigDecimal?): BooleanExpression? =
-        minPrice?.let { product.sellingPrice.goe(it) }
-
-    private fun loeProductSellingPrice(maxPrice: BigDecimal?): BooleanExpression? =
-        maxPrice?.let { product.sellingPrice.loe(it) }
-
     private fun eqProductPg(pg: Boolean?): BooleanExpression? =
         pg?.let { product.pg.eq(it) }
 
-    private fun eqProductStatus(status: Int?): BooleanExpression? =
+    private fun eqProductStatus(status: ProductStatus?): BooleanExpression? =
         status?.let { product.status.eq(it) }
 
     private fun isProductRemoved(isRemoved: Boolean?): BooleanExpression? =
         isRemoved?.let { product.removalFields.isRemoved.eq(it) }
 
-    private fun isProductInStock(inStock: Boolean?): BooleanExpression? =
-        inStock?.let {
-            if (it) {
-                product.stock.gt(0)
-            } else {
-                product.stock.eq(0)
-            }
-        }
+    private fun eqProductStock(stock: ProductStock?): BooleanExpression? =
+        stock?.let { product.stock.eq(it) }
 
     private fun eqCategoryTitle(title: String?): BooleanExpression? =
         title?.let { category.title.eq(it) }

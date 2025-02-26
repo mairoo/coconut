@@ -1,6 +1,8 @@
 package kr.co.pincoin.api.infra.catalog.repository.projection
 
 import com.querydsl.core.annotations.QueryProjection
+import kr.co.pincoin.api.domain.catalog.enums.ProductStatus
+import kr.co.pincoin.api.domain.catalog.enums.ProductStock
 import java.math.BigDecimal
 import java.time.ZonedDateTime
 
@@ -21,9 +23,9 @@ data class ProductProjection @QueryProjection constructor(
     val storeId: Long,
     val categoryId: Long,
     val position: Int,
-    val status: Int,
+    val status: ProductStatus,
     val stockQuantity: Int,
-    val stock: Int,
+    val stock: ProductStock,
 
     // Category 정보
     val categoryTitle: String,

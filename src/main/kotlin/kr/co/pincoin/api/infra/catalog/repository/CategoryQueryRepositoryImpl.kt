@@ -76,8 +76,6 @@ class CategoryQueryRepositoryImpl(
     ): Array<BooleanExpression?> = arrayOf(
         eqCategoryTitle(criteria.title),
         eqCategorySlug(criteria.slug),
-        eqCategoryStoreId(criteria.storeId),
-        containsCategoryDescription(criteria.description)
     )
 
     private fun eqCategoryId(id: Long): BooleanExpression =
@@ -88,10 +86,4 @@ class CategoryQueryRepositoryImpl(
 
     private fun eqCategorySlug(slug: String?): BooleanExpression? =
         slug?.let { category.slug.eq(it) }
-
-    private fun eqCategoryStoreId(storeId: Long?): BooleanExpression? =
-        storeId?.let { category.storeId.eq(it) }
-
-    private fun containsCategoryDescription(description: String?): BooleanExpression? =
-        description?.let { category.description.contains(it) }
 }

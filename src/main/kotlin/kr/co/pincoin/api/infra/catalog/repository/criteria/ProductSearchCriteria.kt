@@ -1,19 +1,20 @@
 package kr.co.pincoin.api.infra.catalog.repository.criteria
 
+import kr.co.pincoin.api.domain.catalog.enums.ProductStatus
+import kr.co.pincoin.api.domain.catalog.enums.ProductStock
 import java.math.BigDecimal
 
 data class ProductSearchCriteria(
     // 상품 필드
     val name: String? = null,
+    val subtitle: String? = null,
     val code: String? = null,
-    val storeId: Long? = null,
     val categoryId: Long? = null,
-    val minSellingPrice: BigDecimal? = null,
-    val maxSellingPrice: BigDecimal? = null,
+    val listPrice: BigDecimal? = null,
     val pg: Boolean? = null,
-    val status: Int? = null,
+    val status: ProductStatus? = null,
     val isRemoved: Boolean? = null,
-    val inStock: Boolean? = null, // stock > 0
+    val stock: ProductStock? = null,
 
     // 카테고리 필드
     val categoryTitle: String? = null,

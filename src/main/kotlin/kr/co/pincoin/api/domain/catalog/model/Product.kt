@@ -12,93 +12,137 @@ class Product private constructor(
     val modified: ZonedDateTime? = null,
 
     // 2. 공통 가변 필드
-    isRemoved: Boolean? = null,
+    val isRemoved: Boolean = false,
 
     // 3. 도메인 로직 불변 필드
-    val code: String,
     val storeId: Long,
     val categoryId: Long,
 
     // 4. 도메인 로직 가변 필드
-    name: String,
-    subtitle: String,
-    listPrice: BigDecimal,
-    sellingPrice: BigDecimal,
-    pg: Boolean,
-    pgSellingPrice: BigDecimal,
-    description: String,
-    position: Int,
-    status: ProductStatus,
-    stockQuantity: Int,
-    stock: ProductStock,
-    minimumStockLevel: Int,
-    maximumStockLevel: Int,
-    reviewCount: Int,
-    reviewCountPg: Int,
-    naverPartner: Boolean,
-    naverPartnerTitle: String,
-    naverPartnerTitlePg: String,
-    naverAttribute: String,
+    val name: String,
+    val subtitle: String,
+    val code: String,
+    val listPrice: BigDecimal,
+    val sellingPrice: BigDecimal,
+    val pg: Boolean,
+    val pgSellingPrice: BigDecimal,
+    val description: String,
+    val position: Int,
+    val status: ProductStatus,
+    val stockQuantity: Int,
+    val stock: ProductStock,
+    val minimumStockLevel: Int,
+    val maximumStockLevel: Int,
+    val reviewCount: Int,
+    val reviewCountPg: Int,
+    val naverPartner: Boolean,
+    val naverPartnerTitle: String,
+    val naverPartnerTitlePg: String,
+    val naverAttribute: String,
 ) {
-    var isRemoved: Boolean = isRemoved ?: false
-        private set
+    private fun copy(
+        name: String = this.name,
+        subtitle: String = this.subtitle,
+        code: String = this.code,
+        listPrice: BigDecimal = this.listPrice,
+        sellingPrice: BigDecimal = this.sellingPrice,
+        pg: Boolean = this.pg,
+        pgSellingPrice: BigDecimal = this.pgSellingPrice,
+        status: ProductStatus = this.status,
+        stockQuantity: Int = this.stockQuantity,
+        stock: ProductStock = this.stock,
+        minimumStockLevel: Int = this.minimumStockLevel,
+        maximumStockLevel: Int = this.maximumStockLevel,
+        reviewCount: Int = this.reviewCount,
+        reviewCountPg: Int = this.reviewCountPg
+    ): Product = Product(
+        id = this.id,
+        created = this.created,
+        modified = this.modified,
+        isRemoved = this.isRemoved,
+        name = name,
+        subtitle = subtitle,
+        code = this.code,
+        listPrice = listPrice,
+        sellingPrice = sellingPrice,
+        pg = pg,
+        pgSellingPrice = pgSellingPrice,
+        description = this.description,
+        storeId = this.storeId,
+        categoryId = this.categoryId,
+        position = this.position,
+        status = status,
+        stockQuantity = stockQuantity,
+        stock = stock,
+        minimumStockLevel = minimumStockLevel,
+        maximumStockLevel = maximumStockLevel,
+        reviewCount = reviewCount,
+        reviewCountPg = reviewCountPg,
+        naverPartner = this.naverPartner,
+        naverPartnerTitle = this.naverPartnerTitle,
+        naverPartnerTitlePg = this.naverPartnerTitlePg,
+        naverAttribute = this.naverAttribute
+    )
 
-    var name: String = name
-        private set
+    fun changeBasicInfo(
+        newName: String? = null,
+        newSubtitle: String? = null,
+        newCode: String? = null,
+    ): Product = copy(
+        name = newName ?: name,
+        subtitle = newSubtitle ?: subtitle,
+        code = newCode ?: code,
+    )
 
-    var subtitle: String = subtitle
-        private set
+    fun changePriceInfo(
+        newListPrice: BigDecimal? = null,
+        newSellingPrice: BigDecimal? = null,
+        newPgSellingPrice: BigDecimal? = null
+    ): Product = copy(
+        listPrice = newListPrice ?: listPrice,
+        sellingPrice = newSellingPrice ?: sellingPrice,
+        pgSellingPrice = newPgSellingPrice ?: pgSellingPrice
+    )
 
-    var listPrice: BigDecimal = listPrice
-        private set
+    fun changePgStatus(newPg: Boolean? = null): Product = copy(
+        pg = newPg ?: pg
+    )
 
-    var sellingPrice: BigDecimal = sellingPrice
-        private set
+    fun changeStatus(newStatus: ProductStatus? = null): Product = copy(
+        status = newStatus ?: status
+    )
 
-    var pg: Boolean = pg
-        private set
+    fun changeStockStatus(newStock: ProductStock? = null): Product = copy(
+        stock = newStock ?: stock
+    )
 
-    var pgSellingPrice: BigDecimal = pgSellingPrice
-        private set
+    fun changeStockQuantity(newStockQuantity: Int? = null): Product = copy(
+        stockQuantity = newStockQuantity ?: stockQuantity
+    )
 
-    var description: String = description
-        private set
+    fun changeStockLevels(
+        newMinimumStockLevel: Int? = null,
+        newMaximumStockLevel: Int? = null
+    ): Product = copy(
+        minimumStockLevel = newMinimumStockLevel ?: minimumStockLevel,
+        maximumStockLevel = newMaximumStockLevel ?: maximumStockLevel
+    )
 
-    var position: Int = position
-        private set
+    fun increaseReviewCount(): Product = copy(
+        reviewCount = reviewCount + 1
+    )
 
-    var status: ProductStatus = status
-        private set
+    fun decreaseReviewCount(): Product = copy(
+        reviewCount = if (reviewCount > 0) reviewCount - 1 else 0
+    )
 
-    var stockQuantity: Int = stockQuantity
-        private set
+    fun increaseReviewCountPg(): Product = copy(
+        reviewCountPg = reviewCountPg + 1
+    )
 
-    var stock: ProductStock = stock
-        private set
-
-    var minimumStockLevel: Int = minimumStockLevel
-        private set
-
-    var maximumStockLevel: Int = maximumStockLevel
-        private set
-
-    var reviewCount: Int = reviewCount
-        private set
-
-    var reviewCountPg: Int = reviewCountPg
-        private set
-
-    var naverPartner: Boolean = naverPartner
-        private set
-
-    var naverPartnerTitle: String = naverPartnerTitle
-        private set
-
-    var naverPartnerTitlePg: String = naverPartnerTitlePg
-        private set
-
-    var naverAttribute: String = naverAttribute
-        private set
+    fun decreaseReviewCountPg(): Product = copy(
+        reviewCountPg = if (reviewCountPg > 0) reviewCountPg - 1 else 0
+    )
 
     companion object {
         fun of(
@@ -133,7 +177,7 @@ class Product private constructor(
                 id = id,
                 created = created,
                 modified = modified,
-                isRemoved = isRemoved,
+                isRemoved = isRemoved ?: false,
                 name = name,
                 subtitle = subtitle,
                 code = code,

@@ -13,50 +13,87 @@ class Category private constructor(
     val storeId: Long,
 
     // 3. 도메인 로직 가변 필드
-    title: String,
-    slug: String,
-    thumbnail: String,
-    description: String,
-    description1: String,
-    discountRate: BigDecimal,
-    pg: Boolean,
-    pgDiscountRate: BigDecimal,
-    naverSearchTag: String,
-    naverBrandName: String,
-    naverMakerName: String,
+    val title: String,
+    val slug: String,
+    val thumbnail: String,
+    val description: String,
+    val description1: String,
+    val discountRate: BigDecimal,
+    val pg: Boolean,
+    val pgDiscountRate: BigDecimal,
+    val naverSearchTag: String,
+    val naverBrandName: String,
+    val naverMakerName: String,
 ) {
-    var title: String = title
-        private set
+    private fun copy(
+        title: String = this.title,
+        slug: String = this.slug,
+        thumbnail: String = this.thumbnail,
+        description: String = this.description,
+        description1: String = this.description1,
+        discountRate: BigDecimal = this.discountRate,
+        pg: Boolean = this.pg,
+        pgDiscountRate: BigDecimal = this.pgDiscountRate,
+        naverSearchTag: String = this.naverSearchTag,
+        naverBrandName: String = this.naverBrandName,
+        naverMakerName: String = this.naverMakerName
+    ): Category = Category(
+        id = this.id,
+        created = this.created,
+        modified = this.modified,
+        storeId = this.storeId,
+        title = title,
+        slug = slug,
+        thumbnail = thumbnail,
+        description = description,
+        description1 = description1,
+        discountRate = discountRate,
+        pg = pg,
+        pgDiscountRate = pgDiscountRate,
+        naverSearchTag = naverSearchTag,
+        naverBrandName = naverBrandName,
+        naverMakerName = naverMakerName
+    )
 
-    var slug: String = slug
-        private set
+    fun changeBasicInfo(
+        newTitle: String? = null,
+        newSlug: String? = null
+    ): Category = copy(
+        title = newTitle ?: title,
+        slug = newSlug ?: slug
+    )
 
-    var thumbnail: String = thumbnail
-        private set
+    fun changeDescriptions(
+        newThumbnail: String? = null,
+        newDescription: String? = null,
+        newDescription1: String? = null
+    ): Category = copy(
+        thumbnail = newThumbnail ?: thumbnail,
+        description = newDescription ?: description,
+        description1 = newDescription1 ?: description1
+    )
 
-    var description: String = description
-        private set
+    fun changePriceInfo(
+        newDiscountRate: BigDecimal? = null,
+        newPgDiscountRate: BigDecimal? = null
+    ): Category = copy(
+        discountRate = newDiscountRate ?: discountRate,
+        pgDiscountRate = newPgDiscountRate ?: pgDiscountRate
+    )
 
-    var description1: String = description1
-        private set
+    fun changePgStatus(newPg: Boolean? = null): Category = copy(
+        pg = newPg ?: pg
+    )
 
-    var discountRate: BigDecimal = discountRate
-        private set
-
-    var pg: Boolean = pg
-        private set
-
-    var pgDiscountRate: BigDecimal = pgDiscountRate
-        private set
-
-    var naverSearchTag: String = naverSearchTag
-        private set
-
-    var naverBrandName: String = naverBrandName
-        private set
-
-    var naverMakerName: String = naverMakerName
-        private set
+    fun changeNaverInfo(
+        newNaverSearchTag: String? = null,
+        newNaverBrandName: String? = null,
+        newNaverMakerName: String? = null
+    ): Category = copy(
+        naverSearchTag = newNaverSearchTag ?: naverSearchTag,
+        naverBrandName = newNaverBrandName ?: naverBrandName,
+        naverMakerName = newNaverMakerName ?: naverMakerName
+    )
 
     companion object {
         fun of(

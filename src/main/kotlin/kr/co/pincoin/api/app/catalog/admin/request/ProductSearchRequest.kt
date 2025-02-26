@@ -1,10 +1,10 @@
-package kr.co.pincoin.api.infra.catalog.repository.criteria
+package kr.co.pincoin.api.app.catalog.admin.request
 
 import kr.co.pincoin.api.domain.catalog.enums.ProductStatus
 import kr.co.pincoin.api.domain.catalog.enums.ProductStock
 import java.math.BigDecimal
 
-data class ProductSearchCriteria(
+data class ProductSearchRequest(
     // 상품 필드
     val name: String? = null,
     val subtitle: String? = null,

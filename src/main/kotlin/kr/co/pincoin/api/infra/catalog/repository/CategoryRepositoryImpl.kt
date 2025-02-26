@@ -6,5 +6,6 @@ import org.springframework.stereotype.Repository
 @Repository
 class CategoryRepositoryImpl(
     private val jpaRepository: CategoryJpaRepository,
+    private val queryRepository: CategoryQueryRepository,
 ) : CategoryRepository {
 }

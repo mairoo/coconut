@@ -6,5 +6,6 @@ import org.springframework.stereotype.Repository
 @Repository
 class ProfileRepositoryImpl(
     private val jpaRepository: ProfileJpaRepository,
+    private val queryRepository: ProfileQueryRepository,
 ) : ProfileRepository {
 }

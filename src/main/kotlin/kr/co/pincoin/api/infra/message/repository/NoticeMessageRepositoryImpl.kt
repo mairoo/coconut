@@ -6,5 +6,6 @@ import org.springframework.stereotype.Repository
 @Repository
 class NoticeMessageRepositoryImpl(
     private val jpaRepository: NoticeMessageJpaRepository,
+    private val queryRepository: NoticeMessageQueryRepository,
 ) : NoticessMessageRepository {
 }

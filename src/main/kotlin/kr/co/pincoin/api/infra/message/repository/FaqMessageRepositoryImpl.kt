@@ -6,5 +6,6 @@ import org.springframework.stereotype.Repository
 @Repository
 class FaqMessageRepositoryImpl(
     private val jpaRepository: FaqMessageJpaRepository,
+    private val queryRepository: FaqMessageQueryRepository,
 ) : FaqMessageRepository {
 }

@@ -6,5 +6,6 @@ import org.springframework.stereotype.Repository
 @Repository
 class CustomerQuestionAnswerRepositoryImpl(
     private val jpaRepository: CustomerQuestionAnswerJpaRepository,
+    private val queryRepository: CustomerQuestionAnswerQueryRepository,
 ) : CustomerQuestionAnswerRepository {
 }

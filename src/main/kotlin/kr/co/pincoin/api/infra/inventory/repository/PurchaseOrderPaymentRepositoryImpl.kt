@@ -6,5 +6,6 @@ import org.springframework.stereotype.Repository
 @Repository
 class PurchaseOrderPaymentRepositoryImpl(
     private val jpaRepository: PurchaseOrderPaymentJpaRepository,
+    private val queryRepository: PurchaseOrderPaymentQueryRepository,
 ) : PurchaseOrderPaymentRepository {
 }

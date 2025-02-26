@@ -1,13 +1,13 @@
 package kr.co.pincoin.api.domain.inventory.model
 
 import kr.co.pincoin.api.domain.inventory.enums.VoucherStatus
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 class Voucher private constructor(
     // 1. 공통 불변 필드
     val id: Long? = null,
-    val created: LocalDateTime? = null,
-    val modified: LocalDateTime? = null,
+    val created: ZonedDateTime? = null,
+    val modified: ZonedDateTime? = null,
 
     // 2. 공통 가변 필드
     isRemoved: Boolean? = null,
@@ -38,8 +38,8 @@ class Voucher private constructor(
     companion object {
         fun of(
             id: Long? = null,
-            created: LocalDateTime? = null,
-            modified: LocalDateTime? = null,
+            created: ZonedDateTime? = null,
+            modified: ZonedDateTime? = null,
             isRemoved: Boolean? = null,
             code: String,
             remarks: String,

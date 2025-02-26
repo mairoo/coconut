@@ -7,7 +7,7 @@ import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Repository
 import java.sql.PreparedStatement
 import java.sql.Timestamp
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 @Repository
 class VoucherJdbcRepository(
@@ -16,7 +16,7 @@ class VoucherJdbcRepository(
     private val statusConverter = VoucherStatusConverter()
 
     fun batchInsert(vouchers: List<Voucher>) {
-        val now = LocalDateTime.now()
+        val now = ZonedDateTime.now()
 
         jdbcTemplate.batchUpdate(
             """
@@ -34,8 +34,8 @@ class VoucherJdbcRepository(
                     val voucher = vouchers[i]
                     with(ps) {
                         var idx = 1
-                        setTimestamp(idx++, Timestamp.valueOf(now))
-                        setTimestamp(idx++, Timestamp.valueOf(now))
+                        setTimestamp(idx++, Timestamp.valueOf(now.toLocalDateTime()))
+                        setTimestamp(idx++, Timestamp.valueOf(now.toLocalDateTime()))
                         setBoolean(idx++, voucher.isRemoved)
                         setString(idx++, voucher.code)
                         setString(idx++, voucher.remarks)
@@ -49,7 +49,7 @@ class VoucherJdbcRepository(
     }
 
     fun batchUpdate(vouchers: List<Voucher>) {
-        val now = LocalDateTime.now()
+        val now = ZonedDateTime.now()
 
         jdbcTemplate.batchUpdate(
             """
@@ -65,7 +65,7 @@ class VoucherJdbcRepository(
                     val voucher = vouchers[i]
                     with(ps) {
                         var idx = 1
-                        setTimestamp(idx++, Timestamp.valueOf(now))
+                        setTimestamp(idx++, Timestamp.valueOf(now.toLocalDateTime()))
                         setBoolean(idx++, voucher.isRemoved)
                         setString(idx++, voucher.code)
                         setString(idx++, voucher.remarks)

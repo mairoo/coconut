@@ -6,7 +6,7 @@ import kr.co.pincoin.api.infra.common.jpa.DateTimeFields
 import kr.co.pincoin.api.infra.common.jpa.RemovalFields
 import kr.co.pincoin.api.infra.order.converter.PaymentBankAccountConverter
 import java.math.BigDecimal
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 @Entity
 @Table(name = "shop_orderpayment")
@@ -30,7 +30,7 @@ class OrderPaymentEntity private constructor(
     val balance: BigDecimal = BigDecimal.ZERO,
 
     @Column(name = "received")
-    val received: LocalDateTime,
+    val received: ZonedDateTime,
 
     @Embedded
     val dateTimeFields: DateTimeFields = DateTimeFields(),
@@ -46,7 +46,7 @@ class OrderPaymentEntity private constructor(
             account: PaymentBankAccount = PaymentBankAccount.KB,
             amount: BigDecimal,
             balance: BigDecimal = BigDecimal.ZERO,
-            received: LocalDateTime,
+            received: ZonedDateTime,
         ) = OrderPaymentEntity(
             id = id,
             removalFields = RemovalFields().apply {

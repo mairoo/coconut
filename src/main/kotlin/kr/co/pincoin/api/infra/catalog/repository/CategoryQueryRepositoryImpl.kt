@@ -51,25 +51,23 @@ class CategoryQueryRepositoryImpl(
     private fun <T> executePageQuery(
         criteria: CategorySearchCriteria,
         pageable: Pageable,
-        selectClause: (JPAQuery<CategoryEntity>) -> JPAQuery<T>
+        selectClause: (JPAQuery<*>) -> JPAQuery<T>
     ): Page<T> {
         val whereConditions = getCommonWhereConditions(criteria)
 
-        val baseQuery = queryFactory
-            .selectFrom(category)
+        fun createBaseQuery() = queryFactory
+            .from(category)
             .where(*whereConditions)
 
-        val results = selectClause(baseQuery)
+        val results = selectClause(createBaseQuery())
             .offset(pageable.offset)
             .limit(pageable.pageSize.toLong())
             .orderBy(category.id.desc())
             .fetch()
 
         val countQuery = {
-            queryFactory
+            createBaseQuery()
                 .select(category.count())
-                .from(category)
-                .where(*whereConditions)
                 .fetchOne() ?: 0L
         }
 

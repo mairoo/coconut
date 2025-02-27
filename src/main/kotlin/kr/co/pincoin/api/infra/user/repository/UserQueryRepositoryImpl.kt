@@ -40,11 +40,7 @@ class UserQueryRepositoryImpl(
 
         return queryFactory
             .selectFrom(user)
-            .where(
-                eqUsername(criteria.username),
-                eqUserEmail(criteria.email),
-                eqUserIsActive(criteria.isActive),
-            )
+            .where(*getCommonWhereConditions(criteria))
             .fetchOne()
     }
 
@@ -69,15 +65,15 @@ class UserQueryRepositoryImpl(
     private fun <T> executePageQuery(
         criteria: UserSearchCriteria,
         pageable: Pageable,
-        selectClause: (JPAQuery<UserEntity>) -> JPAQuery<T>
+        selectClause: (JPAQuery<*>) -> JPAQuery<T>
     ): Page<T> {
         val whereConditions = getCommonWhereConditions(criteria)
 
-        val baseQuery = queryFactory
-            .selectFrom(user)
+        fun createBaseQuery() = queryFactory
+            .from(user)
             .where(*whereConditions)
 
-        val results = selectClause(baseQuery)
+        val results = selectClause(createBaseQuery())
             .offset(pageable.offset)
             .limit(pageable.pageSize.toLong())
             .orderBy(user.id.desc())

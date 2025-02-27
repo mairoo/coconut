@@ -52,11 +52,9 @@ class ProductQueryRepositoryImpl(
         pageable: Pageable,
     ): Page<ProductProjection> = executePageQuery(
         criteria,
-        pageable,
+        pageable
     ) { baseQuery ->
-        baseQuery
-            .join(category).on(product.categoryId.eq(category.id))
-            .select(createProductProjection())
+        baseQuery.select(createProductProjection()) // lazy select projection
     }
 
     private fun createProductProjection() =
@@ -92,23 +90,30 @@ class ProductQueryRepositoryImpl(
         pageable: Pageable,
         selectClause: (JPAQuery<*>) -> JPAQuery<T>
     ): Page<T> {
-        val baseQuery = queryFactory
-            .from(product)
-            .where(*getCommonWhereConditions(criteria))
+        val whereConditions = getCommonWhereConditions(criteria)
 
-        val query = selectClause(baseQuery)
+        fun createBaseQuery() = queryFactory
+            .from(product)
+            .join(category).on(product.categoryId.eq(category.id))
+            .where(*whereConditions)
+
+        val results = selectClause(createBaseQuery())
             .offset(pageable.offset)
             .limit(pageable.pageSize.toLong())
-            .orderBy(product.position.asc(), product.id.desc())
+            .orderBy(product.id.desc())
+            .fetch()
 
-        val results = query.fetch()
+        val countQuery = {
+            createBaseQuery()
+                .select(product.count())
+                .fetchOne() ?: 0L
+        }
 
         return PageableExecutionUtils.getPage(
             results,
-            pageable
-        ) {
-            baseQuery.select(product.count()).fetchOne() ?: 0L
-        }
+            pageable,
+            countQuery
+        )
     }
 
     private fun getCommonWhereConditions(

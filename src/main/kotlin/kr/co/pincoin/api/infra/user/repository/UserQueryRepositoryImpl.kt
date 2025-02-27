@@ -69,25 +69,33 @@ class UserQueryRepositoryImpl(
     private fun <T> executePageQuery(
         criteria: UserSearchCriteria,
         pageable: Pageable,
-        selectClause: (JPAQuery<*>) -> JPAQuery<T>
+        selectClause: (JPAQuery<UserEntity>) -> JPAQuery<T>
     ): Page<T> {
-        val baseQuery = queryFactory
-            .from(user)
-            .where(*getCommonWhereConditions(criteria))
+        val whereConditions = getCommonWhereConditions(criteria)
 
-        val query = selectClause(baseQuery)
+        val baseQuery = queryFactory
+            .selectFrom(user)
+            .where(*whereConditions)
+
+        val results = selectClause(baseQuery)
             .offset(pageable.offset)
             .limit(pageable.pageSize.toLong())
             .orderBy(user.id.desc())
+            .fetch()
 
-        val results = query.fetch()
+        val countQuery = {
+            queryFactory
+                .select(user.count())
+                .from(user)
+                .where(*whereConditions)
+                .fetchOne() ?: 0L
+        }
 
         return PageableExecutionUtils.getPage(
             results,
-            pageable
-        ) {
-            baseQuery.select(user.count()).fetchOne() ?: 0L
-        }
+            pageable,
+            countQuery
+        )
     }
 
     private fun getCommonWhereConditions(

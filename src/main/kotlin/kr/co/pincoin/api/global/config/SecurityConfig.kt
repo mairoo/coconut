@@ -1,6 +1,7 @@
 package kr.co.pincoin.api.global.config
 
 import kr.co.pincoin.api.global.properties.CorsProperties
+import kr.co.pincoin.api.global.security.encoder.DjangoPasswordEncoder
 import kr.co.pincoin.api.global.security.filter.JwtAuthenticationFilter
 import kr.co.pincoin.api.global.security.handler.ApiAuthenticationEntryPoint
 import org.springframework.context.annotation.Bean
@@ -9,7 +10,6 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.access.AccessDeniedHandler
@@ -94,5 +94,5 @@ class SecurityConfig(
     }
 
     @Bean
-    fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
+    fun passwordEncoder(): PasswordEncoder = DjangoPasswordEncoder()
 }

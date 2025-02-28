@@ -156,7 +156,7 @@ class AdminCategoryController(
      * @param request 카테고리 네이버 정보 수정 요청
      * @return 수정된 카테고리 정보 응답
      */
-    @PatchMapping("/{id}/naver-info")
+    @PatchMapping("/{id}/naver-ad")
     fun updateNaverInfo(
         @PathVariable id: Long,
         @RequestBody @Valid request: CategoryNaverInfoUpdateRequest,

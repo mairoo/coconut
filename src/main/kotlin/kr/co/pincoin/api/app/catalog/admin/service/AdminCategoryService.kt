@@ -80,11 +80,11 @@ class AdminCategoryService(
     ): Category =
         categoryService.updateDescriptions(id, request)
 
-    fun updatePriceInfo(
+    fun updateDiscountRate(
         id: Long,
-        request: CategoryPriceUpdateRequest,
+        request: CategoryDiscountRateUpdateRequest,
     ): Category =
-        categoryService.updatePriceInfo(id, request)
+        categoryService.updateDiscountRate(id, request)
 
     fun updatePgStatus(
         id: Long,

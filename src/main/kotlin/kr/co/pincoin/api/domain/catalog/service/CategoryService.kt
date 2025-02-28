@@ -91,12 +91,12 @@ class CategoryService(
             ?: throw BusinessException(CatalogErrorCode.CATEGORY_NOT_FOUND)
 
     @Transactional
-    fun updatePriceInfo(
+    fun updateDiscountRate(
         id: Long,
-        request: CategoryPriceUpdateRequest,
+        request: CategoryDiscountRateUpdateRequest,
     ): Category =
         categoryRepository.findCategory(id, CategorySearchCriteria())
-            ?.updatePriceInfo(
+            ?.updateDiscountRate(
                 newDiscountRate = request.discountRate,
                 newPgDiscountRate = request.pgDiscountRate,
             )

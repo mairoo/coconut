@@ -43,7 +43,7 @@ class Category private constructor(
         newThumbnail: String,
     ): Category = copy(thumbnail = newThumbnail)
 
-    fun updatePriceInfo(
+    fun updateDiscountRate(
         newDiscountRate: BigDecimal? = null,
         newPgDiscountRate: BigDecimal? = null
     ): Category = copy(

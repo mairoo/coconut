@@ -88,7 +88,7 @@ class AdminCategoryController(
      * @param request 카테고리 기본 정보 수정 요청
      * @return 수정된 카테고리 정보 응답
      */
-    @PutMapping("/{id}/basic-info")
+    @PatchMapping("/{id}")
     fun updateBasicInfo(
         @PathVariable id: Long,
         @RequestBody @Valid request: CategoryBasicInfoUpdateRequest,
@@ -105,7 +105,7 @@ class AdminCategoryController(
      * @param request 카테고리 설명 수정 요청
      * @return 수정된 카테고리 정보 응답
      */
-    @PutMapping("/{id}/descriptions")
+    @PatchMapping("/{id}/descriptions")
     fun updateDescriptions(
         @PathVariable id: Long,
         @RequestBody @Valid request: CategoryDescriptionUpdateRequest,
@@ -122,12 +122,12 @@ class AdminCategoryController(
      * @param request 카테고리 가격 정보 수정 요청
      * @return 수정된 카테고리 정보 응답
      */
-    @PutMapping("/{id}/price-info")
+    @PatchMapping("/{id}/discount-rate")
     fun updatePriceInfo(
         @PathVariable id: Long,
-        @RequestBody @Valid request: CategoryPriceUpdateRequest,
+        @RequestBody @Valid request: CategoryDiscountRateUpdateRequest,
     ): ResponseEntity<ApiResponse<CategoryResponse>> =
-        adminCategoryService.updatePriceInfo(id, request)
+        adminCategoryService.updateDiscountRate(id, request)
             .let { CategoryResponse.from(it) }
             .let { ApiResponse.of(it) }
             .let { ResponseEntity.ok(it) }
@@ -139,7 +139,7 @@ class AdminCategoryController(
      * @param request 카테고리 PG 상태 수정 요청
      * @return 수정된 카테고리 정보 응답
      */
-    @PutMapping("/{id}/pg-status")
+    @PatchMapping("/{id}/pg-status")
     fun updatePgStatus(
         @PathVariable id: Long,
         @RequestBody @Valid request: CategoryPgStatusUpdateRequest,
@@ -156,7 +156,7 @@ class AdminCategoryController(
      * @param request 카테고리 네이버 정보 수정 요청
      * @return 수정된 카테고리 정보 응답
      */
-    @PutMapping("/{id}/naver-info")
+    @PatchMapping("/{id}/naver-info")
     fun updateNaverInfo(
         @PathVariable id: Long,
         @RequestBody @Valid request: CategoryNaverInfoUpdateRequest,

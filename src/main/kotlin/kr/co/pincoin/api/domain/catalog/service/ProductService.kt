@@ -1,9 +1,12 @@
 package kr.co.pincoin.api.domain.catalog.service
 
+import kr.co.pincoin.api.app.catalog.admin.request.ProductCreateRequest
+import kr.co.pincoin.api.domain.catalog.enums.ProductStatus
+import kr.co.pincoin.api.domain.catalog.enums.ProductStock
 import kr.co.pincoin.api.domain.catalog.model.Product
 import kr.co.pincoin.api.domain.catalog.repository.ProductRepository
 import kr.co.pincoin.api.infra.catalog.repository.criteria.ProductSearchCriteria
-import kr.co.pincoin.api.infra.catalog.repository.projection.ProductProjection
+import kr.co.pincoin.api.infra.catalog.repository.projection.ProductCategoryProjection
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
@@ -15,8 +18,35 @@ class ProductService(
     private val productRepository: ProductRepository
 ) {
     @Transactional
-    fun createProduct(product: Product): Product =
-        productRepository.save(product)
+    fun createProduct(
+        request: ProductCreateRequest,
+    ): Product {
+        val product = Product.of(
+            storeId = 1L,
+            categoryId = request.categoryId,
+            name = request.name,
+            subtitle = request.subtitle,
+            code = request.code,
+            listPrice = request.listPrice,
+            sellingPrice = request.sellingPrice,
+            pg = request.pg,
+            pgSellingPrice = request.pgSellingPrice,
+            description = request.description,
+            position = request.position,
+            status = ProductStatus.ENABLED,
+            stockQuantity = 0,
+            stock = ProductStock.IN_STOCK,
+            minimumStockLevel = request.minimumStockLevel,
+            maximumStockLevel = request.maximumStockLevel,
+            reviewCount = 0,
+            reviewCountPg = 0,
+            naverPartner = request.naverPartner,
+            naverPartnerTitle = request.naverPartnerTitle,
+            naverPartnerTitlePg = request.naverPartnerTitlePg,
+            naverAttribute = request.naverAttribute,
+        )
+        return productRepository.save(product)
+    }
 
     @Transactional
     fun updateProduct(product: Product): Product =
@@ -25,23 +55,23 @@ class ProductService(
     fun getProduct(
         id: Long,
         criteria: ProductSearchCriteria
-    ): ProductProjection? =
+    ): ProductCategoryProjection? =
         productRepository.findProduct(id, criteria)
 
     fun getProduct(
         code: String,
         criteria: ProductSearchCriteria,
-    ): ProductProjection? =
+    ): ProductCategoryProjection? =
         productRepository.findProduct(code, criteria)
 
     fun getProducts(
         criteria: ProductSearchCriteria,
-    ): List<ProductProjection> =
+    ): List<ProductCategoryProjection> =
         productRepository.findProducts(criteria)
 
     fun getProducts(
         criteria: ProductSearchCriteria,
         pageable: Pageable,
-    ): Page<ProductProjection> =
+    ): Page<ProductCategoryProjection> =
         productRepository.findProducts(criteria, pageable)
 }

@@ -6,7 +6,7 @@ import kr.co.pincoin.api.domain.catalog.enums.ProductStock
 import java.math.BigDecimal
 import java.time.ZonedDateTime
 
-data class ProductProjection @QueryProjection constructor(
+data class ProductCategoryProjection @QueryProjection constructor(
     // Product 정보
     val id: Long?,
     val created: ZonedDateTime,

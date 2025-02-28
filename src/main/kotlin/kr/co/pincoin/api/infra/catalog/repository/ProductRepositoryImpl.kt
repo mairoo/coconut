@@ -5,7 +5,7 @@ import kr.co.pincoin.api.domain.catalog.repository.ProductRepository
 import kr.co.pincoin.api.infra.catalog.mapper.toEntity
 import kr.co.pincoin.api.infra.catalog.mapper.toModel
 import kr.co.pincoin.api.infra.catalog.repository.criteria.ProductSearchCriteria
-import kr.co.pincoin.api.infra.catalog.repository.projection.ProductProjection
+import kr.co.pincoin.api.infra.catalog.repository.projection.ProductCategoryProjection
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
@@ -26,23 +26,23 @@ class ProductRepositoryImpl(
     override fun findProduct(
         id: Long,
         criteria: ProductSearchCriteria,
-    ): ProductProjection? =
+    ): ProductCategoryProjection? =
         queryRepository.findProduct(id, criteria)
 
     override fun findProduct(
         code: String,
         criteria: ProductSearchCriteria,
-    ): ProductProjection? =
+    ): ProductCategoryProjection? =
         queryRepository.findProduct(code, criteria)
 
     override fun findProducts(
         criteria: ProductSearchCriteria,
-    ): List<ProductProjection> =
+    ): List<ProductCategoryProjection> =
         queryRepository.findProducts(criteria)
 
     override fun findProducts(
         criteria: ProductSearchCriteria,
         pageable: Pageable,
-    ): Page<ProductProjection> =
+    ): Page<ProductCategoryProjection> =
         queryRepository.findProducts(criteria, pageable)
 }

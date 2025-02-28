@@ -1,5 +1,6 @@
 package kr.co.pincoin.api.domain.catalog.service
 
+import kr.co.pincoin.api.app.catalog.admin.request.CategoryCreateRequest
 import kr.co.pincoin.api.domain.catalog.model.Category
 import kr.co.pincoin.api.domain.catalog.repository.CategoryRepository
 import kr.co.pincoin.api.infra.catalog.repository.criteria.CategorySearchCriteria
@@ -14,8 +15,25 @@ class CategoryService(
     private val categoryRepository: CategoryRepository
 ) {
     @Transactional
-    fun createCategory(category: Category): Category =
-        categoryRepository.save(category)
+    fun createCategory(
+        request: CategoryCreateRequest,
+    ): Category {
+        val category = Category.of(
+            title = request.title,
+            slug = request.slug,
+            storeId = 1L,
+            thumbnail = request.thumbnail,
+            description = request.description,
+            description1 = request.description1,
+            discountRate = request.discountRate,
+            pg = request.pg,
+            pgDiscountRate = request.pgDiscountRate,
+            naverSearchTag = request.naverSearchTag,
+            naverBrandName = request.naverBrandName,
+            naverMakerName = request.naverMakerName,
+        )
+        return categoryRepository.save(category)
+    }
 
     @Transactional
     fun updateCategory(category: Category): Category =

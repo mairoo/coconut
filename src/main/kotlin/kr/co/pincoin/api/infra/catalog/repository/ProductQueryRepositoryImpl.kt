@@ -8,8 +8,8 @@ import kr.co.pincoin.api.domain.catalog.enums.ProductStock
 import kr.co.pincoin.api.infra.catalog.entity.QCategoryEntity
 import kr.co.pincoin.api.infra.catalog.entity.QProductEntity
 import kr.co.pincoin.api.infra.catalog.repository.criteria.ProductSearchCriteria
-import kr.co.pincoin.api.infra.catalog.repository.projection.ProductProjection
-import kr.co.pincoin.api.infra.catalog.repository.projection.QProductProjection
+import kr.co.pincoin.api.infra.catalog.repository.projection.ProductCategoryProjection
+import kr.co.pincoin.api.infra.catalog.repository.projection.QProductCategoryProjection
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.support.PageableExecutionUtils
@@ -25,7 +25,7 @@ class ProductQueryRepositoryImpl(
     override fun findProduct(
         id: Long,
         criteria: ProductSearchCriteria,
-    ): ProductProjection? =
+    ): ProductCategoryProjection? =
         queryFactory
             .select(createProductProjection())
             .from(product)
@@ -39,15 +39,17 @@ class ProductQueryRepositoryImpl(
     override fun findProduct(
         code: String,
         criteria: ProductSearchCriteria,
-    ): ProductProjection? = queryFactory.select(createProductProjection())
-        .from(product)
-        .join(category).on(product.categoryId.eq(category.id))
-        .where(*getCommonWhereConditions(criteria.copy(code = code)))
-        .fetchOne()
+    ): ProductCategoryProjection? =
+        queryFactory
+            .select(createProductProjection())
+            .from(product)
+            .join(category).on(product.categoryId.eq(category.id))
+            .where(*getCommonWhereConditions(criteria.copy(code = code)))
+            .fetchOne()
 
     override fun findProducts(
         criteria: ProductSearchCriteria,
-    ): List<ProductProjection> =
+    ): List<ProductCategoryProjection> =
         queryFactory
             .select(createProductProjection())
             .from(product)
@@ -59,7 +61,7 @@ class ProductQueryRepositoryImpl(
     override fun findProducts(
         criteria: ProductSearchCriteria,
         pageable: Pageable,
-    ): Page<ProductProjection> = executePageQuery(
+    ): Page<ProductCategoryProjection> = executePageQuery(
         criteria,
         pageable
     ) { baseQuery ->
@@ -67,7 +69,7 @@ class ProductQueryRepositoryImpl(
     }
 
     private fun createProductProjection() =
-        QProductProjection(
+        QProductCategoryProjection(
             product.id,
             product.dateTimeFields.created,
             product.dateTimeFields.modified,

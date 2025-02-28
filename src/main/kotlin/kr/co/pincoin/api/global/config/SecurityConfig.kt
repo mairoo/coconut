@@ -65,6 +65,8 @@ class SecurityConfig(
                 .requestMatchers(
                     "/auth/**",
                     "/oauth2/**",
+                    "/categories/**",
+                    "/products/**",
                 ).permitAll()
                 .anyRequest().authenticated()
         }

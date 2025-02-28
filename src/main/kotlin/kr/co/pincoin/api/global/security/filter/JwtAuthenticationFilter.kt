@@ -141,11 +141,8 @@ class JwtAuthenticationFilter(
         private val publicMatchers = listOf(
             AntPathRequestMatcher("/auth/**"),
             AntPathRequestMatcher("/oauth2/**"),
-            AntPathRequestMatcher("/api/**"),
-            // Swagger UI v3 (OpenAPI)
-            AntPathRequestMatcher("/v3/api-docs/**"),
-            AntPathRequestMatcher("/swagger-ui/**"),
-            AntPathRequestMatcher("/swagger-ui.html"),
+            AntPathRequestMatcher("/categories/**"),
+            AntPathRequestMatcher("/products/**"),
         )
     }
 }

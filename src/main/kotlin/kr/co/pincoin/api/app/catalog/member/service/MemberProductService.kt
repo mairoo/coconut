@@ -4,6 +4,8 @@ import kr.co.pincoin.api.app.catalog.member.request.ProductSearchRequest
 import kr.co.pincoin.api.domain.catalog.enums.ProductStatus
 import kr.co.pincoin.api.domain.catalog.enums.ProductStock
 import kr.co.pincoin.api.domain.catalog.service.ProductService
+import kr.co.pincoin.api.global.exception.BusinessException
+import kr.co.pincoin.api.global.exception.code.CatalogErrorCode
 import kr.co.pincoin.api.infra.catalog.repository.criteria.ProductSearchCriteria
 import kr.co.pincoin.api.infra.catalog.repository.projection.ProductCategoryProjection
 import org.springframework.data.domain.Page
@@ -32,7 +34,7 @@ class MemberProductService(
                 categorySlug = request.categorySlug,
                 categoryPg = request.categoryPg
             )
-        ) ?: throw IllegalArgumentException("Product with id $id not found")
+        ) ?: throw BusinessException(CatalogErrorCode.PRODUCT_NOT_FOUND)
 
     fun getProduct(
         code: String,
@@ -52,7 +54,7 @@ class MemberProductService(
                 categorySlug = request.categorySlug,
                 categoryPg = request.categoryPg
             )
-        ) ?: throw IllegalArgumentException("Product with code $code not found")
+        ) ?: throw BusinessException(CatalogErrorCode.PRODUCT_NOT_FOUND)
 
     fun getProducts(
         request: ProductSearchRequest,

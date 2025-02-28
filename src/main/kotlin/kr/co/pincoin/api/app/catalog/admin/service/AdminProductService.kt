@@ -4,13 +4,14 @@ import kr.co.pincoin.api.app.catalog.admin.request.ProductCreateRequest
 import kr.co.pincoin.api.app.catalog.admin.request.ProductSearchRequest
 import kr.co.pincoin.api.domain.catalog.model.Product
 import kr.co.pincoin.api.domain.catalog.service.ProductService
+import kr.co.pincoin.api.global.exception.BusinessException
+import kr.co.pincoin.api.global.exception.code.CatalogErrorCode
 import kr.co.pincoin.api.infra.catalog.repository.criteria.ProductSearchCriteria
 import kr.co.pincoin.api.infra.catalog.repository.projection.ProductCategoryProjection
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Service
-import java.lang.IllegalArgumentException
 
 @Service
 @PreAuthorize("hasRole('ADMIN')")
@@ -41,7 +42,7 @@ class AdminProductService(
                 categorySlug = request.categorySlug,
                 categoryPg = request.categoryPg
             )
-        ) ?: throw IllegalArgumentException("Product with id $id not found")
+        ) ?: throw BusinessException(CatalogErrorCode.PRODUCT_NOT_FOUND)
 
     fun getProduct(
         code: String,
@@ -62,7 +63,7 @@ class AdminProductService(
                 categorySlug = request.categorySlug,
                 categoryPg = request.categoryPg
             )
-        ) ?: throw IllegalArgumentException("$code not found")
+        ) ?: throw BusinessException(CatalogErrorCode.PRODUCT_NOT_FOUND)
 
     fun getProducts(
         request: ProductSearchRequest,

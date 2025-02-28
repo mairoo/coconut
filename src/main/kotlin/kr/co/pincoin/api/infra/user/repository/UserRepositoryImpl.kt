@@ -2,6 +2,8 @@ package kr.co.pincoin.api.infra.user.repository
 
 import kr.co.pincoin.api.domain.user.model.User
 import kr.co.pincoin.api.domain.user.repository.UserRepository
+import kr.co.pincoin.api.global.exception.BusinessException
+import kr.co.pincoin.api.global.exception.code.UserErrorCode
 import kr.co.pincoin.api.infra.user.mapper.toEntity
 import kr.co.pincoin.api.infra.user.mapper.toModel
 import kr.co.pincoin.api.infra.user.mapper.toModelList
@@ -21,7 +23,7 @@ class UserRepositoryImpl(
         user.toEntity()
             ?.let { jpaRepository.save(it) }
             ?.toModel()
-            ?: throw IllegalArgumentException("사용자 저장 실패")
+            ?: throw BusinessException(UserErrorCode.SAVE_FAILED)
 
     override fun findUser(
         id: Int,

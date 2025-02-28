@@ -3,11 +3,12 @@ package kr.co.pincoin.api.app.catalog.member.service
 import kr.co.pincoin.api.app.catalog.member.request.CategorySearchRequest
 import kr.co.pincoin.api.domain.catalog.model.Category
 import kr.co.pincoin.api.domain.catalog.service.CategoryService
+import kr.co.pincoin.api.global.exception.BusinessException
+import kr.co.pincoin.api.global.exception.code.CatalogErrorCode
 import kr.co.pincoin.api.infra.catalog.repository.criteria.CategorySearchCriteria
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
-import java.lang.IllegalArgumentException
 
 @Service
 class MemberCategoryService(
@@ -23,7 +24,7 @@ class MemberCategoryService(
                 slug = request.categorySlug,
                 pg = request.categoryPg
             )
-        ) ?: throw IllegalArgumentException("Category not found")
+        ) ?: throw BusinessException(CatalogErrorCode.CATEGORY_NOT_FOUND)
 
     fun getCategory(
         slug: String,
@@ -35,7 +36,7 @@ class MemberCategoryService(
                 slug = request.categorySlug,
                 pg = request.categoryPg
             )
-        ) ?: throw IllegalArgumentException("Category not found")
+        ) ?: throw BusinessException(CatalogErrorCode.CATEGORY_NOT_FOUND)
 
     fun getCategories(
         request: CategorySearchRequest,

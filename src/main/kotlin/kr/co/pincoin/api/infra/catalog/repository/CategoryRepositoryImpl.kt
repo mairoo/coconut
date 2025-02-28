@@ -2,6 +2,8 @@ package kr.co.pincoin.api.infra.catalog.repository
 
 import kr.co.pincoin.api.domain.catalog.model.Category
 import kr.co.pincoin.api.domain.catalog.repository.CategoryRepository
+import kr.co.pincoin.api.global.exception.BusinessException
+import kr.co.pincoin.api.global.exception.code.CatalogErrorCode
 import kr.co.pincoin.api.infra.catalog.mapper.toEntity
 import kr.co.pincoin.api.infra.catalog.mapper.toModel
 import kr.co.pincoin.api.infra.catalog.mapper.toModelList
@@ -21,7 +23,7 @@ class CategoryRepositoryImpl(
         category.toEntity()
             ?.let { jpaRepository.save(it) }
             ?.toModel()
-            ?: throw IllegalArgumentException("카테고리 저장 실패")
+            ?: throw BusinessException(CatalogErrorCode.CATEGORY_SAVE_FAILED)
 
     override fun findCategory(
         id: Long,

@@ -68,4 +68,9 @@ class AdminCategoryService(
                 pg = request.categoryPg
             ), pageable
         )
+
+    fun deleteCategory(
+        id: Long,
+    ): Unit =
+        categoryService.deleteById(id)
 }

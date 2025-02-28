@@ -47,4 +47,10 @@ class CategoryRepositoryImpl(
         pageable: Pageable,
     ): Page<Category> =
         queryRepository.findCategories(criteria, pageable).map { it.toModel() }
+
+    override fun deleteById(
+        id: Long,
+    ) {
+        jpaRepository.deleteById(id)
+    }
 }

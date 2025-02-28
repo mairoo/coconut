@@ -81,4 +81,12 @@ class AdminCategoryController(
             .let { CategoryResponse.from(it) }
             .let { ApiResponse.of(it) }
             .let { ResponseEntity.ok(it) }
+
+    @DeleteMapping("/{id}")
+    fun deleteCategory(
+        @PathVariable id: Long,
+    ): ResponseEntity<ApiResponse<Unit>> =
+        adminCategoryService.deleteCategory(id)
+            .let { ApiResponse.of(it) }
+            .let { ResponseEntity.ok(it) }
 }

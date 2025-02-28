@@ -60,4 +60,10 @@ class CategoryService(
         pageable: Pageable
     ): Page<Category> =
         categoryRepository.findCategories(criteria, pageable)
+
+    @Transactional
+    fun deleteById(
+        id: Long,
+    ): Unit =
+        categoryRepository.deleteById(id)
 }

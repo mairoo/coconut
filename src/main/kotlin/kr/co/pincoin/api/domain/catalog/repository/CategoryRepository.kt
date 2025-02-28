@@ -28,4 +28,8 @@ interface CategoryRepository {
         criteria: CategorySearchCriteria,
         pageable: Pageable,
     ): Page<Category>
+
+    fun deleteById(
+        id: Long,
+    ): Unit
 }

@@ -8,6 +8,7 @@ import kr.co.pincoin.api.domain.catalog.repository.ProductRepository
 import kr.co.pincoin.api.global.exception.BusinessException
 import kr.co.pincoin.api.global.exception.code.CatalogErrorCode
 import kr.co.pincoin.api.infra.catalog.repository.criteria.ProductSearchCriteria
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
@@ -21,8 +22,10 @@ class ProductService(
     @Transactional
     fun createProduct(
         request: ProductCreateRequest,
-    ): Product {
-        val product = Product.of(
+    ): Product =
+        try {
+            productRepository.save(
+                Product.of(
             categoryId = request.categoryId,
             name = request.name,
             subtitle = request.subtitle,
@@ -44,8 +47,10 @@ class ProductService(
             naverPartnerTitle = request.naverPartnerTitle,
             naverPartnerTitlePg = request.naverPartnerTitlePg,
             naverAttribute = request.naverAttribute,
-        )
-        return productRepository.save(product)
+                )
+            )
+        } catch (e: DataIntegrityViolationException) {
+            throw BusinessException(CatalogErrorCode.PRODUCT_ALREADY_EXISTS)
     }
 
     fun getProduct(

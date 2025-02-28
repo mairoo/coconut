@@ -6,6 +6,7 @@ import kr.co.pincoin.api.domain.catalog.repository.CategoryRepository
 import kr.co.pincoin.api.global.exception.BusinessException
 import kr.co.pincoin.api.global.exception.code.CatalogErrorCode
 import kr.co.pincoin.api.infra.catalog.repository.criteria.CategorySearchCriteria
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
@@ -19,21 +20,25 @@ class CategoryService(
     @Transactional
     fun createCategory(
         request: CategoryCreateRequest,
-    ): Category {
-        val category = Category.of(
-            title = request.title,
-            slug = request.slug,
-            thumbnail = request.thumbnail,
-            description = request.description,
-            description1 = request.description1,
-            discountRate = request.discountRate,
-            pg = request.pg,
-            pgDiscountRate = request.pgDiscountRate,
-            naverSearchTag = request.naverSearchTag,
-            naverBrandName = request.naverBrandName,
-            naverMakerName = request.naverMakerName,
-        )
-        return categoryRepository.save(category)
+    ): Category =
+        try {
+            categoryRepository.save(
+                Category.of(
+                    title = request.title,
+                    slug = request.slug,
+                    thumbnail = request.thumbnail,
+                    description = request.description,
+                    description1 = request.description1,
+                    discountRate = request.discountRate,
+                    pg = request.pg,
+                    pgDiscountRate = request.pgDiscountRate,
+                    naverSearchTag = request.naverSearchTag,
+                    naverBrandName = request.naverBrandName,
+                    naverMakerName = request.naverMakerName,
+                )
+            )
+        } catch (e: DataIntegrityViolationException) {
+            throw BusinessException(CatalogErrorCode.PRODUCT_ALREADY_EXISTS)
     }
 
     fun getCategory(

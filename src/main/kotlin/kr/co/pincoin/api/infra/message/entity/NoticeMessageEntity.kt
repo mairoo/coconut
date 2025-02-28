@@ -33,8 +33,9 @@ class NoticeMessageEntity private constructor(
     @Column(name = "owner_id")
     val ownerId: Int? = null,
 
+    // django 레거시 호환 문제
     @Column(name = "store_id")
-    val storeId: Long,
+    val storeId: Long = 1L,
 
     @Embedded
     val dateTimeFields: DateTimeFields = DateTimeFields(),
@@ -51,7 +52,6 @@ class NoticeMessageEntity private constructor(
             content: String,
             category: NoticeMessageCategory,
             ownerId: Int? = null,
-            storeId: Long
         ) = NoticeMessageEntity(
             id = id,
             title = title,
@@ -60,7 +60,6 @@ class NoticeMessageEntity private constructor(
             content = content,
             category = category,
             ownerId = ownerId,
-            storeId = storeId
         )
     }
 }

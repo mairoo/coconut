@@ -21,7 +21,6 @@ class CategoryService(
         val category = Category.of(
             title = request.title,
             slug = request.slug,
-            storeId = 1L,
             thumbnail = request.thumbnail,
             description = request.description,
             description1 = request.description1,

@@ -27,8 +27,9 @@ class TestimonialEntity private constructor(
     @Column(name = "owner_id")
     val ownerId: Int? = null,
 
+    // django 레거시 호환 문제
     @Column(name = "store_id")
-    val storeId: Long,
+    val storeId: Long = 1L,
 
     @Embedded
     val dateTimeFields: DateTimeFields = DateTimeFields(),
@@ -44,7 +45,6 @@ class TestimonialEntity private constructor(
             keywords: String,
             content: String,
             ownerId: Int? = null,
-            storeId: Long
         ) = TestimonialEntity(
             id = id,
             title = title,
@@ -52,7 +52,6 @@ class TestimonialEntity private constructor(
             keywords = keywords,
             content = content,
             ownerId = ownerId,
-            storeId = storeId
         )
     }
 }

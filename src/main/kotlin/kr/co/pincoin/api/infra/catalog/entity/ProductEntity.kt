@@ -41,9 +41,6 @@ class ProductEntity private constructor(
     @Column(name = "description")
     val description: String = "",
 
-    @Column(name = "store_id")
-    val storeId: Long,
-
     @Column(name = "category_id")
     val categoryId: Long,
 
@@ -85,6 +82,10 @@ class ProductEntity private constructor(
     @Column(name = "naver_attribute")
     val naverAttribute: String = "",
 
+    // django 레거시 호환 문제
+    @Column(name = "store_id")
+    val storeId: Long = 1L,
+
     @Embedded
     val dateTimeFields: DateTimeFields = DateTimeFields(),
 
@@ -103,7 +104,6 @@ class ProductEntity private constructor(
             pg: Boolean = false,
             pgSellingPrice: BigDecimal = BigDecimal.ZERO,
             description: String = "",
-            storeId: Long,
             categoryId: Long,
             position: Int,
             status: ProductStatus = ProductStatus.ENABLED,
@@ -130,7 +130,6 @@ class ProductEntity private constructor(
             pg = pg,
             pgSellingPrice = pgSellingPrice,
             description = description,
-            storeId = storeId,
             categoryId = categoryId,
             position = position,
             status = status,

@@ -36,8 +36,9 @@ class CustomerQuestionEntity private constructor(
     @Column(name = "owner_id")
     val ownerId: Int? = null,
 
+    // django 레거시 호환 문제
     @Column(name = "store_id")
-    val storeId: Long,
+    val storeId: Long = 1L,
 
     @Embedded
     val dateTimeFields: DateTimeFields = DateTimeFields(),
@@ -55,7 +56,6 @@ class CustomerQuestionEntity private constructor(
             category: CustomerQuestionCategory,
             orderId: Long? = null,
             ownerId: Int? = null,
-            storeId: Long
         ) = CustomerQuestionEntity(
             id = id,
             title = title,
@@ -65,7 +65,6 @@ class CustomerQuestionEntity private constructor(
             category = category,
             orderId = orderId,
             ownerId = ownerId,
-            storeId = storeId
         )
     }
 }

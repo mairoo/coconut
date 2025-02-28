@@ -15,7 +15,6 @@ class Product private constructor(
     val isRemoved: Boolean = false,
 
     // 3. 도메인 로직 불변 필드
-    val storeId: Long,
     val categoryId: Long,
 
     // 4. 도메인 로직 가변 필드
@@ -120,7 +119,6 @@ class Product private constructor(
         pg = pg,
         pgSellingPrice = pgSellingPrice,
         description = this.description,
-        storeId = this.storeId,
         categoryId = this.categoryId,
         position = this.position,
         status = status,
@@ -150,7 +148,6 @@ class Product private constructor(
             pg: Boolean = false,
             pgSellingPrice: BigDecimal = BigDecimal.ZERO,
             description: String = "",
-            storeId: Long,
             categoryId: Long,
             position: Int,
             status: ProductStatus = ProductStatus.ENABLED,
@@ -178,7 +175,6 @@ class Product private constructor(
                 pg = pg,
                 pgSellingPrice = pgSellingPrice,
                 description = description,
-                storeId = storeId,
                 categoryId = categoryId,
                 position = position,
                 status = status,

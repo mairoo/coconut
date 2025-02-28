@@ -47,9 +47,6 @@ data class ProductCategoryResponse(
     @JsonProperty("description")
     val description: String,
 
-    @JsonProperty("storeId")
-    val storeId: Long,
-
     @JsonProperty("categoryId")
     val categoryId: Long,
 
@@ -96,7 +93,6 @@ data class ProductCategoryResponse(
                 pg = pg,
                 pgSellingPrice = pgSellingPrice,
                 description = description,
-                storeId = storeId,
                 categoryId = categoryId,
                 position = position,
                 status = status,

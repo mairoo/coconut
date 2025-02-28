@@ -18,9 +18,6 @@ class CategoryEntity private constructor(
     @Column(name = "slug")
     val slug: String,
 
-    @Column(name = "store_id")
-    val storeId: Long,
-
     @Column(name = "thumbnail")
     val thumbnail: String = "",
 
@@ -48,6 +45,10 @@ class CategoryEntity private constructor(
     @Column(name = "naver_maker_name")
     val naverMakerName: String = "",
 
+    // django 레거시 호환 문제
+    @Column(name = "store_id")
+    val storeId: Long = 1L,
+
     // 기존 django-mptt 호환 문제 (이후 삭제 필요)
     @Column(name = "lft")
     val lft: Int = 0,
@@ -72,7 +73,6 @@ class CategoryEntity private constructor(
             id: Long? = null,
             title: String,
             slug: String,
-            storeId: Long,
             thumbnail: String = "",
             description: String = "",
             description1: String = "",
@@ -86,7 +86,6 @@ class CategoryEntity private constructor(
             id = id,
             title = title,
             slug = slug,
-            storeId = storeId,
             thumbnail = thumbnail,
             description = description,
             description1 = description1,

@@ -10,8 +10,6 @@ class Category private constructor(
     val modified: ZonedDateTime? = null,
 
     // 2. 도메인 로직 불변 필드
-    val storeId: Long,
-
     // 3. 도메인 로직 가변 필드
     val title: String,
     val slug: String,
@@ -81,7 +79,6 @@ class Category private constructor(
         id = this.id,
         created = this.created,
         modified = this.modified,
-        storeId = this.storeId,
         title = title,
         slug = slug,
         thumbnail = thumbnail,
@@ -102,7 +99,6 @@ class Category private constructor(
             modified: ZonedDateTime? = null,
             title: String,
             slug: String,
-            storeId: Long,
             thumbnail: String = "",
             description: String = "",
             description1: String = "",
@@ -119,7 +115,6 @@ class Category private constructor(
                 modified = modified,
                 title = title,
                 slug = slug,
-                storeId = storeId,
                 thumbnail = thumbnail,
                 description = description,
                 description1 = description1,

@@ -22,7 +22,6 @@ class ProductService(
         request: ProductCreateRequest,
     ): Product {
         val product = Product.of(
-            storeId = 1L,
             categoryId = request.categoryId,
             name = request.name,
             subtitle = request.subtitle,

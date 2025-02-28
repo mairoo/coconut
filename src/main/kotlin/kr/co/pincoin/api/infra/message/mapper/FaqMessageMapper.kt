@@ -17,7 +17,6 @@ fun FaqMessageEntity?.toModel(): FaqMessage? =
             category = entity.category,
             position = entity.position,
             ownerId = entity.ownerId,
-            storeId = entity.storeId
         )
     }
 
@@ -35,7 +34,6 @@ fun FaqMessage?.toEntity(): FaqMessageEntity? =
             category = model.category,
             position = model.position,
             ownerId = model.ownerId,
-            storeId = model.storeId
         )
     }
 

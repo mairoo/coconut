@@ -15,7 +15,6 @@ fun TestimonialEntity?.toModel(): Testimonial? =
             keywords = entity.keywords,
             content = entity.content,
             ownerId = entity.ownerId,
-            storeId = entity.storeId
         )
     }
 
@@ -31,7 +30,6 @@ fun Testimonial?.toEntity(): TestimonialEntity? =
             keywords = model.keywords,
             content = model.content,
             ownerId = model.ownerId,
-            storeId = model.storeId
         )
     }
 

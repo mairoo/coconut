@@ -36,8 +36,9 @@ class FaqMessageEntity private constructor(
     @Column(name = "owner_id")
     val ownerId: Int? = null,
 
+    // django 레거시 호환 문제
     @Column(name = "store_id")
-    val storeId: Long,
+    val storeId: Long = 1L,
 
     @Embedded
     val dateTimeFields: DateTimeFields = DateTimeFields(),
@@ -55,7 +56,6 @@ class FaqMessageEntity private constructor(
             category: FaqMessageCategory,
             position: Int,
             ownerId: Int? = null,
-            storeId: Long
         ) = FaqMessageEntity(
             id = id,
             title = title,
@@ -65,7 +65,6 @@ class FaqMessageEntity private constructor(
             category = category,
             position = position,
             ownerId = ownerId,
-            storeId = storeId
         )
     }
 }

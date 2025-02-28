@@ -17,7 +17,6 @@ fun CustomerQuestionEntity?.toModel(): CustomerQuestion? =
             category = entity.category,
             orderId = entity.orderId,
             ownerId = entity.ownerId,
-            storeId = entity.storeId
         )
     }
 
@@ -35,7 +34,6 @@ fun CustomerQuestion?.toEntity(): CustomerQuestionEntity? =
             category = model.category,
             orderId = model.orderId,
             ownerId = model.ownerId,
-            storeId = model.storeId
         )
     }
 

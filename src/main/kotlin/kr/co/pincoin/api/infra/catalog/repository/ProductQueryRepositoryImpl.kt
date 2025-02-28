@@ -82,7 +82,6 @@ class ProductQueryRepositoryImpl(
             product.pg,
             product.pgSellingPrice,
             product.description,
-            product.storeId,
             product.categoryId,
             product.position,
             product.status,

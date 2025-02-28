@@ -20,7 +20,6 @@ data class ProductCategoryProjection @QueryProjection constructor(
     val pg: Boolean,
     val pgSellingPrice: BigDecimal,
     val description: String,
-    val storeId: Long,
     val categoryId: Long,
     val position: Int,
     val status: ProductStatus,

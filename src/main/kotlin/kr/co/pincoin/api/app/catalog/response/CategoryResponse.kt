@@ -17,9 +17,6 @@ data class CategoryResponse(
     @JsonProperty("modified")
     val modified: ZonedDateTime,
 
-    @JsonProperty("storeId")
-    val storeId: Long,
-
     @JsonProperty("title")
     val title: String,
 
@@ -59,7 +56,6 @@ data class CategoryResponse(
                 id = id!!,
                 created = created!!,
                 modified = modified!!,
-                storeId = storeId,
                 title = title,
                 slug = slug,
                 thumbnail = thumbnail,

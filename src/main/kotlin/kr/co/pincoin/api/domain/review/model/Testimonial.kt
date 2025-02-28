@@ -12,8 +12,6 @@ class Testimonial private constructor(
     isRemoved: Boolean? = null,
 
     // 3. 도메인 로직 불변 필드
-    val storeId: Long,
-
     // 4. 도메인 로직 가변 필드
     title: String,
     description: String,
@@ -50,7 +48,6 @@ class Testimonial private constructor(
             keywords: String,
             content: String,
             ownerId: Int? = null,
-            storeId: Long,
         ): Testimonial =
             Testimonial(
                 id = id,
@@ -62,7 +59,6 @@ class Testimonial private constructor(
                 keywords = keywords,
                 content = content,
                 ownerId = ownerId,
-                storeId = storeId,
             )
     }
 }

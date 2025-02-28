@@ -16,7 +16,6 @@ fun NoticeMessageEntity?.toModel(): NoticeMessage? =
             content = entity.content,
             category = entity.category,
             ownerId = entity.ownerId,
-            storeId = entity.storeId
         )
     }
 
@@ -33,7 +32,6 @@ fun NoticeMessage?.toEntity(): NoticeMessageEntity? =
             content = model.content,
             category = model.category,
             ownerId = model.ownerId,
-            storeId = model.storeId
         )
     }
 

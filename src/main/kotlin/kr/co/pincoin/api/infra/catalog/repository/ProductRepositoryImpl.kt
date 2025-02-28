@@ -4,8 +4,8 @@ import kr.co.pincoin.api.domain.catalog.model.Product
 import kr.co.pincoin.api.domain.catalog.repository.ProductRepository
 import kr.co.pincoin.api.infra.catalog.mapper.toEntity
 import kr.co.pincoin.api.infra.catalog.mapper.toModel
+import kr.co.pincoin.api.infra.catalog.mapper.toModelList
 import kr.co.pincoin.api.infra.catalog.repository.criteria.ProductSearchCriteria
-import kr.co.pincoin.api.infra.catalog.repository.projection.ProductCategoryProjection
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
@@ -26,23 +26,23 @@ class ProductRepositoryImpl(
     override fun findProduct(
         id: Long,
         criteria: ProductSearchCriteria,
-    ): ProductCategoryProjection? =
-        queryRepository.findProduct(id, criteria)
+    ): Product? =
+        queryRepository.findProduct(id, criteria)?.toModel()
 
     override fun findProduct(
         code: String,
         criteria: ProductSearchCriteria,
-    ): ProductCategoryProjection? =
-        queryRepository.findProduct(code, criteria)
+    ): Product? =
+        queryRepository.findProduct(code, criteria)?.toModel()
 
     override fun findProducts(
         criteria: ProductSearchCriteria,
-    ): List<ProductCategoryProjection> =
-        queryRepository.findProducts(criteria)
+    ): List<Product> =
+        queryRepository.findProducts(criteria).toModelList()
 
     override fun findProducts(
         criteria: ProductSearchCriteria,
         pageable: Pageable,
-    ): Page<ProductCategoryProjection> =
-        queryRepository.findProducts(criteria, pageable)
+    ): Page<Product> =
+        queryRepository.findProducts(criteria, pageable).map { it.toModel() }
 }

@@ -2,7 +2,7 @@ package kr.co.pincoin.api.app.catalog.member.controller
 
 import kr.co.pincoin.api.app.catalog.member.request.CategorySearchRequest
 import kr.co.pincoin.api.app.catalog.member.service.MemberCategoryService
-import kr.co.pincoin.api.app.catalog.response.CategoryResponse
+import kr.co.pincoin.api.app.catalog.member.response.CategoryResponse
 import kr.co.pincoin.api.global.response.success.ApiResponse
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable

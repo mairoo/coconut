@@ -7,7 +7,6 @@ import kr.co.pincoin.api.domain.catalog.service.ProductService
 import kr.co.pincoin.api.global.exception.BusinessException
 import kr.co.pincoin.api.global.exception.code.CatalogErrorCode
 import kr.co.pincoin.api.infra.catalog.repository.criteria.ProductSearchCriteria
-import kr.co.pincoin.api.infra.catalog.repository.projection.ProductCategoryProjection
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.security.access.prepost.PreAuthorize
@@ -26,7 +25,7 @@ class AdminProductService(
     fun getProduct(
         id: Long,
         request: ProductSearchRequest,
-    ): ProductCategoryProjection =
+    ): Product =
         productService.getProduct(
             id, ProductSearchCriteria(
                 name = request.name,
@@ -47,7 +46,7 @@ class AdminProductService(
     fun getProduct(
         code: String,
         request: ProductSearchRequest,
-    ): ProductCategoryProjection =
+    ): Product =
         productService.getProduct(
             code, ProductSearchCriteria(
                 name = request.name,
@@ -67,7 +66,7 @@ class AdminProductService(
 
     fun getProducts(
         request: ProductSearchRequest,
-    ): List<ProductCategoryProjection> =
+    ): List<Product> =
         productService.getProducts(
             ProductSearchCriteria(
                 name = request.name,
@@ -88,7 +87,7 @@ class AdminProductService(
     fun getProducts(
         request: ProductSearchRequest,
         pageable: Pageable,
-    ): Page<ProductCategoryProjection> =
+    ): Page<Product> =
         productService.getProducts(
             ProductSearchCriteria(
                 name = request.name,

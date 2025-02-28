@@ -3,11 +3,11 @@ package kr.co.pincoin.api.app.catalog.member.service
 import kr.co.pincoin.api.app.catalog.member.request.ProductSearchRequest
 import kr.co.pincoin.api.domain.catalog.enums.ProductStatus
 import kr.co.pincoin.api.domain.catalog.enums.ProductStock
+import kr.co.pincoin.api.domain.catalog.model.Product
 import kr.co.pincoin.api.domain.catalog.service.ProductService
 import kr.co.pincoin.api.global.exception.BusinessException
 import kr.co.pincoin.api.global.exception.code.CatalogErrorCode
 import kr.co.pincoin.api.infra.catalog.repository.criteria.ProductSearchCriteria
-import kr.co.pincoin.api.infra.catalog.repository.projection.ProductCategoryProjection
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
@@ -19,7 +19,7 @@ class MemberProductService(
     fun getProduct(
         id: Long,
         request: ProductSearchRequest
-    ): ProductCategoryProjection =
+    ): Product =
         productService.getProduct(
             id, ProductSearchCriteria(
                 name = request.name,
@@ -39,7 +39,7 @@ class MemberProductService(
     fun getProduct(
         code: String,
         request: ProductSearchRequest,
-    ): ProductCategoryProjection =
+    ): Product =
         productService.getProduct(
             code, ProductSearchCriteria(
                 name = request.name,
@@ -58,7 +58,7 @@ class MemberProductService(
 
     fun getProducts(
         request: ProductSearchRequest,
-    ): List<ProductCategoryProjection> =
+    ): List<Product> =
         productService.getProducts(
             ProductSearchCriteria(
                 name = request.name,
@@ -78,7 +78,7 @@ class MemberProductService(
     fun getProducts(
         request: ProductSearchRequest,
         pageable: Pageable,
-    ): Page<ProductCategoryProjection> =
+    ): Page<Product> =
         productService.getProducts(
             ProductSearchCriteria(
                 name = request.name,

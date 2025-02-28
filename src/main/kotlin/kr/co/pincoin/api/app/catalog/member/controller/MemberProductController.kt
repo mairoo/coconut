@@ -1,8 +1,8 @@
 package kr.co.pincoin.api.app.catalog.member.controller
 
+import kr.co.pincoin.api.app.catalog.admin.response.ProductResponse
 import kr.co.pincoin.api.app.catalog.member.request.ProductSearchRequest
 import kr.co.pincoin.api.app.catalog.member.service.MemberProductService
-import kr.co.pincoin.api.app.catalog.response.ProductCategoryResponse
 import kr.co.pincoin.api.global.response.success.ApiResponse
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -28,9 +28,9 @@ class MemberProductController(
     fun searchProducts(
         request: ProductSearchRequest,
         pageable: Pageable,
-    ): ResponseEntity<ApiResponse<Page<ProductCategoryResponse>>> =
+    ): ResponseEntity<ApiResponse<Page<ProductResponse>>> =
         memberProductService.getProducts(request, pageable)
-            .map { ProductCategoryResponse.from(it) }
+            .map { ProductResponse.from(it) }
             .let { ApiResponse.of(it) }
             .let { ResponseEntity.ok(it) }
 
@@ -45,9 +45,9 @@ class MemberProductController(
     fun getProduct(
         @PathVariable id: Long,
         request: ProductSearchRequest,
-    ): ResponseEntity<ApiResponse<ProductCategoryResponse>> =
+    ): ResponseEntity<ApiResponse<ProductResponse>> =
         memberProductService.getProduct(id, request)
-            .let { ProductCategoryResponse.from(it) }
+            .let { ProductResponse.from(it) }
             .let { ApiResponse.of(it) }
             .let { ResponseEntity.ok(it) }
 
@@ -62,9 +62,9 @@ class MemberProductController(
     fun getProductByCode(
         @PathVariable code: String,
         request: ProductSearchRequest,
-    ): ResponseEntity<ApiResponse<ProductCategoryResponse>> =
+    ): ResponseEntity<ApiResponse<ProductResponse>> =
         memberProductService.getProduct(code, request)
-            .let { ProductCategoryResponse.from(it) }
+            .let { ProductResponse.from(it) }
             .let { ApiResponse.of(it) }
             .let { ResponseEntity.ok(it) }
 }

@@ -4,7 +4,7 @@ import jakarta.validation.Valid
 import kr.co.pincoin.api.app.catalog.admin.request.CategoryCreateRequest
 import kr.co.pincoin.api.app.catalog.admin.request.CategorySearchRequest
 import kr.co.pincoin.api.app.catalog.admin.service.AdminCategoryService
-import kr.co.pincoin.api.app.catalog.response.CategoryResponse
+import kr.co.pincoin.api.app.catalog.admin.response.CategoryResponse
 import kr.co.pincoin.api.global.response.success.ApiResponse
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable

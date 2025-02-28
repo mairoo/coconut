@@ -5,11 +5,10 @@ import com.querydsl.jpa.impl.JPAQuery
 import com.querydsl.jpa.impl.JPAQueryFactory
 import kr.co.pincoin.api.domain.catalog.enums.ProductStatus
 import kr.co.pincoin.api.domain.catalog.enums.ProductStock
+import kr.co.pincoin.api.infra.catalog.entity.ProductEntity
 import kr.co.pincoin.api.infra.catalog.entity.QCategoryEntity
 import kr.co.pincoin.api.infra.catalog.entity.QProductEntity
 import kr.co.pincoin.api.infra.catalog.repository.criteria.ProductSearchCriteria
-import kr.co.pincoin.api.infra.catalog.repository.projection.ProductCategoryProjection
-import kr.co.pincoin.api.infra.catalog.repository.projection.QProductCategoryProjection
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.support.PageableExecutionUtils
@@ -25,10 +24,9 @@ class ProductQueryRepositoryImpl(
     override fun findProduct(
         id: Long,
         criteria: ProductSearchCriteria,
-    ): ProductCategoryProjection? =
+    ): ProductEntity? =
         queryFactory
-            .select(createProductProjection())
-            .from(product)
+            .selectFrom(product)
             .join(category).on(product.categoryId.eq(category.id))
             .where(
                 eqProductId(id),
@@ -39,20 +37,18 @@ class ProductQueryRepositoryImpl(
     override fun findProduct(
         code: String,
         criteria: ProductSearchCriteria,
-    ): ProductCategoryProjection? =
+    ): ProductEntity? =
         queryFactory
-            .select(createProductProjection())
-            .from(product)
+            .selectFrom(product)
             .join(category).on(product.categoryId.eq(category.id))
             .where(*getCommonWhereConditions(criteria.copy(code = code)))
             .fetchOne()
 
     override fun findProducts(
         criteria: ProductSearchCriteria,
-    ): List<ProductCategoryProjection> =
+    ): List<ProductEntity> =
         queryFactory
-            .select(createProductProjection())
-            .from(product)
+            .selectFrom(product)
             .join(category).on(product.categoryId.eq(category.id))
             .where(*getCommonWhereConditions(criteria))
             .orderBy(product.position.asc(), product.id.desc())
@@ -61,39 +57,12 @@ class ProductQueryRepositoryImpl(
     override fun findProducts(
         criteria: ProductSearchCriteria,
         pageable: Pageable,
-    ): Page<ProductCategoryProjection> = executePageQuery(
+    ): Page<ProductEntity> = executePageQuery(
         criteria,
         pageable
     ) { baseQuery ->
-        baseQuery.select(createProductProjection()) // lazy select projection
+        baseQuery.select(product) // lazy select projection
     }
-
-    private fun createProductProjection() =
-        QProductCategoryProjection(
-            product.id,
-            product.dateTimeFields.created,
-            product.dateTimeFields.modified,
-            product.removalFields.isRemoved,
-            product.name,
-            product.subtitle,
-            product.code,
-            product.listPrice,
-            product.sellingPrice,
-            product.pg,
-            product.pgSellingPrice,
-            product.description,
-            product.categoryId,
-            product.position,
-            product.status,
-            product.stockQuantity,
-            product.stock,
-
-            category.title,
-            category.slug,
-            category.thumbnail,
-            category.description,
-            category.discountRate
-        )
 
     private fun <T> executePageQuery(
         criteria: ProductSearchCriteria,

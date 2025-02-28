@@ -6,7 +6,6 @@ import kr.co.pincoin.api.domain.catalog.enums.ProductStock
 import kr.co.pincoin.api.domain.catalog.model.Product
 import kr.co.pincoin.api.domain.catalog.repository.ProductRepository
 import kr.co.pincoin.api.infra.catalog.repository.criteria.ProductSearchCriteria
-import kr.co.pincoin.api.infra.catalog.repository.projection.ProductCategoryProjection
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
@@ -54,23 +53,23 @@ class ProductService(
     fun getProduct(
         id: Long,
         criteria: ProductSearchCriteria
-    ): ProductCategoryProjection? =
+    ): Product? =
         productRepository.findProduct(id, criteria)
 
     fun getProduct(
         code: String,
         criteria: ProductSearchCriteria,
-    ): ProductCategoryProjection? =
+    ): Product? =
         productRepository.findProduct(code, criteria)
 
     fun getProducts(
         criteria: ProductSearchCriteria,
-    ): List<ProductCategoryProjection> =
+    ): List<Product> =
         productRepository.findProducts(criteria)
 
     fun getProducts(
         criteria: ProductSearchCriteria,
         pageable: Pageable,
-    ): Page<ProductCategoryProjection> =
+    ): Page<Product> =
         productRepository.findProducts(criteria, pageable)
 }

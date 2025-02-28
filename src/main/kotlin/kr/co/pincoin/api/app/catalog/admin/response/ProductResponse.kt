@@ -1,4 +1,4 @@
-package kr.co.pincoin.api.app.catalog.response
+package kr.co.pincoin.api.app.catalog.admin.response
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty

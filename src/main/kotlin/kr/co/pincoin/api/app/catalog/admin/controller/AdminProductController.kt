@@ -3,9 +3,8 @@ package kr.co.pincoin.api.app.catalog.admin.controller
 import jakarta.validation.Valid
 import kr.co.pincoin.api.app.catalog.admin.request.ProductCreateRequest
 import kr.co.pincoin.api.app.catalog.admin.request.ProductSearchRequest
+import kr.co.pincoin.api.app.catalog.admin.response.ProductResponse
 import kr.co.pincoin.api.app.catalog.admin.service.AdminProductService
-import kr.co.pincoin.api.app.catalog.response.ProductCategoryResponse
-import kr.co.pincoin.api.app.catalog.response.ProductResponse
 import kr.co.pincoin.api.global.response.success.ApiResponse
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -28,9 +27,9 @@ class AdminProductController(
     fun searchProducts(
         request: ProductSearchRequest,
         pageable: Pageable,
-    ): ResponseEntity<ApiResponse<Page<ProductCategoryResponse>>> =
+    ): ResponseEntity<ApiResponse<Page<ProductResponse>>> =
         adminProductService.getProducts(request, pageable)
-            .map { ProductCategoryResponse.from(it) }
+            .map { ProductResponse.from(it) }
             .let { ApiResponse.of(it) }
             .let { ResponseEntity.ok(it) }
 
@@ -45,9 +44,9 @@ class AdminProductController(
     fun getProduct(
         @PathVariable id: Long,
         request: ProductSearchRequest,
-    ): ResponseEntity<ApiResponse<ProductCategoryResponse>> =
+    ): ResponseEntity<ApiResponse<ProductResponse>> =
         adminProductService.getProduct(id, request)
-            .let { ProductCategoryResponse.from(it) }
+            .let { ProductResponse.from(it) }
             .let { ApiResponse.of(it) }
             .let { ResponseEntity.ok(it) }
 
@@ -62,9 +61,9 @@ class AdminProductController(
     fun getProductByCode(
         @PathVariable code: String,
         request: ProductSearchRequest,
-    ): ResponseEntity<ApiResponse<ProductCategoryResponse>> =
+    ): ResponseEntity<ApiResponse<ProductResponse>> =
         adminProductService.getProduct(code, request)
-            .let { ProductCategoryResponse.from(it) }
+            .let { ProductResponse.from(it) }
             .let { ApiResponse.of(it) }
             .let { ResponseEntity.ok(it) }
 
@@ -77,8 +76,7 @@ class AdminProductController(
     @PostMapping
     fun createProduct(
         @RequestBody @Valid request: ProductCreateRequest,
-    ): ResponseEntity<ApiResponse<ProductResponse>>
-        = adminProductService.createProduct(request)
+    ): ResponseEntity<ApiResponse<ProductResponse>> = adminProductService.createProduct(request)
         .let { ProductResponse.from(it) }
         .let { ApiResponse.of(it) }
         .let { ResponseEntity.ok(it) }

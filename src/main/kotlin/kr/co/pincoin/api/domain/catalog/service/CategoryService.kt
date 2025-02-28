@@ -1,6 +1,6 @@
 package kr.co.pincoin.api.domain.catalog.service
 
-import kr.co.pincoin.api.app.catalog.admin.request.CategoryCreateRequest
+import kr.co.pincoin.api.app.catalog.admin.request.*
 import kr.co.pincoin.api.domain.catalog.model.Category
 import kr.co.pincoin.api.domain.catalog.repository.CategoryRepository
 import kr.co.pincoin.api.global.exception.BusinessException
@@ -10,7 +10,6 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.math.BigDecimal
 
 @Service
 @Transactional(readOnly = true)
@@ -63,24 +62,25 @@ class CategoryService(
     @Transactional
     fun updateBasicInfo(
         id: Long,
-        title: String? = null,
-        slug: String? = null
+        request: CategoryBasicInfoUpdateRequest,
     ): Category =
         categoryRepository.findCategory(id, CategorySearchCriteria())
-            ?.updateBasicInfo(title, slug)
+            ?.updateBasicInfo(
+                newTitle = request.title,
+                newSlug = request.slug
+            )
             ?.let { categoryRepository.save(it) }
             ?: throw BusinessException(CatalogErrorCode.CATEGORY_NOT_FOUND)
 
     @Transactional
     fun updateDescriptions(
         id: Long,
-        description: String? = null,
-        description1: String? = null
+        request: CategoryDescriptionUpdateRequest,
     ): Category =
         categoryRepository.findCategory(id, CategorySearchCriteria())
             ?.updateDescriptions(
-                newDescription = description,
-                newDescription1 = description1
+                newDescription = request.description,
+                newDescription1 = request.description1,
             )
             ?.let { categoryRepository.save(it) }
             ?: throw BusinessException(CatalogErrorCode.CATEGORY_NOT_FOUND)
@@ -88,13 +88,12 @@ class CategoryService(
     @Transactional
     fun updatePriceInfo(
         id: Long,
-        discountRate: BigDecimal? = null,
-        pgDiscountRate: BigDecimal? = null
+        request: CategoryPriceUpdateRequest,
     ): Category =
         categoryRepository.findCategory(id, CategorySearchCriteria())
             ?.updatePriceInfo(
-                newDiscountRate = discountRate,
-                newPgDiscountRate = pgDiscountRate,
+                newDiscountRate = request.discountRate,
+                newPgDiscountRate = request.pgDiscountRate,
             )
             ?.let { categoryRepository.save(it) }
             ?: throw BusinessException(CatalogErrorCode.CATEGORY_NOT_FOUND)
@@ -102,11 +101,11 @@ class CategoryService(
     @Transactional
     fun updatePgStatus(
         id: Long,
-        pg: Boolean? = null
+        request: CategoryPgStatusUpdateRequest,
     ): Category =
         categoryRepository.findCategory(id, CategorySearchCriteria())
             ?.updatePgStatus(
-                newPg = pg,
+                newPg = request.pg,
             )
             ?.let { categoryRepository.save(it) }
             ?: throw BusinessException(CatalogErrorCode.CATEGORY_NOT_FOUND)
@@ -114,15 +113,13 @@ class CategoryService(
     @Transactional
     fun updateNaverInfo(
         id: Long,
-        naverSearchTag: String? = null,
-        naverBrandName: String? = null,
-        naverMakerName: String? = null
+        request: CategoryNaverInfoUpdateRequest,
     ): Category =
         categoryRepository.findCategory(id, CategorySearchCriteria())
             ?.updateNaverInfo(
-                newNaverSearchTag = naverSearchTag,
-                newNaverBrandName = naverBrandName,
-                newNaverMakerName = naverMakerName
+                newNaverSearchTag = request.naverSearchTag,
+                newNaverBrandName = request.naverBrandName,
+                newNaverMakerName = request.naverMakerName,
             )
             ?.let { categoryRepository.save(it) }
             ?: throw BusinessException(CatalogErrorCode.CATEGORY_NOT_FOUND)

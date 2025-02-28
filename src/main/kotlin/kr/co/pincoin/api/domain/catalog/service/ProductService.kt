@@ -1,6 +1,6 @@
 package kr.co.pincoin.api.domain.catalog.service
 
-import kr.co.pincoin.api.app.catalog.admin.request.ProductCreateRequest
+import kr.co.pincoin.api.app.catalog.admin.request.*
 import kr.co.pincoin.api.domain.catalog.enums.ProductStatus
 import kr.co.pincoin.api.domain.catalog.enums.ProductStock
 import kr.co.pincoin.api.domain.catalog.model.Product
@@ -12,7 +12,6 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.math.BigDecimal
 
 @Service
 @Transactional(readOnly = true)
@@ -75,15 +74,13 @@ class ProductService(
     @Transactional
     fun updateBasicInfo(
         id: Long,
-        name: String? = null,
-        subtitle: String? = null,
-        code: String? = null
+        request: ProductBasicInfoUpdateRequest,
     ): Product =
         productRepository.findProduct(id, ProductSearchCriteria())
             ?.updateBasicInfo(
-                newName = name,
-                newSubtitle = subtitle,
-                newCode = code
+                newName = request.name,
+                newSubtitle = request.subtitle,
+                newCode = request.code,
             )
             ?.let { productRepository.save(it) }
             ?: throw BusinessException(CatalogErrorCode.PRODUCT_NOT_FOUND)
@@ -91,15 +88,13 @@ class ProductService(
     @Transactional
     fun updatePriceInfo(
         id: Long,
-        listPrice: BigDecimal? = null,
-        sellingPrice: BigDecimal? = null,
-        pgSellingPrice: BigDecimal? = null
+        request: ProductPriceUpdateRequest,
     ): Product =
         productRepository.findProduct(id, ProductSearchCriteria())
             ?.updatePriceInfo(
-                newListPrice = listPrice,
-                newSellingPrice = sellingPrice,
-                newPgSellingPrice = pgSellingPrice
+                newListPrice = request.listPrice,
+                newSellingPrice = request.sellingPrice,
+                newPgSellingPrice = request.pgSellingPrice,
             )
             ?.let { productRepository.save(it) }
             ?: throw BusinessException(CatalogErrorCode.PRODUCT_NOT_FOUND)
@@ -107,11 +102,11 @@ class ProductService(
     @Transactional
     fun updatePgStatus(
         id: Long,
-        pg: Boolean? = null
+        request: ProductPgStatusUpdateRequest,
     ): Product =
         productRepository.findProduct(id, ProductSearchCriteria())
             ?.updatePgStatus(
-                newPg = pg
+                newPg = request.pg,
             )
             ?.let { productRepository.save(it) }
             ?: throw BusinessException(CatalogErrorCode.PRODUCT_NOT_FOUND)
@@ -120,11 +115,11 @@ class ProductService(
     @Transactional
     fun updateStatus(
         id: Long,
-        status: ProductStatus? = null
+        request: ProductStatusUpdateRequest,
     ): Product =
         productRepository.findProduct(id, ProductSearchCriteria())
             ?.updateStatus(
-                newStatus = status
+                newStatus = request.status,
             )
             ?.let { productRepository.save(it) }
             ?: throw BusinessException(CatalogErrorCode.PRODUCT_NOT_FOUND)
@@ -132,11 +127,11 @@ class ProductService(
     @Transactional
     fun updateStockStatus(
         id: Long,
-        stock: ProductStock? = null
+        request: ProductStockStatusUpdateRequest,
     ): Product =
         productRepository.findProduct(id, ProductSearchCriteria())
             ?.updateStockStatus(
-                newStock = stock
+                newStock = request.stock,
             )
             ?.let { productRepository.save(it) }
             ?: throw BusinessException(CatalogErrorCode.PRODUCT_NOT_FOUND)
@@ -144,11 +139,11 @@ class ProductService(
     @Transactional
     fun updateStockQuantity(
         id: Long,
-        stockQuantity: Int? = null
+        request: ProductStockQuantityUpdateRequest,
     ): Product =
         productRepository.findProduct(id, ProductSearchCriteria())
             ?.updateStockQuantity(
-                newStockQuantity = stockQuantity
+                newStockQuantity = request.stockQuantity,
             )
             ?.let { productRepository.save(it) }
             ?: throw BusinessException(CatalogErrorCode.PRODUCT_NOT_FOUND)
@@ -156,13 +151,12 @@ class ProductService(
     @Transactional
     fun updateStockLevels(
         id: Long,
-        minimumStockLevel: Int? = null,
-        maximumStockLevel: Int? = null
+        request: ProductStockLevelsUpdateRequest,
     ): Product =
         productRepository.findProduct(id, ProductSearchCriteria())
             ?.updateStockLevels(
-                newMinimumStockLevel = minimumStockLevel,
-                newMaximumStockLevel = maximumStockLevel
+                newMinimumStockLevel = request.minimumStockLevel,
+                newMaximumStockLevel = request.maximumStockLevel,
             )
             ?.let { productRepository.save(it) }
             ?: throw BusinessException(CatalogErrorCode.PRODUCT_NOT_FOUND)

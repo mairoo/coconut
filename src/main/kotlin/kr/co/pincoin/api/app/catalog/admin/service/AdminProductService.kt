@@ -1,9 +1,6 @@
 package kr.co.pincoin.api.app.catalog.admin.service
 
-import kr.co.pincoin.api.app.catalog.admin.request.ProductCreateRequest
-import kr.co.pincoin.api.app.catalog.admin.request.ProductSearchRequest
-import kr.co.pincoin.api.domain.catalog.enums.ProductStatus
-import kr.co.pincoin.api.domain.catalog.enums.ProductStock
+import kr.co.pincoin.api.app.catalog.admin.request.*
 import kr.co.pincoin.api.domain.catalog.model.Product
 import kr.co.pincoin.api.domain.catalog.service.ProductService
 import kr.co.pincoin.api.global.exception.BusinessException
@@ -13,7 +10,6 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Service
-import java.math.BigDecimal
 
 @Service
 @PreAuthorize("hasRole('ADMIN')")
@@ -110,50 +106,45 @@ class AdminProductService(
 
     fun updateBasicInfo(
         id: Long,
-        name: String? = null,
-        subtitle: String? = null,
-        code: String? = null
+        request: ProductBasicInfoUpdateRequest,
     ): Product =
-        productService.updateBasicInfo(id, name, subtitle, code)
+        productService.updateBasicInfo(id, request)
 
     fun updatePriceInfo(
         id: Long,
-        listPrice: BigDecimal? = null,
-        sellingPrice: BigDecimal? = null,
-        pgSellingPrice: BigDecimal? = null
+        request: ProductPriceUpdateRequest,
     ): Product =
-        productService.updatePriceInfo(id, listPrice, sellingPrice, pgSellingPrice)
+        productService.updatePriceInfo(id, request)
 
     fun updatePgStatus(
         id: Long,
-        pg: Boolean? = null
+        request: ProductPgStatusUpdateRequest,
     ): Product =
-        productService.updatePgStatus(id, pg)
+        productService.updatePgStatus(id, request)
 
     fun updateStatus(
         id: Long,
-        status: ProductStatus? = null
+        request: ProductStatusUpdateRequest,
     ): Product =
-        productService.updateStatus(id, status)
+        productService.updateStatus(id, request)
 
     fun updateStockStatus(
         id: Long,
-        stock: ProductStock? = null
+        request: ProductStockStatusUpdateRequest,
     ): Product =
-        productService.updateStockStatus(id, stock)
+        productService.updateStockStatus(id, request)
 
     fun updateStockQuantity(
         id: Long,
-        stockQuantity: Int? = null
+        request: ProductStockQuantityUpdateRequest,
     ): Product =
-        productService.updateStockQuantity(id, stockQuantity)
+        productService.updateStockQuantity(id, request)
 
     fun updateStockLevels(
         id: Long,
-        minimumStockLevel: Int? = null,
-        maximumStockLevel: Int? = null
+        request: ProductStockLevelsUpdateRequest,
     ): Product =
-        productService.updateStockLevels(id, minimumStockLevel, maximumStockLevel)
+        productService.updateStockLevels(id, request)
 
     fun increaseReviewCount(
         id: Long

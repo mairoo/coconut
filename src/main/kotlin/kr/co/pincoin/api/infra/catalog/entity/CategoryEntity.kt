@@ -48,6 +48,22 @@ class CategoryEntity private constructor(
     @Column(name = "naver_maker_name")
     val naverMakerName: String = "",
 
+    // 기존 django-mptt 호환 문제 (이후 삭제 필요)
+    @Column(name = "lft")
+    val lft: Int = 0,
+
+    @Column(name = "rght")
+    val rght: Int = 0,
+
+    @Column(name = "tree_id")
+    val treeId: Int = 0,
+
+    @Column(name = "level")
+    val level: Int = 0,
+
+    @Column(name = "parentId")
+    val parentId: Int? = null,
+
     @Embedded
     val dateTimeFields: DateTimeFields = DateTimeFields(),
 ) {

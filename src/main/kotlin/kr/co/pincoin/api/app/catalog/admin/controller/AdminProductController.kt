@@ -1,8 +1,7 @@
 package kr.co.pincoin.api.app.catalog.admin.controller
 
 import jakarta.validation.Valid
-import kr.co.pincoin.api.app.catalog.admin.request.ProductCreateRequest
-import kr.co.pincoin.api.app.catalog.admin.request.ProductSearchRequest
+import kr.co.pincoin.api.app.catalog.admin.request.*
 import kr.co.pincoin.api.app.catalog.admin.response.ProductResponse
 import kr.co.pincoin.api.app.catalog.admin.service.AdminProductService
 import kr.co.pincoin.api.global.response.success.ApiResponse
@@ -76,8 +75,158 @@ class AdminProductController(
     @PostMapping
     fun createProduct(
         @RequestBody @Valid request: ProductCreateRequest,
-    ): ResponseEntity<ApiResponse<ProductResponse>> = adminProductService.createProduct(request)
-        .let { ProductResponse.from(it) }
-        .let { ApiResponse.of(it) }
-        .let { ResponseEntity.ok(it) }
+    ): ResponseEntity<ApiResponse<ProductResponse>> =
+        adminProductService.createProduct(request)
+            .let { ProductResponse.from(it) }
+            .let { ApiResponse.of(it) }
+            .let { ResponseEntity.ok(it) }
+
+    /**
+     * 상품의 기본 정보를 수정합니다.
+     *
+     * @param id 상품 ID
+     * @param request 상품 기본 정보 수정 요청
+     * @return 수정된 상품 정보 응답
+     */
+    @PutMapping("/{id}/basic-info")
+    fun updateBasicInfo(
+        @PathVariable id: Long,
+        @RequestBody @Valid request: ProductBasicInfoUpdateRequest,
+    ): ResponseEntity<ApiResponse<ProductResponse>> =
+        adminProductService.updateBasicInfo(id, request)
+            .let { ProductResponse.from(it) }
+            .let { ApiResponse.of(it) }
+            .let { ResponseEntity.ok(it) }
+
+    /**
+     * 상품의 가격 정보를 수정합니다.
+     *
+     * @param id 상품 ID
+     * @param request 상품 가격 정보 수정 요청
+     * @return 수정된 상품 정보 응답
+     */
+    @PutMapping("/{id}/price-info")
+    fun updatePriceInfo(
+        @PathVariable id: Long,
+        @RequestBody @Valid request: ProductPriceUpdateRequest,
+    ): ResponseEntity<ApiResponse<ProductResponse>> =
+        adminProductService.updatePriceInfo(id, request)
+            .let { ProductResponse.from(it) }
+            .let { ApiResponse.of(it) }
+            .let { ResponseEntity.ok(it) }
+
+    /**
+     * 상품의 PG 상태 정보를 수정합니다.
+     *
+     * @param id 상품 ID
+     * @param request 상품 PG 상태 수정 요청
+     * @return 수정된 상품 정보 응답
+     */
+    @PutMapping("/{id}/pg-status")
+    fun updatePgStatus(
+        @PathVariable id: Long,
+        @RequestBody @Valid request: ProductPgStatusUpdateRequest,
+    ): ResponseEntity<ApiResponse<ProductResponse>> =
+        adminProductService.updatePgStatus(id, request)
+            .let { ProductResponse.from(it) }
+            .let { ApiResponse.of(it) }
+            .let { ResponseEntity.ok(it) }
+
+    /**
+     * 상품의 상태 정보를 수정합니다.
+     *
+     * @param id 상품 ID
+     * @param request 상품 상태 수정 요청
+     * @return 수정된 상품 정보 응답
+     */
+    @PutMapping("/{id}/status")
+    fun updateStatus(
+        @PathVariable id: Long,
+        @RequestBody @Valid request: ProductStatusUpdateRequest,
+    ): ResponseEntity<ApiResponse<ProductResponse>> =
+        adminProductService.updateStatus(id, request)
+            .let { ProductResponse.from(it) }
+            .let { ApiResponse.of(it) }
+            .let { ResponseEntity.ok(it) }
+
+    /**
+     * 상품의 재고 상태를 수정합니다.
+     *
+     * @param id 상품 ID
+     * @param request 상품 재고 상태 수정 요청
+     * @return 수정된 상품 정보 응답
+     */
+    @PutMapping("/{id}/stock-status")
+    fun updateStockStatus(
+        @PathVariable id: Long,
+        @RequestBody @Valid request: ProductStockStatusUpdateRequest,
+    ): ResponseEntity<ApiResponse<ProductResponse>> =
+        adminProductService.updateStockStatus(id, request)
+            .let { ProductResponse.from(it) }
+            .let { ApiResponse.of(it) }
+            .let { ResponseEntity.ok(it) }
+
+    /**
+     * 상품의 재고 수량을 수정합니다.
+     *
+     * @param id 상품 ID
+     * @param request 상품 재고 수량 수정 요청
+     * @return 수정된 상품 정보 응답
+     */
+    @PutMapping("/{id}/stock-quantity")
+    fun updateStockQuantity(
+        @PathVariable id: Long,
+        @RequestBody @Valid request: ProductStockQuantityUpdateRequest,
+    ): ResponseEntity<ApiResponse<ProductResponse>> =
+        adminProductService.updateStockQuantity(id, request)
+            .let { ProductResponse.from(it) }
+            .let { ApiResponse.of(it) }
+            .let { ResponseEntity.ok(it) }
+
+    /**
+     * 상품의 재고 수준 정보를 수정합니다.
+     *
+     * @param id 상품 ID
+     * @param request 상품 재고 수준 수정 요청
+     * @return 수정된 상품 정보 응답
+     */
+    @PutMapping("/{id}/stock-levels")
+    fun updateStockLevels(
+        @PathVariable id: Long,
+        @RequestBody @Valid request: ProductStockLevelsUpdateRequest,
+    ): ResponseEntity<ApiResponse<ProductResponse>> =
+        adminProductService.updateStockLevels(id, request)
+            .let { ProductResponse.from(it) }
+            .let { ApiResponse.of(it) }
+            .let { ResponseEntity.ok(it) }
+
+    /**
+     * 상품의 리뷰 카운트를 증가시킵니다.
+     *
+     * @param id 상품 ID
+     * @return 수정된 상품 정보 응답
+     */
+    @PatchMapping("/{id}/increase-review-count")
+    fun increaseReviewCount(
+        @PathVariable id: Long,
+    ): ResponseEntity<ApiResponse<ProductResponse>> =
+        adminProductService.increaseReviewCount(id)
+            .let { ProductResponse.from(it) }
+            .let { ApiResponse.of(it) }
+            .let { ResponseEntity.ok(it) }
+
+    /**
+     * 상품의 PG 리뷰 카운트를 증가시킵니다.
+     *
+     * @param id 상품 ID
+     * @return 수정된 상품 정보 응답
+     */
+    @PatchMapping("/{id}/increase-review-count-pg")
+    fun increaseReviewCountPg(
+        @PathVariable id: Long,
+    ): ResponseEntity<ApiResponse<ProductResponse>> =
+        adminProductService.increaseReviewCountPg(id)
+            .let { ProductResponse.from(it) }
+            .let { ApiResponse.of(it) }
+            .let { ResponseEntity.ok(it) }
 }

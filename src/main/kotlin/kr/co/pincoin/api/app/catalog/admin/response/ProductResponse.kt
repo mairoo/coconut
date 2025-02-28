@@ -60,6 +60,30 @@ data class ProductResponse(
 
     @JsonProperty("stock")
     val stock: ProductStock,
+
+    @JsonProperty("minimumStockLevel")
+    val minimumStockLevel: Int,
+
+    @JsonProperty("maximumStockLevel")
+    val maximumStockLevel: Int,
+
+    @JsonProperty("reviewCount")
+    val reviewCount: Int,
+
+    @JsonProperty("reviewCountPg")
+    val reviewCountPg: Int,
+
+    @JsonProperty("naverPartner")
+    val naverPartner: Boolean,
+
+    @JsonProperty("naverPartnerTitle")
+    val naverPartnerTitle: String,
+
+    @JsonProperty("naverPartnerTitlePg")
+    val naverPartnerTitlePg: String,
+
+    @JsonProperty("naverAttribute")
+    val naverAttribute: String
 ) {
     companion object {
         fun from(product: Product): ProductResponse = with(product) {
@@ -81,6 +105,14 @@ data class ProductResponse(
                 status = status,
                 stockQuantity = stockQuantity,
                 stock = stock,
+                minimumStockLevel = minimumStockLevel,
+                maximumStockLevel = maximumStockLevel,
+                reviewCount = reviewCount,
+                reviewCountPg = reviewCountPg,
+                naverPartner = naverPartner,
+                naverPartnerTitle = naverPartnerTitle,
+                naverPartnerTitlePg = naverPartnerTitlePg,
+                naverAttribute = naverAttribute
             )
         }
     }

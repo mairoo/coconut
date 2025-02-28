@@ -39,7 +39,7 @@ class Product private constructor(
     val naverPartnerTitlePg: String,
     val naverAttribute: String,
 ) {
-    fun changeBasicInfo(
+    fun updateBasicInfo(
         newName: String? = null,
         newSubtitle: String? = null,
         newCode: String? = null,
@@ -49,7 +49,7 @@ class Product private constructor(
         code = newCode ?: code,
     )
 
-    fun changePriceInfo(
+    fun updatePriceInfo(
         newListPrice: BigDecimal? = null,
         newSellingPrice: BigDecimal? = null,
         newPgSellingPrice: BigDecimal? = null
@@ -59,23 +59,23 @@ class Product private constructor(
         pgSellingPrice = newPgSellingPrice ?: pgSellingPrice
     )
 
-    fun changePgStatus(newPg: Boolean? = null): Product = copy(
+    fun updatePgStatus(newPg: Boolean? = null): Product = copy(
         pg = newPg ?: pg
     )
 
-    fun changeStatus(newStatus: ProductStatus? = null): Product = copy(
+    fun updateStatus(newStatus: ProductStatus? = null): Product = copy(
         status = newStatus ?: status
     )
 
-    fun changeStockStatus(newStock: ProductStock? = null): Product = copy(
+    fun updateStockStatus(newStock: ProductStock? = null): Product = copy(
         stock = newStock ?: stock
     )
 
-    fun changeStockQuantity(newStockQuantity: Int? = null): Product = copy(
+    fun updateStockQuantity(newStockQuantity: Int? = null): Product = copy(
         stockQuantity = newStockQuantity ?: stockQuantity
     )
 
-    fun changeStockLevels(
+    fun updateStockLevels(
         newMinimumStockLevel: Int? = null,
         newMaximumStockLevel: Int? = null
     ): Product = copy(
@@ -83,13 +83,9 @@ class Product private constructor(
         maximumStockLevel = newMaximumStockLevel ?: maximumStockLevel
     )
 
-    fun increaseReviewCount(): Product = copy(
-        reviewCount = reviewCount + 1
-    )
+    fun increaseReviewCount(): Product = copy(reviewCount = reviewCount + 1)
 
-    fun increaseReviewCountPg(): Product = copy(
-        reviewCountPg = reviewCountPg + 1
-    )
+    fun increaseReviewCountPg(): Product = copy(reviewCountPg = reviewCountPg + 1)
 
     private fun copy(
         name: String = this.name,

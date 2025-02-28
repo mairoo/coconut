@@ -31,5 +31,5 @@ interface CategoryRepository {
 
     fun deleteById(
         id: Long,
-    ): Unit
+    )
 }

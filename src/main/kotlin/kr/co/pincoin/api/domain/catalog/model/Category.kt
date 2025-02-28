@@ -23,7 +23,7 @@ class Category private constructor(
     val naverBrandName: String,
     val naverMakerName: String,
 ) {
-    fun changeBasicInfo(
+    fun updateBasicInfo(
         newTitle: String? = null,
         newSlug: String? = null
     ): Category = copy(
@@ -31,17 +31,19 @@ class Category private constructor(
         slug = newSlug ?: slug
     )
 
-    fun changeDescriptions(
-        newThumbnail: String? = null,
+    fun updateDescriptions(
         newDescription: String? = null,
         newDescription1: String? = null
     ): Category = copy(
-        thumbnail = newThumbnail ?: thumbnail,
         description = newDescription ?: description,
         description1 = newDescription1 ?: description1
     )
 
-    fun changePriceInfo(
+    fun updateThumbnail(
+        newThumbnail: String,
+    ): Category = copy(thumbnail = newThumbnail)
+
+    fun updatePriceInfo(
         newDiscountRate: BigDecimal? = null,
         newPgDiscountRate: BigDecimal? = null
     ): Category = copy(
@@ -49,11 +51,11 @@ class Category private constructor(
         pgDiscountRate = newPgDiscountRate ?: pgDiscountRate
     )
 
-    fun changePgStatus(newPg: Boolean? = null): Category = copy(
+    fun updatePgStatus(newPg: Boolean? = null): Category = copy(
         pg = newPg ?: pg
     )
 
-    fun changeNaverInfo(
+    fun updateNaverInfo(
         newNaverSearchTag: String? = null,
         newNaverBrandName: String? = null,
         newNaverMakerName: String? = null

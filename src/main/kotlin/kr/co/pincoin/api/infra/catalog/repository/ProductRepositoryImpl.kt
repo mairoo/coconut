@@ -4,6 +4,10 @@ import kr.co.pincoin.api.domain.catalog.model.Product
 import kr.co.pincoin.api.domain.catalog.repository.ProductRepository
 import kr.co.pincoin.api.infra.catalog.mapper.toEntity
 import kr.co.pincoin.api.infra.catalog.mapper.toModel
+import kr.co.pincoin.api.infra.catalog.repository.criteria.ProductSearchCriteria
+import kr.co.pincoin.api.infra.catalog.repository.projection.ProductProjection
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
 
 @Repository
@@ -18,4 +22,27 @@ class ProductRepositoryImpl(
             ?.let { jpaRepository.save(it) }
             ?.toModel()
             ?: throw IllegalArgumentException("상품 저장 실패")
+
+    override fun findProduct(
+        id: Long,
+        criteria: ProductSearchCriteria,
+    ): ProductProjection? =
+        queryRepository.findProduct(id, criteria)
+
+    override fun findProduct(
+        code: String,
+        criteria: ProductSearchCriteria,
+    ): ProductProjection? =
+        queryRepository.findProduct(code, criteria)
+
+    override fun findProducts(
+        criteria: ProductSearchCriteria,
+    ): List<ProductProjection> =
+        queryRepository.findProducts(criteria)
+
+    override fun findProducts(
+        criteria: ProductSearchCriteria,
+        pageable: Pageable,
+    ): Page<ProductProjection> =
+        queryRepository.findProducts(criteria, pageable)
 }

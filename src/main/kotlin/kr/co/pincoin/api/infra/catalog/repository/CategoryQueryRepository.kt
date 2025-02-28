@@ -11,6 +11,11 @@ interface CategoryQueryRepository {
         criteria: CategorySearchCriteria,
     ): CategoryEntity?
 
+    fun findCategory(
+        slug: String,
+        criteria: CategorySearchCriteria,
+    ): CategoryEntity?
+
     fun findCategories(
         criteria: CategorySearchCriteria,
     ): List<CategoryEntity>

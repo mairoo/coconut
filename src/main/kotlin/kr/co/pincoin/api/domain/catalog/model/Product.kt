@@ -88,16 +88,8 @@ class Product private constructor(
         reviewCount = reviewCount + 1
     )
 
-    fun decreaseReviewCount(): Product = copy(
-        reviewCount = if (reviewCount > 0) reviewCount - 1 else 0
-    )
-
     fun increaseReviewCountPg(): Product = copy(
         reviewCountPg = reviewCountPg + 1
-    )
-
-    fun decreaseReviewCountPg(): Product = copy(
-        reviewCountPg = if (reviewCountPg > 0) reviewCountPg - 1 else 0
     )
 
     private fun copy(

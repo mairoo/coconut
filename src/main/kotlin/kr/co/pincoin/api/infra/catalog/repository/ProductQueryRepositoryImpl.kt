@@ -32,9 +32,18 @@ class ProductQueryRepositoryImpl(
             .join(category).on(product.categoryId.eq(category.id))
             .where(
                 eqProductId(id),
-                *getCommonWhereConditions(criteria)
+                *getCommonWhereConditions(criteria),
             )
             .fetchOne()
+
+    override fun findProduct(
+        code: String,
+        criteria: ProductSearchCriteria,
+    ): ProductProjection? = queryFactory.select(createProductProjection())
+        .from(product)
+        .join(category).on(product.categoryId.eq(category.id))
+        .where(*getCommonWhereConditions(criteria.copy(code = code)))
+        .fetchOne()
 
     override fun findProducts(
         criteria: ProductSearchCriteria,

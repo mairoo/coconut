@@ -29,6 +29,16 @@ class CategoryQueryRepositoryImpl(
             )
             .fetchOne()
 
+    override fun findCategory(
+        slug: String,
+        criteria: CategorySearchCriteria,
+    ): CategoryEntity? {
+        return queryFactory
+            .selectFrom(category)
+            .where(*getCommonWhereConditions(criteria.copy(slug = slug)))
+            .fetchOne()
+    }
+
     override fun findCategories(
         criteria: CategorySearchCriteria,
     ): List<CategoryEntity> =

@@ -11,6 +11,11 @@ interface ProductQueryRepository {
         criteria: ProductSearchCriteria
     ): ProductProjection?
 
+    fun findProduct(
+        code: String,
+        criteria: ProductSearchCriteria
+    ): ProductProjection?
+
     fun findProducts(
         criteria: ProductSearchCriteria,
     ): List<ProductProjection>

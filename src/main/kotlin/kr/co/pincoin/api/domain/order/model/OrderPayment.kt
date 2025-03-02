@@ -11,7 +11,7 @@ class OrderPayment private constructor(
     val modified: ZonedDateTime? = null,
 
     // 2. 공통 가변 필드
-    isRemoved: Boolean? = null,
+    val isRemoved: Boolean = false,
 
     // 3. 도메인 로직 불변 필드
     val orderId: Long,
@@ -19,17 +19,34 @@ class OrderPayment private constructor(
     val received: ZonedDateTime,
 
     // 4. 도메인 로직 가변 필드
-    account: PaymentBankAccount,
-    balance: BigDecimal,
+    val account: PaymentBankAccount,
+    val balance: BigDecimal,
 ) {
-    var isRemoved: Boolean = isRemoved ?: false
-        private set
+    fun updateAccount(newAccount: PaymentBankAccount? = null): OrderPayment = copy(
+        account = newAccount ?: account
+    )
 
-    var account: PaymentBankAccount = account
-        private set
+    fun updateBalance(newBalance: BigDecimal? = null): OrderPayment = copy(
+        balance = newBalance ?: balance
+    )
 
-    var balance: BigDecimal = balance
-        private set
+    fun markAsRemoved(): OrderPayment = copy(isRemoved = true)
+
+    private fun copy(
+        account: PaymentBankAccount? = null,
+        balance: BigDecimal? = null,
+        isRemoved: Boolean? = null
+    ): OrderPayment = OrderPayment(
+        id = this.id,
+        created = this.created,
+        modified = this.modified,
+        isRemoved = isRemoved ?: this.isRemoved,
+        orderId = this.orderId,
+        amount = this.amount,
+        received = this.received,
+        account = account ?: this.account,
+        balance = balance ?: this.balance
+    )
 
     companion object {
         fun of(
@@ -47,7 +64,7 @@ class OrderPayment private constructor(
                 id = id,
                 created = created,
                 modified = modified,
-                isRemoved = isRemoved,
+                isRemoved = isRemoved ?: false,
                 orderId = orderId,
                 account = account,
                 amount = amount,

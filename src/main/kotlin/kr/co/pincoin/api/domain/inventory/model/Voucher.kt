@@ -10,30 +10,49 @@ class Voucher private constructor(
     val modified: ZonedDateTime? = null,
 
     // 2. 공통 가변 필드
-    isRemoved: Boolean? = null,
+    val isRemoved: Boolean = false,
 
     // 3. 도메인 로직 불변 필드
 
     // 4. 도메인 로직 가변 필드
-    code: String,
-    remarks: String,
-    productId: Long,
-    status: VoucherStatus,
+    val code: String,
+    val remarks: String,
+    val productId: Long,
+    val status: VoucherStatus,
 ) {
-    var isRemoved: Boolean = isRemoved ?: false
-        private set
+    fun updateBasicInfo(
+        newCode: String? = null,
+        newRemarks: String? = null
+    ): Voucher = copy(
+        code = newCode ?: code,
+        remarks = newRemarks ?: remarks
+    )
 
-    var code: String = code
-        private set
+    fun updateProduct(newProductId: Long? = null): Voucher =
+        copy(productId = newProductId ?: productId)
 
-    var remarks: String = remarks
-        private set
+    fun updateStatus(newStatus: VoucherStatus? = null): Voucher =
+        copy(status = newStatus ?: status)
 
-    var productId: Long = productId
-        private set
+    fun markAsRemoved(): Voucher =
+        copy(isRemoved = true)
 
-    var status: VoucherStatus = status
-        private set
+    private fun copy(
+        code: String? = null,
+        remarks: String? = null,
+        productId: Long? = null,
+        status: VoucherStatus? = null,
+        isRemoved: Boolean? = null
+    ): Voucher = Voucher(
+        id = this.id,
+        created = this.created,
+        modified = this.modified,
+        isRemoved = isRemoved ?: this.isRemoved,
+        code = code ?: this.code,
+        remarks = remarks ?: this.remarks,
+        productId = productId ?: this.productId,
+        status = status ?: this.status
+    )
 
     companion object {
         fun of(
@@ -50,7 +69,7 @@ class Voucher private constructor(
                 id = id,
                 created = created,
                 modified = modified,
-                isRemoved = isRemoved,
+                isRemoved = isRemoved ?: false,
                 code = code,
                 remarks = remarks,
                 productId = productId,

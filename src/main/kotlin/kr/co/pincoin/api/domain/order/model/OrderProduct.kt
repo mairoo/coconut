@@ -10,36 +10,61 @@ class OrderProduct private constructor(
     val modified: ZonedDateTime? = null,
 
     // 2. 공통 가변 필드
-    isRemoved: Boolean? = null,
+    val isRemoved: Boolean = false,
 
     // 3. 도메인 로직 불변 필드
     val orderId: Long,
     val code: String,
 
     // 4. 도메인 로직 가변 필드
-    name: String,
-    subtitle: String,
-    listPrice: BigDecimal,
-    sellingPrice: BigDecimal,
-    quantity: Int,
+    val name: String,
+    val subtitle: String,
+    val listPrice: BigDecimal,
+    val sellingPrice: BigDecimal,
+    val quantity: Int,
 ) {
-    var isRemoved: Boolean = isRemoved ?: false
-        private set
+    fun updateBasicInfo(
+        newName: String? = null,
+        newSubtitle: String? = null
+    ): OrderProduct = copy(
+        name = newName ?: name,
+        subtitle = newSubtitle ?: subtitle
+    )
 
-    var name: String = name
-        private set
+    fun updatePriceInfo(
+        newListPrice: BigDecimal? = null,
+        newSellingPrice: BigDecimal? = null
+    ): OrderProduct = copy(
+        listPrice = newListPrice ?: listPrice,
+        sellingPrice = newSellingPrice ?: sellingPrice
+    )
 
-    var subtitle: String = subtitle
-        private set
+    fun updateQuantity(newQuantity: Int? = null): OrderProduct = copy(
+        quantity = newQuantity ?: quantity
+    )
 
-    var listPrice: BigDecimal = listPrice
-        private set
+    fun markAsRemoved(): OrderProduct = copy(isRemoved = true)
 
-    var sellingPrice: BigDecimal = sellingPrice
-        private set
-
-    var quantity: Int = quantity
-        private set
+    private fun copy(
+        name: String? = null,
+        subtitle: String? = null,
+        listPrice: BigDecimal? = null,
+        sellingPrice: BigDecimal? = null,
+        quantity: Int? = null,
+        isRemoved: Boolean? = null
+    ): OrderProduct = OrderProduct(
+        id = this.id,
+        created = this.created,
+        modified = this.modified,
+        isRemoved = isRemoved ?: this.isRemoved,
+        orderId = this.orderId,
+        code = this.code,
+        name = name ?: this.name,
+        subtitle = subtitle ?: this.subtitle,
+        listPrice = listPrice ?: this.listPrice,
+        sellingPrice = sellingPrice ?: this.sellingPrice,
+        quantity = quantity ?: this.quantity
+    )
 
     companion object {
         fun of(
@@ -59,7 +84,7 @@ class OrderProduct private constructor(
                 id = id,
                 created = created,
                 modified = modified,
-                isRemoved = isRemoved,
+                isRemoved = isRemoved ?: false,
                 orderId = orderId,
                 name = name,
                 subtitle = subtitle,

@@ -9,28 +9,47 @@ class OrderProductVoucher private constructor(
     val modified: ZonedDateTime? = null,
 
     // 2. 공통 가변 필드
-    isRemoved: Boolean? = null,
+    val isRemoved: Boolean = false,
 
     // 3. 도메인 로직 불변 필드
     val orderProductId: Long,
     val code: String,
 
     // 4. 도메인 로직 가변 필드
-    voucherId: Long?,
-    revoked: Boolean,
-    remarks: String,
+    val voucherId: Long?,
+    val revoked: Boolean,
+    val remarks: String,
 ) {
-    var isRemoved: Boolean = isRemoved ?: false
-        private set
+    fun assignVoucher(newVoucherId: Long?): OrderProductVoucher = copy(
+        voucherId = newVoucherId
+    )
 
-    var voucherId: Long? = voucherId
-        private set
+    fun updateRevoked(newRevoked: Boolean? = null): OrderProductVoucher = copy(
+        revoked = newRevoked ?: revoked
+    )
 
-    var revoked: Boolean = revoked
-        private set
+    fun updateRemarks(newRemarks: String? = null): OrderProductVoucher = copy(
+        remarks = newRemarks ?: remarks
+    )
 
-    var remarks: String = remarks
-        private set
+    fun markAsRemoved(): OrderProductVoucher = copy(isRemoved = true)
+
+    private fun copy(
+        voucherId: Long? = this.voucherId,
+        revoked: Boolean? = null,
+        remarks: String? = null,
+        isRemoved: Boolean? = null
+    ): OrderProductVoucher = OrderProductVoucher(
+        id = this.id,
+        created = this.created,
+        modified = this.modified,
+        isRemoved = isRemoved ?: this.isRemoved,
+        orderProductId = this.orderProductId,
+        code = this.code,
+        voucherId = voucherId,
+        revoked = revoked ?: this.revoked,
+        remarks = remarks ?: this.remarks
+    )
 
     companion object {
         fun of(
@@ -48,7 +67,7 @@ class OrderProductVoucher private constructor(
                 id = id,
                 created = created,
                 modified = modified,
-                isRemoved = isRemoved,
+                isRemoved = isRemoved ?: false,
                 orderProductId = orderProductId,
                 voucherId = voucherId,
                 code = code,

@@ -12,10 +12,21 @@ class TestimonialAnswer private constructor(
     val testimonialId: Long,
 
     // 3. 도메인 로직 가변 필드
-    content: String,
+    val content: String,
 ) {
-    var content: String = content
-        private set
+    fun updateContent(newContent: String? = null): TestimonialAnswer = copy(
+        content = newContent ?: content
+    )
+
+    private fun copy(
+        content: String? = null
+    ): TestimonialAnswer = TestimonialAnswer(
+        id = this.id,
+        created = this.created,
+        modified = this.modified,
+        testimonialId = this.testimonialId,
+        content = content ?: this.content
+    )
 
     companion object {
         fun of(

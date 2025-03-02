@@ -11,38 +11,66 @@ class User private constructor(
     val username: String,
 
     // 3. 도메인 로직 가변 필드
-    password: String,
-    lastLogin: ZonedDateTime?,
-    isSuperuser: Boolean,
-    firstName: String,
-    lastName: String,
-    email: String,
-    isStaff: Boolean,
-    isActive: Boolean,
+    val password: String,
+    val lastLogin: ZonedDateTime?,
+    val isSuperuser: Boolean,
+    val firstName: String,
+    val lastName: String,
+    val email: String,
+    val isStaff: Boolean,
+    val isActive: Boolean,
 ) {
-    var password: String = password
-        private set
+    fun updatePassword(newPassword: String): User = copy(
+        password = newPassword
+    )
 
-    var lastLogin: ZonedDateTime? = lastLogin
-        private set
+    fun updateLastLogin(newLastLogin: ZonedDateTime?): User = copy(
+        lastLogin = newLastLogin
+    )
 
-    var isSuperuser: Boolean = isSuperuser
-        private set
+    fun updateSuperuser(newIsSuperuser: Boolean): User = copy(
+        isSuperuser = newIsSuperuser
+    )
 
-    var firstName: String = firstName
-        private set
+    fun updateName(newFirstName: String? = null, newLastName: String? = null): User = copy(
+        firstName = newFirstName ?: firstName,
+        lastName = newLastName ?: lastName
+    )
 
-    var lastName: String = lastName
-        private set
+    fun updateEmail(newEmail: String): User = copy(
+        email = newEmail
+    )
 
-    var email: String = email
-        private set
+    fun updateStaff(newIsStaff: Boolean): User = copy(
+        isStaff = newIsStaff
+    )
 
-    var isStaff: Boolean = isStaff
-        private set
+    fun updateActive(newIsActive: Boolean): User = copy(
+        isActive = newIsActive
+    )
 
-    var isActive: Boolean = isActive
-        private set
+    private fun copy(
+        password: String = this.password,
+        lastLogin: ZonedDateTime? = this.lastLogin,
+        isSuperuser: Boolean = this.isSuperuser,
+        firstName: String = this.firstName,
+        lastName: String = this.lastName,
+        email: String = this.email,
+        isStaff: Boolean = this.isStaff,
+        isActive: Boolean = this.isActive
+    ): User = User(
+        id = this.id,
+        dateJoined = this.dateJoined,
+        username = this.username,
+        password = password,
+        lastLogin = lastLogin,
+        isSuperuser = isSuperuser,
+        firstName = firstName,
+        lastName = lastName,
+        email = email,
+        isStaff = isStaff,
+        isActive = isActive
+    )
 
     companion object {
         fun of(

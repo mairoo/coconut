@@ -10,32 +10,39 @@ class PurchaseOrder private constructor(
     val modified: ZonedDateTime? = null,
 
     // 2. 공통 가변 필드
-    isRemoved: Boolean? = null,
+    val isRemoved: Boolean = false,
 
     // 3. 도메인 로직 가변 필드
-    title: String,
-    content: String,
-    bankAccount: String?,
-    amount: BigDecimal,
-    paid: Boolean,
+    val title: String,
+    val content: String,
+    val bankAccount: String?,
+    val amount: BigDecimal,
+    val paid: Boolean,
 ) {
-    var isRemoved: Boolean = isRemoved ?: false
-        private set
+    fun markAsPaid(): PurchaseOrder =
+        copy(paid = true)
 
-    var title: String = title
-        private set
+    fun markAsRemoved(): PurchaseOrder =
+        copy(isRemoved = true)
 
-    var content: String = content
-        private set
-
-    var bankAccount: String? = bankAccount
-        private set
-
-    var amount: BigDecimal = amount
-        private set
-
-    var paid: Boolean = paid
-        private set
+    private fun copy(
+        title: String? = null,
+        content: String? = null,
+        bankAccount: String? = this.bankAccount,
+        amount: BigDecimal? = null,
+        paid: Boolean? = null,
+        isRemoved: Boolean? = null
+    ): PurchaseOrder = PurchaseOrder(
+        id = this.id,
+        created = this.created,
+        modified = this.modified,
+        isRemoved = isRemoved ?: this.isRemoved,
+        title = title ?: this.title,
+        content = content ?: this.content,
+        bankAccount = bankAccount,
+        amount = amount ?: this.amount,
+        paid = paid ?: this.paid
+    )
 
     companion object {
         fun of(
@@ -53,7 +60,7 @@ class PurchaseOrder private constructor(
                 id = id,
                 created = created,
                 modified = modified,
-                isRemoved = isRemoved,
+                isRemoved = isRemoved ?: false,
                 title = title,
                 content = content,
                 bankAccount = bankAccount,

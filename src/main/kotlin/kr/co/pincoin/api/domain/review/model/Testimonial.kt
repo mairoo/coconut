@@ -9,33 +9,52 @@ class Testimonial private constructor(
     val modified: ZonedDateTime? = null,
 
     // 2. 공통 가변 필드
-    isRemoved: Boolean? = null,
+    val isRemoved: Boolean = false,
 
     // 3. 도메인 로직 불변 필드
     // 4. 도메인 로직 가변 필드
-    title: String,
-    description: String,
-    keywords: String,
-    content: String,
-    ownerId: Int?,
+    val title: String,
+    val description: String,
+    val keywords: String,
+    val content: String,
+    val ownerId: Int?,
 ) {
-    var isRemoved: Boolean = isRemoved ?: false
-        private set
+    fun updateBasicInfo(
+        newTitle: String? = null,
+        newDescription: String? = null,
+        newKeywords: String? = null,
+        newContent: String? = null
+    ): Testimonial = copy(
+        title = newTitle ?: title,
+        description = newDescription ?: description,
+        keywords = newKeywords ?: keywords,
+        content = newContent ?: content
+    )
 
-    var title: String = title
-        private set
+    fun updateOwner(newOwnerId: Int?): Testimonial = copy(
+        ownerId = newOwnerId
+    )
 
-    var description: String = description
-        private set
+    fun markAsRemoved(): Testimonial = copy(isRemoved = true)
 
-    var keywords: String = keywords
-        private set
-
-    var content: String = content
-        private set
-
-    var ownerId: Int? = ownerId
-        private set
+    private fun copy(
+        title: String? = null,
+        description: String? = null,
+        keywords: String? = null,
+        content: String? = null,
+        ownerId: Int? = this.ownerId,
+        isRemoved: Boolean? = null
+    ): Testimonial = Testimonial(
+        id = this.id,
+        created = this.created,
+        modified = this.modified,
+        isRemoved = isRemoved ?: this.isRemoved,
+        title = title ?: this.title,
+        description = description ?: this.description,
+        keywords = keywords ?: this.keywords,
+        content = content ?: this.content,
+        ownerId = ownerId
+    )
 
     companion object {
         fun of(
@@ -53,7 +72,7 @@ class Testimonial private constructor(
                 id = id,
                 created = created,
                 modified = modified,
-                isRemoved = isRemoved,
+                isRemoved = isRemoved ?: false,
                 title = title,
                 description = description,
                 keywords = keywords,

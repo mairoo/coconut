@@ -10,37 +10,59 @@ class NoticeMessage private constructor(
     val modified: ZonedDateTime? = null,
 
     // 2. 공통 가변 필드
-    isRemoved: Boolean? = null,
+    val isRemoved: Boolean = false,
 
     // 3. 도메인 로직 불변 필드
     // 4. 도메인 로직 가변 필드
-    title: String,
-    description: String,
-    keywords: String,
-    content: String,
-    category: NoticeMessageCategory,
-    ownerId: Int?,
+    val title: String,
+    val description: String,
+    val keywords: String,
+    val content: String,
+    val category: NoticeMessageCategory,
+    val ownerId: Int?,
 ) {
-    var isRemoved: Boolean = isRemoved ?: false
-        private set
+    fun updateBasicInfo(
+        newTitle: String? = null,
+        newDescription: String? = null,
+        newKeywords: String? = null,
+        newContent: String? = null
+    ): NoticeMessage = copy(
+        title = newTitle ?: title,
+        description = newDescription ?: description,
+        keywords = newKeywords ?: keywords,
+        content = newContent ?: content
+    )
 
-    var title: String = title
-        private set
+    fun updateCategory(newCategory: NoticeMessageCategory? = null): NoticeMessage = copy(
+        category = newCategory ?: category
+    )
 
-    var description: String = description
-        private set
+    fun updateOwner(newOwnerId: Int?): NoticeMessage = copy(
+        ownerId = newOwnerId
+    )
 
-    var keywords: String = keywords
-        private set
+    fun markAsRemoved(): NoticeMessage = copy(isRemoved = true)
 
-    var content: String = content
-        private set
-
-    var category: NoticeMessageCategory = category
-        private set
-
-    var ownerId: Int? = ownerId
-        private set
+    private fun copy(
+        title: String? = null,
+        description: String? = null,
+        keywords: String? = null,
+        content: String? = null,
+        category: NoticeMessageCategory? = null,
+        ownerId: Int? = this.ownerId,
+        isRemoved: Boolean? = null
+    ): NoticeMessage = NoticeMessage(
+        id = this.id,
+        created = this.created,
+        modified = this.modified,
+        isRemoved = isRemoved ?: this.isRemoved,
+        title = title ?: this.title,
+        description = description ?: this.description,
+        keywords = keywords ?: this.keywords,
+        content = content ?: this.content,
+        category = category ?: this.category,
+        ownerId = ownerId
+    )
 
     companion object {
         fun of(
@@ -59,7 +81,7 @@ class NoticeMessage private constructor(
                 id = id,
                 created = created,
                 modified = modified,
-                isRemoved = isRemoved,
+                isRemoved = isRemoved ?: false,
                 title = title,
                 description = description,
                 keywords = keywords,

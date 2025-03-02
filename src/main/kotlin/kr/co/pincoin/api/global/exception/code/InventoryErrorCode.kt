@@ -12,10 +12,10 @@ enum class InventoryErrorCode(
     ),
     VOUCHER_ALREADY_EXISTS(
         HttpStatus.CONFLICT,
-        "카테고리가 이미 존재합니다",
+        "상품권 코드가 이미 존재합니다",
     ),
     VOUCHER_SAVE_FAILED(
         HttpStatus.INTERNAL_SERVER_ERROR,
-        "카테고리 저장에 실패했습니다",
+        "상품권 코드 저장에 실패했습니다",
     ),
 }

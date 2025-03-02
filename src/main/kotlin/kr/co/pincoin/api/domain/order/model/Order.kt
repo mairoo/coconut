@@ -15,72 +15,115 @@ class Order private constructor(
     val modified: ZonedDateTime? = null,
 
     // 2. 공통 가변 필드
-    isRemoved: Boolean? = null,
+    val isRemoved: Boolean = false,
 
     // 3. 도메인 로직 불변 필드
     val orderNo: UUID,
     val ipAddress: String,
 
     // 4. 도메인 로직 가변 필드
-    userId: Long?,
-    fullname: String,
-    userAgent: String,
-    acceptLanguage: String,
-    paymentMethod: OrderPaymentMethod,
-    transactionId: String,
-    status: OrderStatus,
-    visible: OrderVisibility,
-    totalListPrice: BigDecimal,
-    totalSellingPrice: BigDecimal,
-    currency: OrderCurrency,
-    message: String,
-    parentId: Long?,
-    suspicious: Boolean,
+    val userId: Long?,
+    val fullname: String,
+    val userAgent: String,
+    val acceptLanguage: String,
+    val paymentMethod: OrderPaymentMethod,
+    val transactionId: String,
+    val status: OrderStatus,
+    val visible: OrderVisibility,
+    val totalListPrice: BigDecimal,
+    val totalSellingPrice: BigDecimal,
+    val currency: OrderCurrency,
+    val message: String,
+    val parentId: Long?,
+    val suspicious: Boolean,
 ) {
-    var isRemoved: Boolean = isRemoved ?: false
-        private set
+    fun updateUserInfo(
+        newUserId: Long? = null,
+        newFullname: String? = null,
+        newUserAgent: String? = null,
+        newAcceptLanguage: String? = null
+    ): Order = copy(
+        userId = newUserId,
+        fullname = newFullname ?: fullname,
+        userAgent = newUserAgent ?: userAgent,
+        acceptLanguage = newAcceptLanguage ?: acceptLanguage
+    )
 
-    var userId: Long? = userId
-        private set
+    fun updatePaymentInfo(
+        newPaymentMethod: OrderPaymentMethod? = null,
+        newTransactionId: String? = null
+    ): Order = copy(
+        paymentMethod = newPaymentMethod ?: paymentMethod,
+        transactionId = newTransactionId ?: transactionId,
+    )
 
-    var fullname: String = fullname
-        private set
+    fun updateStatus(newStatus: OrderStatus? = null): Order =
+        copy(status = newStatus ?: status)
 
-    var userAgent: String = userAgent
-        private set
+    fun updateVisibility(newVisible: OrderVisibility? = null): Order =
+        copy(visible = newVisible ?: visible)
 
-    var acceptLanguage: String = acceptLanguage
-        private set
+    fun updatePriceInfo(
+        newTotalListPrice: BigDecimal? = null,
+        newTotalSellingPrice: BigDecimal? = null,
+        newCurrency: OrderCurrency? = null
+    ): Order =
+        copy(
+            totalListPrice = newTotalListPrice ?: totalListPrice,
+            totalSellingPrice = newTotalSellingPrice ?: totalSellingPrice,
+            currency = newCurrency ?: currency,
+        )
 
-    var paymentMethod: OrderPaymentMethod = paymentMethod
-        private set
+    fun updateMessage(newMessage: String? = null): Order =
+        copy(message = newMessage ?: message)
 
-    var transactionId: String = transactionId
-        private set
+    fun updateParent(newParentId: Long?): Order =
+        copy(parentId = newParentId)
 
-    var status: OrderStatus = status
-        private set
+    fun markAsSuspicious(newSuspicious: Boolean = true): Order =
+        copy(suspicious = newSuspicious)
 
-    var visible: OrderVisibility = visible
-        private set
+    fun markAsRemoved(): Order =
+        copy(isRemoved = true)
 
-    var totalListPrice: BigDecimal = totalListPrice
-        private set
-
-    var totalSellingPrice: BigDecimal = totalSellingPrice
-        private set
-
-    var currency: OrderCurrency = currency
-        private set
-
-    var message: String = message
-        private set
-
-    var parentId: Long? = parentId
-        private set
-
-    var suspicious: Boolean = suspicious
-        private set
+    private fun copy(
+        userId: Long? = this.userId,
+        fullname: String? = null,
+        userAgent: String? = null,
+        acceptLanguage: String? = null,
+        paymentMethod: OrderPaymentMethod? = null,
+        transactionId: String? = null,
+        status: OrderStatus? = null,
+        visible: OrderVisibility? = null,
+        totalListPrice: BigDecimal? = null,
+        totalSellingPrice: BigDecimal? = null,
+        currency: OrderCurrency? = null,
+        message: String? = null,
+        parentId: Long? = this.parentId,
+        suspicious: Boolean? = null,
+        isRemoved: Boolean? = null
+    ): Order = Order(
+        id = this.id,
+        created = this.created,
+        modified = this.modified,
+        isRemoved = isRemoved ?: this.isRemoved,
+        orderNo = this.orderNo,
+        ipAddress = this.ipAddress,
+        userId = userId,
+        fullname = fullname ?: this.fullname,
+        userAgent = userAgent ?: this.userAgent,
+        acceptLanguage = acceptLanguage ?: this.acceptLanguage,
+        paymentMethod = paymentMethod ?: this.paymentMethod,
+        transactionId = transactionId ?: this.transactionId,
+        status = status ?: this.status,
+        visible = visible ?: this.visible,
+        totalListPrice = totalListPrice ?: this.totalListPrice,
+        totalSellingPrice = totalSellingPrice ?: this.totalSellingPrice,
+        currency = currency ?: this.currency,
+        message = message ?: this.message,
+        parentId = parentId,
+        suspicious = suspicious ?: this.suspicious
+    )
 
     companion object {
         fun of(
@@ -109,7 +152,7 @@ class Order private constructor(
                 id = id,
                 created = created,
                 modified = modified,
-                isRemoved = isRemoved,
+                isRemoved = isRemoved ?: false,
                 orderNo = orderNo,
                 userId = userId,
                 fullname = fullname,

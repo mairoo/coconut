@@ -32,6 +32,3 @@ fun Voucher?.toEntity(): VoucherEntity? =
             // created, modified: 매핑 안 함 JPA Auditing 관리 필드
         )
     }
-
-fun List<Voucher>?.toEntityList(): List<VoucherEntity> =
-    this?.mapNotNull { it.toEntity() } ?: emptyList()

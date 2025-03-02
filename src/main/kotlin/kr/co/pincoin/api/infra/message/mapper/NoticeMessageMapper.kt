@@ -34,6 +34,3 @@ fun NoticeMessage?.toEntity(): NoticeMessageEntity? =
             ownerId = model.ownerId,
         )
     }
-
-fun List<NoticeMessage>?.toEntityList(): List<NoticeMessageEntity> =
-    this?.mapNotNull { it.toEntity() } ?: emptyList()

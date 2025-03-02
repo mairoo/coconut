@@ -29,6 +29,3 @@ fun PurchaseOrderPayment?.toEntity(): PurchaseOrderPaymentEntity? =
             amount = model.amount
         )
     }
-
-fun List<PurchaseOrderPayment>?.toEntityList(): List<PurchaseOrderPaymentEntity> =
-    this?.mapNotNull { it.toEntity() } ?: emptyList()

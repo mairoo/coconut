@@ -36,6 +36,3 @@ fun FaqMessage?.toEntity(): FaqMessageEntity? =
             ownerId = model.ownerId,
         )
     }
-
-fun List<FaqMessage>?.toEntityList(): List<FaqMessageEntity> =
-    this?.mapNotNull { it.toEntity() } ?: emptyList()

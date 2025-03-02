@@ -32,6 +32,3 @@ fun Testimonial?.toEntity(): TestimonialEntity? =
             ownerId = model.ownerId,
         )
     }
-
-fun List<Testimonial>?.toEntityList(): List<TestimonialEntity> =
-    this?.mapNotNull { it.toEntity() } ?: emptyList()

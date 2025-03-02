@@ -27,6 +27,3 @@ fun EmailAddress?.toEntity(): EmailAddressEntity? =
             userId = model.userId
         )
     }
-
-fun List<EmailAddress>?.toEntityList(): List<EmailAddressEntity> =
-    this?.mapNotNull { it.toEntity() } ?: emptyList()

@@ -33,6 +33,3 @@ fun OrderProductVoucher?.toEntity(): OrderProductVoucherEntity? =
             remarks = model.remarks
         )
     }
-
-fun List<OrderProductVoucher>?.toEntityList(): List<OrderProductVoucherEntity> =
-    this?.mapNotNull { it.toEntity() } ?: emptyList()

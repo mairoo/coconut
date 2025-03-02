@@ -39,6 +39,3 @@ fun User?.toEntity(): UserEntity? =
             dateJoined = model.dateJoined
         )
     }
-
-fun List<User>?.toEntityList(): List<UserEntity> =
-    this?.mapNotNull { it.toEntity() } ?: emptyList()

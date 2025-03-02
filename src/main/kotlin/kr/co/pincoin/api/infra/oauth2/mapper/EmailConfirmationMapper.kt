@@ -27,6 +27,3 @@ fun EmailConfirmation?.toEntity(): EmailConfirmationEntity? =
             emailAddressId = model.emailAddressId
         )
     }
-
-fun List<EmailConfirmation>?.toEntityList(): List<EmailConfirmationEntity> =
-    this?.mapNotNull { it.toEntity() } ?: emptyList()

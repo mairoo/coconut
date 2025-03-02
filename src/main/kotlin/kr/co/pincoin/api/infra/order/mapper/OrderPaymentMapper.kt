@@ -33,6 +33,3 @@ fun OrderPayment?.toEntity(): OrderPaymentEntity? =
             received = model.received
         )
     }
-
-fun List<OrderPayment>?.toEntityList(): List<OrderPaymentEntity> =
-    this?.mapNotNull { it.toEntity() } ?: emptyList()

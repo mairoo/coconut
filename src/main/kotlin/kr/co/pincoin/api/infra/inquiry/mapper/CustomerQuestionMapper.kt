@@ -36,6 +36,3 @@ fun CustomerQuestion?.toEntity(): CustomerQuestionEntity? =
             ownerId = model.ownerId,
         )
     }
-
-fun List<CustomerQuestion>?.toEntityList(): List<CustomerQuestionEntity> =
-    this?.mapNotNull { it.toEntity() } ?: emptyList()

@@ -37,6 +37,3 @@ fun OrderProduct?.toEntity(): OrderProductEntity? =
             quantity = model.quantity
         )
     }
-
-fun List<OrderProduct>?.toEntityList(): List<OrderProductEntity> =
-    this?.mapNotNull { it.toEntity() } ?: emptyList()

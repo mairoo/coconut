@@ -55,6 +55,3 @@ fun Order?.toEntity(): OrderEntity? =
             suspicious = model.suspicious
         )
     }
-
-fun List<Order>?.toEntityList(): List<OrderEntity> =
-    this?.mapNotNull { it.toEntity() } ?: emptyList()

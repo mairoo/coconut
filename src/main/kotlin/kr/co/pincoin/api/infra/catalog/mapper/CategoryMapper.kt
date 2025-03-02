@@ -44,6 +44,3 @@ fun Category?.toEntity(): CategoryEntity? =
             // created, modified: 매핑 안 함 JPA Auditing 관리 필드
         )
     }
-
-fun List<Category>?.toEntityList(): List<CategoryEntity> =
-    this?.mapNotNull { it.toEntity() } ?: emptyList()

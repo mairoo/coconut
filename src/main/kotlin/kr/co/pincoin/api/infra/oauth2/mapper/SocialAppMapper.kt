@@ -29,6 +29,3 @@ fun SocialApp?.toEntity(): SocialAppEntity? =
             key = model.key
         )
     }
-
-fun List<SocialApp>?.toEntityList(): List<SocialAppEntity> =
-    this?.mapNotNull { it.toEntity() } ?: emptyList()

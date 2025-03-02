@@ -65,6 +65,3 @@ fun Product?.toEntity(): ProductEntity? =
             naverAttribute = model.naverAttribute
         )
     }
-
-fun List<Product>?.toEntityList(): List<ProductEntity> =
-    this?.mapNotNull { it.toEntity() } ?: emptyList()

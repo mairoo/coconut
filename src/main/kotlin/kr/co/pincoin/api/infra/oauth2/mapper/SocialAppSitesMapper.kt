@@ -23,6 +23,3 @@ fun SocialAppSites?.toEntity(): SocialAppSitesEntity? =
             siteId = model.siteId
         )
     }
-
-fun List<SocialAppSites>?.toEntityList(): List<SocialAppSitesEntity> =
-    this?.mapNotNull { it.toEntity() } ?: emptyList()

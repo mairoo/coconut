@@ -29,6 +29,3 @@ fun SocialToken?.toEntity(): SocialTokenEntity? =
             appId = model.appId
         )
     }
-
-fun List<SocialToken>?.toEntityList(): List<SocialTokenEntity> =
-    this?.mapNotNull { it.toEntity() } ?: emptyList()

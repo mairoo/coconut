@@ -31,6 +31,3 @@ fun SocialAccount?.toEntity(): SocialAccountEntity? =
             userId = model.userId
         )
     }
-
-fun List<SocialAccount>?.toEntityList(): List<SocialAccountEntity> =
-    this?.mapNotNull { it.toEntity() } ?: emptyList()

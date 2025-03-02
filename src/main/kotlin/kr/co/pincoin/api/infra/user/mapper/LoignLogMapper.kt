@@ -37,6 +37,3 @@ fun LoginLog?.toEntity(): LoginLogEntity? =
             userId = model.userId
         )
     }
-
-fun List<LoginLog>?.toEntityList(): List<LoginLogEntity> =
-    this?.mapNotNull { it.toEntity() } ?: emptyList()

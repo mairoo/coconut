@@ -13,10 +13,6 @@ interface LoginLogQueryRepository {
 
     fun findLoginLogs(
         criteria: LoginLogSearchCriteria,
-    ): List<LoginLogEntity>
-
-    fun findLoginLogs(
-        criteria: LoginLogSearchCriteria,
         pageable: Pageable,
     ): Page<LoginLogEntity>
 }

@@ -15,10 +15,6 @@ interface LoginLogRepository {
 
     fun findLoginLogs(
         criteria: LoginLogSearchCriteria,
-    ): List<LoginLog>
-
-    fun findLoginLogs(
-        criteria: LoginLogSearchCriteria,
         pageable: Pageable,
     ): Page<LoginLog>
 }

@@ -4,7 +4,6 @@ import kr.co.pincoin.api.domain.user.model.LoginLog
 import kr.co.pincoin.api.domain.user.repository.LoginLogRepository
 import kr.co.pincoin.api.infra.user.mapper.toEntity
 import kr.co.pincoin.api.infra.user.mapper.toModel
-import kr.co.pincoin.api.infra.user.mapper.toModelList
 import kr.co.pincoin.api.infra.user.repository.criteria.LoginLogSearchCriteria
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -28,12 +27,6 @@ class LoginLogRepositoryImpl(
         criteria: LoginLogSearchCriteria,
     ): LoginLog? =
         queryRepository.findLoginLog(loginLogId, criteria)?.toModel()
-
-    override fun findLoginLogs(
-        criteria: LoginLogSearchCriteria,
-    ): List<LoginLog> =
-        queryRepository.findLoginLogs(criteria).toModelList()
-
 
     override fun findLoginLogs(
         criteria: LoginLogSearchCriteria,

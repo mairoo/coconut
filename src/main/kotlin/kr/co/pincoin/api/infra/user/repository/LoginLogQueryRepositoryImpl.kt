@@ -34,16 +34,6 @@ class LoginLogQueryRepositoryImpl(
 
     override fun findLoginLogs(
         criteria: LoginLogSearchCriteria,
-    ): List<LoginLogEntity> =
-        queryFactory
-            .select(loginLog)
-            .from(loginLog)
-            .where(*getCommonWhereConditions(criteria))
-            .orderBy(loginLog.created.desc(), loginLog.id.desc())
-            .fetch()
-
-    override fun findLoginLogs(
-        criteria: LoginLogSearchCriteria,
         pageable: Pageable,
     ): Page<LoginLogEntity> = executePageQuery(
         criteria,

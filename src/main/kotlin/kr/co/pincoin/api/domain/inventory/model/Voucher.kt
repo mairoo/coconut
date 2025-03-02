@@ -20,7 +20,7 @@ class Voucher private constructor(
     val productId: Long,
     val status: VoucherStatus,
 ) {
-    fun updateBasicInfo(
+    fun update(
         newCode: String? = null,
         newRemarks: String? = null
     ): Voucher = copy(

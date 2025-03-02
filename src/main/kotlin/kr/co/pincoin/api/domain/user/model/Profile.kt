@@ -1,5 +1,8 @@
 package kr.co.pincoin.api.domain.user.model
 
+import kr.co.pincoin.api.domain.user.enums.ProfileDomestic
+import kr.co.pincoin.api.domain.user.enums.ProfileGender
+import kr.co.pincoin.api.domain.user.enums.ProfilePhoneVerifiedStatus
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.ZonedDateTime
@@ -25,13 +28,13 @@ class Profile private constructor(
     maxPrice: BigDecimal,
     averagePrice: BigDecimal,
     memo: String,
-    phoneVerifiedStatus: Int,
+    phoneVerifiedStatus: ProfilePhoneVerifiedStatus,
     dateOfBirth: LocalDate?,
     firstPurchased: ZonedDateTime?,
     totalListPrice: BigDecimal,
     totalSellingPrice: BigDecimal,
-    domestic: Int,
-    gender: Int,
+    domestic: ProfileDomestic,
+    gender: ProfileGender,
     telecom: String,
     notPurchasedMonths: Boolean,
     repurchased: ZonedDateTime?,
@@ -71,7 +74,7 @@ class Profile private constructor(
     var memo: String = memo
         private set
 
-    var phoneVerifiedStatus: Int = phoneVerifiedStatus
+    var phoneVerifiedStatus: ProfilePhoneVerifiedStatus = phoneVerifiedStatus
         private set
 
     var dateOfBirth: LocalDate? = dateOfBirth
@@ -86,10 +89,10 @@ class Profile private constructor(
     var totalSellingPrice: BigDecimal = totalSellingPrice
         private set
 
-    var domestic: Int = domestic
+    var domestic: ProfileDomestic = domestic
         private set
 
-    var gender: Int = gender
+    var gender: ProfileGender = gender
         private set
 
     var telecom: String = telecom
@@ -124,13 +127,13 @@ class Profile private constructor(
             averagePrice: BigDecimal,
             userId: Int,
             memo: String,
-            phoneVerifiedStatus: Int,
+            phoneVerifiedStatus: ProfilePhoneVerifiedStatus,
             dateOfBirth: LocalDate? = null,
             firstPurchased: ZonedDateTime? = null,
             totalListPrice: BigDecimal,
             totalSellingPrice: BigDecimal,
-            domestic: Int,
-            gender: Int,
+            domestic: ProfileDomestic,
+            gender: ProfileGender,
             telecom: String,
             notPurchasedMonths: Boolean,
             repurchased: ZonedDateTime? = null,

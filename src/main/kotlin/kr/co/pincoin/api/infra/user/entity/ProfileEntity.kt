@@ -1,6 +1,9 @@
 package kr.co.pincoin.api.infra.user.entity
 
 import jakarta.persistence.*
+import kr.co.pincoin.api.domain.user.enums.ProfileDomestic
+import kr.co.pincoin.api.domain.user.enums.ProfileGender
+import kr.co.pincoin.api.domain.user.enums.ProfilePhoneVerifiedStatus
 import kr.co.pincoin.api.infra.common.jpa.DateTimeFields
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -51,7 +54,7 @@ class ProfileEntity private constructor(
     val memo: String,
 
     @Column(name = "phone_verified_status")
-    val phoneVerifiedStatus: Int,
+    val phoneVerifiedStatus: ProfilePhoneVerifiedStatus,
 
     @Column(name = "date_of_birth")
     val dateOfBirth: LocalDate? = null,
@@ -66,10 +69,10 @@ class ProfileEntity private constructor(
     val totalSellingPrice: BigDecimal,
 
     @Column(name = "domestic")
-    val domestic: Int,
+    val domestic: ProfileDomestic,
 
     @Column(name = "gender")
-    val gender: Int,
+    val gender: ProfileGender,
 
     @Column(name = "telecom")
     val telecom: String,
@@ -104,13 +107,13 @@ class ProfileEntity private constructor(
             averagePrice: BigDecimal,
             userId: Int,
             memo: String,
-            phoneVerifiedStatus: Int,
+            phoneVerifiedStatus: ProfilePhoneVerifiedStatus,
             dateOfBirth: LocalDate? = null,
             firstPurchased: ZonedDateTime? = null,
             totalListPrice: BigDecimal,
             totalSellingPrice: BigDecimal,
-            domestic: Int,
-            gender: Int,
+            domestic: ProfileDomestic,
+            gender: ProfileGender,
             telecom: String,
             notPurchasedMonths: Boolean,
             repurchased: ZonedDateTime? = null,

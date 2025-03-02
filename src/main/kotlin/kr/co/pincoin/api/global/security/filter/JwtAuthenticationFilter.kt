@@ -5,10 +5,14 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import kr.co.pincoin.api.domain.user.event.LoginEvent
 import kr.co.pincoin.api.global.exception.JwtAuthenticationException
 import kr.co.pincoin.api.global.exception.code.AuthErrorCode
 import kr.co.pincoin.api.global.response.error.ErrorResponse
+import kr.co.pincoin.api.global.security.adapter.UserDetailsAdapter
 import kr.co.pincoin.api.global.security.jwt.JwtTokenProvider
+import kr.co.pincoin.api.global.utils.IpUtils
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -26,6 +30,7 @@ class JwtAuthenticationFilter(
     private val jwtTokenProvider: JwtTokenProvider,
     private val userDetailsService: UserDetailsService,
     private val objectMapper: ObjectMapper,
+    private val eventPublisher: ApplicationEventPublisher,
 ) : OncePerRequestFilter() {
     private val log = KotlinLogging.logger {}
 
@@ -44,7 +49,7 @@ class JwtAuthenticationFilter(
             // JWT 토큰 유효성 확인 및 username 추출 후 인증 처리
             bearerToken?.let {
                 jwtTokenProvider.validateToken(it)
-                    ?.let { username -> authenticateUser(username) }
+                    ?.let { username -> authenticateUser(username, request) }
             }
 
             filterChain.doFilter(request, response)
@@ -71,7 +76,7 @@ class JwtAuthenticationFilter(
             } else null
         }
 
-    private fun authenticateUser(username: String) {
+    private fun authenticateUser(username: String, request: HttpServletRequest) {
         try {
             // 1. 데이터베이스에서 username 조회
             val userDetails = userDetailsService.loadUserByUsername(username)
@@ -99,6 +104,19 @@ class JwtAuthenticationFilter(
 
             // 4. 현재 인증된 사용자 정보를 보안 컨텍스트에 저장 = 로그인 처리
             SecurityContextHolder.getContext().authentication = auth
+
+            // 5. JWT 로그인 성공 로깅
+            eventPublisher.publishEvent(
+                LoginEvent(
+                    ipAddress = IpUtils.parseInetAddress(IpUtils.getClientIp(request)),
+                    email = username,
+                    username = null,
+                    userAgent = request.getHeader("User-Agent"),
+                    isSuccessful = true,
+                    reason = "JWT 로그인: ${request.requestURI}",
+                    userId = (userDetails as? UserDetailsAdapter)?.user?.id
+                )
+            )
         } catch (e: UsernameNotFoundException) {
             throw JwtAuthenticationException(AuthErrorCode.INVALID_CREDENTIALS)
         }
@@ -109,6 +127,18 @@ class JwtAuthenticationFilter(
         response: HttpServletResponse,
         e: JwtAuthenticationException
     ) {
+        eventPublisher.publishEvent(
+            LoginEvent(
+                ipAddress = IpUtils.parseInetAddress(IpUtils.getClientIp(request)),
+                email = null,
+                username = null,
+                userAgent = request.getHeader("User-Agent"),
+                isSuccessful = false,
+                reason = "JWT 인증 실패",
+                userId = null
+            )
+        )
+
         response.apply {
             status = HttpStatus.UNAUTHORIZED.value()
             contentType = "${MediaType.APPLICATION_JSON_VALUE};charset=UTF-8"

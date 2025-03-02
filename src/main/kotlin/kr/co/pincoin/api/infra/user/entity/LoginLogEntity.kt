@@ -1,6 +1,7 @@
 package kr.co.pincoin.api.infra.user.entity
 
 import jakarta.persistence.*
+import java.net.InetAddress
 import java.time.ZonedDateTime
 
 @Entity
@@ -18,7 +19,7 @@ class LoginLogEntity private constructor(
     var modified: ZonedDateTime = ZonedDateTime.now(),
 
     @Column(name = "ip_address", columnDefinition = "inet")
-    val ipAddress: String,
+    val ipAddress: InetAddress,
 
     @Column(name = "user_id")
     val userId: Int?,
@@ -43,7 +44,7 @@ class LoginLogEntity private constructor(
             id: Long? = null,
             created: ZonedDateTime = ZonedDateTime.now(),
             modified: ZonedDateTime = ZonedDateTime.now(),
-            ipAddress: String,
+            ipAddress: InetAddress,
             userId: Int?,
             email: String?,
             username: String?,

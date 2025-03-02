@@ -3,6 +3,7 @@ package kr.co.pincoin.api.app.auth.service
 import jakarta.servlet.http.HttpServletRequest
 import kr.co.pincoin.api.app.auth.request.SignInRequest
 import kr.co.pincoin.api.app.auth.response.AccessTokenResponse
+import kr.co.pincoin.api.domain.user.event.LoginEvent
 import kr.co.pincoin.api.domain.user.repository.UserRepository
 import kr.co.pincoin.api.domain.user.vo.TokenPair
 import kr.co.pincoin.api.global.constant.RedisKey
@@ -13,6 +14,7 @@ import kr.co.pincoin.api.global.properties.JwtProperties
 import kr.co.pincoin.api.global.security.jwt.JwtTokenProvider
 import kr.co.pincoin.api.global.utils.IpUtils
 import kr.co.pincoin.api.infra.user.repository.criteria.UserSearchCriteria
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
@@ -25,7 +27,8 @@ class AuthService(
     private val passwordEncoder: PasswordEncoder,
     private val jwtTokenProvider: JwtTokenProvider,
     private val jwtProperties: JwtProperties,
-    private val redisTemplate: RedisTemplate<String, String>
+    private val redisTemplate: RedisTemplate<String, String>,
+    private val eventPublisher: ApplicationEventPublisher,
 ) {
     /**
      * 사용자 로그인 처리 및 토큰 발급
@@ -37,13 +40,50 @@ class AuthService(
      */
     @Transactional
     fun login(request: SignInRequest, servletRequest: HttpServletRequest): TokenPair {
-        val user =
+        val user = try {
             userRepository.findUser(UserSearchCriteria(email = request.email, isActive = true))
                 ?: throw BusinessException(AuthErrorCode.INVALID_CREDENTIALS)
-
-        if (!passwordEncoder.matches(request.password, user.password)) {
+        } catch (e: Exception) {
+            eventPublisher.publishEvent(
+                LoginEvent(
+                    ipAddress = IpUtils.parseInetAddress(IpUtils.getClientIp(servletRequest)),
+                    email = request.email,
+                    username = null,
+                    userAgent = servletRequest.getHeader("User-Agent"),
+                    isSuccessful = false,
+                    reason = "비밀번호 로그인: 사용자를 찾을 수 없음",
+                    userId = null,
+                )
+            )
             throw BusinessException(AuthErrorCode.INVALID_CREDENTIALS)
         }
+
+        if (!passwordEncoder.matches(request.password, user.password)) {
+            eventPublisher.publishEvent(
+                LoginEvent(
+                    ipAddress = IpUtils.parseInetAddress(IpUtils.getClientIp(servletRequest)),
+                    email = request.email,
+                    username = null,
+                    userAgent = servletRequest.getHeader("User-Agent"),
+                    isSuccessful = false,
+                    reason = "비밀번호 로그인: 비밀번호 불일치",
+                    userId = user.id,
+                )
+            )
+            throw BusinessException(AuthErrorCode.INVALID_CREDENTIALS)
+        }
+
+        eventPublisher.publishEvent(
+            LoginEvent(
+                ipAddress = IpUtils.parseInetAddress(IpUtils.getClientIp(servletRequest)),
+                email = user.email,
+                username = user.username,
+                userAgent = servletRequest.getHeader("User-Agent"),
+                isSuccessful = true,
+                reason = "비밀번호 로그인",
+                userId = user.id,
+            )
+        )
 
         val accessToken = jwtTokenProvider.createAccessToken(user)
 
@@ -81,24 +121,97 @@ class AuthService(
      */
     @Transactional
     fun refresh(refreshToken: String, servletRequest: HttpServletRequest): TokenPair {
-        validateRefreshToken(refreshToken, servletRequest)
+        try {
+            validateRefreshToken(refreshToken, servletRequest)
+        } catch (e: JwtAuthenticationException) {
+            // 리프레시 토큰 검증 실패 이벤트 발행
+            eventPublisher.publishEvent(
+                LoginEvent(
+                    ipAddress = IpUtils.parseInetAddress(IpUtils.getClientIp(servletRequest)),
+                    email = null,
+                    username = null,
+                    userAgent = servletRequest.getHeader("User-Agent"),
+                    isSuccessful = false,
+                    reason = "리프레시: 토큰 검증 실패",
+                    userId = null
+                )
+            )
+            throw e
+        }
 
         with(redisTemplate) {
             val email = opsForHash<String, String>()
                 .get(refreshToken, RedisKey.EMAIL)
-                ?: throw JwtAuthenticationException(AuthErrorCode.INVALID_REFRESH_TOKEN)
+                ?: run {
+                    // 토큰에서 이메일을 조회할 수 없는 경우
+                    eventPublisher.publishEvent(
+                        LoginEvent(
+                            ipAddress = IpUtils.parseInetAddress(IpUtils.getClientIp(servletRequest)),
+                            email = null,
+                            username = null,
+                            userAgent = servletRequest.getHeader("User-Agent"),
+                            isSuccessful = false,
+                            reason = "리프레시: 이메일을 찾을 수 없음",
+                            userId = null
+                        )
+                    )
+                    throw JwtAuthenticationException(AuthErrorCode.INVALID_REFRESH_TOKEN)
+                }
 
             // DB에서 최신 사용자 정보 조회
-            val user = userRepository.findUser(
-                UserSearchCriteria(email = email, isActive = true)
-            ) ?: throw JwtAuthenticationException(AuthErrorCode.INVALID_REFRESH_TOKEN)
+            val user = try {
+                userRepository.findUser(UserSearchCriteria(email = email, isActive = true))
+                    ?: throw BusinessException(AuthErrorCode.INVALID_CREDENTIALS)
+            } catch (e: Exception) {
+                eventPublisher.publishEvent(
+                    LoginEvent(
+                        ipAddress = IpUtils.parseInetAddress(IpUtils.getClientIp(servletRequest)),
+                        email = email,
+                        username = null,
+                        userAgent = servletRequest.getHeader("User-Agent"),
+                        isSuccessful = false,
+                        reason = "리프레시: 사용자를 찾을 수 없음",
+                        userId = null,
+                    )
+                )
+                throw BusinessException(AuthErrorCode.INVALID_CREDENTIALS)
+            }
+
+            // 리프레시 로그인 성공
+            eventPublisher.publishEvent(
+                LoginEvent(
+                    ipAddress = IpUtils.parseInetAddress(IpUtils.getClientIp(servletRequest)),
+                    email = email,
+                    username = user.username,
+                    userAgent = servletRequest.getHeader("User-Agent"),
+                    isSuccessful = true,
+                    reason = "리프레시",
+                    userId = user.id
+                )
+            )
 
             // 최신 사용자 정보로 새 액세스 토큰 생성
             val newAccessToken = jwtTokenProvider.createAccessToken(user)
             val newRefreshToken = jwtTokenProvider.createRefreshToken()
 
-            delete(refreshToken)
-            saveRefreshTokenInfo(newRefreshToken, email, servletRequest)
+            try {
+                delete(refreshToken)
+                saveRefreshTokenInfo(newRefreshToken, email, servletRequest)
+            } catch (e: Exception) {
+                // 토큰 갱신 과정에서 오류 발생 (Redis 연결 문제 등)
+                eventPublisher.publishEvent(
+                    LoginEvent(
+                        ipAddress = IpUtils.parseInetAddress(IpUtils.getClientIp(servletRequest)),
+                        email = email,
+                        username = user.username,
+                        userAgent = servletRequest.getHeader("User-Agent"),
+                        isSuccessful = false,
+                        reason = "리프레시: 토큰 갱신 중 오류",
+                        userId = user.id
+                    )
+                )
+                throw e
+            }
 
             return TokenPair(
                 accessToken = AccessTokenResponse.of(

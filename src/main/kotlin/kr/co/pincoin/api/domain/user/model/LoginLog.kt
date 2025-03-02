@@ -1,5 +1,6 @@
 package kr.co.pincoin.api.domain.user.model
 
+import java.net.InetAddress
 import java.time.ZonedDateTime
 
 class LoginLog private constructor(
@@ -12,7 +13,7 @@ class LoginLog private constructor(
 
     // 3. 도메인 로직 불변 필드
     val userId: Int? = null,
-    val ipAddress: String,
+    val ipAddress: InetAddress,
     val email: String?,
     val username: String?,
     val userAgent: String?,
@@ -27,7 +28,7 @@ class LoginLog private constructor(
             created: ZonedDateTime,
             modified: ZonedDateTime,
             userId: Int? = null,
-            ipAddress: String,
+            ipAddress: InetAddress,
             email: String?,
             username: String?,
             userAgent: String?,

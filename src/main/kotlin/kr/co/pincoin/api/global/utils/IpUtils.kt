@@ -1,6 +1,7 @@
 package kr.co.pincoin.api.global.utils
 
 import jakarta.servlet.http.HttpServletRequest
+import java.net.InetAddress
 
 object IpUtils {
     private val IP_HEADERS = arrayOf(
@@ -24,4 +25,11 @@ object IpUtils {
                 else ip
             } ?: request.remoteAddr
     }
+
+    fun parseInetAddress(ipString: String): InetAddress =
+        try {
+            InetAddress.getByName(ipString)
+        } catch (e: Exception) {
+            InetAddress.getByName("127.0.0.1")
+        }
 }

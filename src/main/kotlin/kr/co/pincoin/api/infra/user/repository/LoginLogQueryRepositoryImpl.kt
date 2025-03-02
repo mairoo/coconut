@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.support.PageableExecutionUtils
 import org.springframework.stereotype.Repository
+import java.net.InetAddress
 import java.time.ZonedDateTime
 
 @Repository
@@ -106,7 +107,7 @@ class LoginLogQueryRepositoryImpl(
     private fun eqLoginLogUsername(username: String?): BooleanExpression? =
         username?.let { loginLog.username.eq(it) }
 
-    private fun eqLoginLogIpAddress(ipAddress: String?): BooleanExpression? =
+    private fun eqLoginLogIpAddress(ipAddress: InetAddress?): BooleanExpression? =
         ipAddress?.let { loginLog.ipAddress.eq(it) }
 
     private fun eqLoginLogUserId(userId: Int?): BooleanExpression? =

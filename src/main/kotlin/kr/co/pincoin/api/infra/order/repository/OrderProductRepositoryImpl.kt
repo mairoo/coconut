@@ -13,6 +13,7 @@ import org.springframework.stereotype.Repository
 @Repository
 class OrderProductRepositoryImpl(
     private val jpaRepository: OrderProductJpaRepository,
+    private val jdbcRepository: OrderProductJdbcRepository,
     private val queryRepository: OrderProductQueryRepository,
 ) : OrderProductRepository {
     override fun save(
@@ -22,6 +23,24 @@ class OrderProductRepositoryImpl(
             ?.let { jpaRepository.save(it) }
             ?.toModel()
             ?: throw IllegalArgumentException("주문상품 저장 실패")
+
+    override fun saveAll(
+        orderProducts: List<OrderProduct>,
+    ): List<OrderProduct> {
+        if (orderProducts.isEmpty()) return emptyList()
+
+        val (existingOrderProducts, newOrderProducts) = orderProducts.partition { it.id != null }
+
+        if (existingOrderProducts.isNotEmpty()) {
+            jdbcRepository.batchUpdate(existingOrderProducts)
+        }
+
+        if (newOrderProducts.isNotEmpty()) {
+            jdbcRepository.batchInsert(newOrderProducts)
+        }
+
+        return orderProducts
+    }
 
     override fun findOrderProduct(
         criteria: OrderProductSearchCriteria,

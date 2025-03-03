@@ -13,6 +13,7 @@ import org.springframework.stereotype.Repository
 @Repository
 class OrderPaymentRepositoryImpl(
     private val jpaRepository: OrderPaymentJpaRepository,
+    private val jdbcRepository: OrderPaymentJdbcRepository,
     private val queryRepository: OrderPaymentQueryRepository,
 ) : OrderPaymentRepository {
     override fun save(
@@ -22,6 +23,24 @@ class OrderPaymentRepositoryImpl(
             ?.let { jpaRepository.save(it) }
             ?.toModel()
             ?: throw IllegalArgumentException("주문결제 저장 실패")
+
+    override fun saveAll(
+        orderPayments: List<OrderPayment>,
+    ): List<OrderPayment> {
+        if (orderPayments.isEmpty()) return emptyList()
+
+        val (existingOrderPayments, newOrderPayments) = orderPayments.partition { it.id != null }
+
+        if (existingOrderPayments.isNotEmpty()) {
+            jdbcRepository.batchUpdate(existingOrderPayments)
+        }
+
+        if (newOrderPayments.isNotEmpty()) {
+            jdbcRepository.batchInsert(newOrderPayments)
+        }
+
+        return orderPayments
+    }
 
     override fun findOrderPayment(
         criteria: OrderPaymentSearchCriteria,

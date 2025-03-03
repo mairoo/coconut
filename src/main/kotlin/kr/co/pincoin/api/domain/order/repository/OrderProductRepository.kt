@@ -10,6 +10,10 @@ interface OrderProductRepository {
         orderProduct: OrderProduct,
     ): OrderProduct
 
+    fun saveAll(
+        orderProducts: List<OrderProduct>,
+    ): List<OrderProduct>
+
     fun findOrderProduct(
         criteria: OrderProductSearchCriteria,
     ): OrderProduct?

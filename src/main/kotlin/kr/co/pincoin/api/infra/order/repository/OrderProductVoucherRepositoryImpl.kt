@@ -13,6 +13,7 @@ import org.springframework.stereotype.Repository
 @Repository
 class OrderProductVoucherRepositoryImpl(
     private val jpaRepository: OrderProductVoucherJpaRepository,
+    private val jdbcRepository: OrderProductVoucherJdbcRepository,
     private val queryRepository: OrderProductVoucherQueryRepository,
 ) : OrderProductVoucherRepository {
     override fun save(
@@ -22,6 +23,24 @@ class OrderProductVoucherRepositoryImpl(
             ?.let { jpaRepository.save(it) }
             ?.toModel()
             ?: throw IllegalArgumentException("주문발권상품권 저장 실패")
+
+    override fun saveAll(
+        orderProductVouchers: List<OrderProductVoucher>,
+    ): List<OrderProductVoucher> {
+        if (orderProductVouchers.isEmpty()) return emptyList()
+
+        val (existingOrderProductVouchers, newOrderProductVouchers) = orderProductVouchers.partition { it.id != null }
+
+        if (existingOrderProductVouchers.isNotEmpty()) {
+            jdbcRepository.batchUpdate(existingOrderProductVouchers)
+        }
+
+        if (newOrderProductVouchers.isNotEmpty()) {
+            jdbcRepository.batchInsert(newOrderProductVouchers)
+        }
+
+        return orderProductVouchers
+    }
 
     override fun findOrderProductVoucher(
         criteria: OrderProductVoucherSearchCriteria,

@@ -10,6 +10,10 @@ interface OrderPaymentRepository {
         orderPayment: OrderPayment,
     ): OrderPayment
 
+    fun saveAll(
+        orderPayments: List<OrderPayment>,
+    ): List<OrderPayment>
+
     fun findOrderPayment(
         criteria: OrderPaymentSearchCriteria,
     ): OrderPayment?

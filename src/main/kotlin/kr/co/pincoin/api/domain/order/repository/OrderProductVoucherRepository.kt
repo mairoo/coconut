@@ -10,6 +10,10 @@ interface OrderProductVoucherRepository {
         orderProductVoucher: OrderProductVoucher,
     ): OrderProductVoucher
 
+    fun saveAll(
+        orderProductVouchers: List<OrderProductVoucher>,
+    ): List<OrderProductVoucher>
+
     fun findOrderProductVoucher(
         criteria: OrderProductVoucherSearchCriteria,
     ): OrderProductVoucher?

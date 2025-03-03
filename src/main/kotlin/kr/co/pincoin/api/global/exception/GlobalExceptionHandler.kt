@@ -18,7 +18,7 @@ import org.springframework.web.bind.MissingRequestCookieException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.multipart.MaxUploadSizeExceededException
-import org.springframework.web.reactive.resource.NoResourceFoundException
+import org.springframework.web.servlet.resource.NoResourceFoundException
 import java.sql.SQLIntegrityConstraintViolationException
 
 @RestControllerAdvice

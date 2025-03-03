@@ -1,6 +1,6 @@
 package kr.co.pincoin.api.app.catalog.member.controller
 
-import kr.co.pincoin.api.app.catalog.admin.response.ProductResponse
+import kr.co.pincoin.api.app.catalog.member.response.ProductResponse
 import kr.co.pincoin.api.app.catalog.member.request.ProductSearchRequest
 import kr.co.pincoin.api.app.catalog.member.service.MemberProductService
 import kr.co.pincoin.api.global.response.success.ApiResponse

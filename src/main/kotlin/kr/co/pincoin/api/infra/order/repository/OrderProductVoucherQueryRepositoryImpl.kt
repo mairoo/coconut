@@ -29,32 +29,10 @@ class OrderProductVoucherQueryRepositoryImpl(
             .where(*getCommonWhereConditions(criteria))
             .fetchOne()
 
-    override fun findOrderProductVouchers(
-        criteria: OrderProductVoucherSearchCriteria,
-    ): List<OrderProductVoucherEntity> =
-        queryFactory
-            .selectFrom(orderProductVoucher)
-            .where(*getCommonWhereConditions(criteria))
-            .orderBy(orderProductVoucher.id.desc())
-            .fetch()
-
-    override fun findOrderProductVouchers(
-        criteria: OrderProductVoucherSearchCriteria,
-        pageable: Pageable,
-    ): Page<OrderProductVoucherEntity> =
-        executePageQuery(
-            criteria,
-            pageable = pageable,
-        ) { baseQuery -> baseQuery.select(orderProductVoucher) }
-
     override fun findOrderProductVouchersWithProduct(
         criteria: OrderProductVoucherSearchCriteria,
-        pageable: Pageable,
-    ): Page<OrderProductVoucherProjection> {
-        val orderProduct = QOrderProductEntity.orderProductEntity
-        val whereConditions = getCommonWhereConditions(criteria)
-
-        val query = queryFactory
+    ): List<OrderProductVoucherProjection> =
+        queryFactory
             .select(
                 QOrderProductVoucherProjection(
                     // OrderProduct 정보
@@ -84,28 +62,9 @@ class OrderProductVoucherQueryRepositoryImpl(
             )
             .from(orderProductVoucher)
             .innerJoin(orderProduct).on(orderProductVoucher.orderProductId.eq(orderProduct.id))
-            .where(*whereConditions)
-            .offset(pageable.offset)
-            .limit(pageable.pageSize.toLong())
+            .where(*getCommonWhereConditions(criteria))
             .orderBy(orderProductVoucher.id.desc())
-
-        val results = query.fetch()
-
-        val countQuery = {
-            queryFactory
-                .select(orderProductVoucher.count())
-                .from(orderProductVoucher)
-                .innerJoin(orderProduct).on(orderProductVoucher.orderProductId.eq(orderProduct.id))
-                .where(*whereConditions)
-                .fetchOne() ?: 0L
-        }
-
-        return PageableExecutionUtils.getPage(
-            results,
-            pageable,
-            countQuery
-        )
-    }
+            .fetch()
 
     private fun <T> executePageQuery(
         criteria: OrderProductVoucherSearchCriteria,

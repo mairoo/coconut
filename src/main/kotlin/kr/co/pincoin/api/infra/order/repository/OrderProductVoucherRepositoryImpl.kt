@@ -4,10 +4,8 @@ import kr.co.pincoin.api.domain.order.model.OrderProductVoucher
 import kr.co.pincoin.api.domain.order.repository.OrderProductVoucherRepository
 import kr.co.pincoin.api.infra.order.mapper.toEntity
 import kr.co.pincoin.api.infra.order.mapper.toModel
-import kr.co.pincoin.api.infra.order.mapper.toModelList
 import kr.co.pincoin.api.infra.order.repository.criteria.OrderProductVoucherSearchCriteria
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.Pageable
+import kr.co.pincoin.api.infra.order.repository.projection.OrderProductVoucherProjection
 import org.springframework.stereotype.Repository
 
 @Repository
@@ -47,14 +45,8 @@ class OrderProductVoucherRepositoryImpl(
     ): OrderProductVoucher? =
         queryRepository.findOrderProductVoucher(criteria)?.toModel()
 
-    override fun findOrderProductVouchers(
+    override fun findOrderProductVouchersWithProduct(
         criteria: OrderProductVoucherSearchCriteria,
-    ): List<OrderProductVoucher> =
-        queryRepository.findOrderProductVouchers(criteria).toModelList()
-
-    override fun findOrderProductVouchers(
-        criteria: OrderProductVoucherSearchCriteria,
-        pageable: Pageable
-    ): Page<OrderProductVoucher> =
-        queryRepository.findOrderProductVouchers(criteria, pageable).map { it.toModel() }
+    ): List<OrderProductVoucherProjection> =
+        queryRepository.findOrderProductVouchersWithProduct(criteria)
 }

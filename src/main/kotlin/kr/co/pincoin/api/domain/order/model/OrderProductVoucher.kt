@@ -20,10 +20,6 @@ class OrderProductVoucher private constructor(
     val revoked: Boolean,
     val remarks: String,
 ) {
-    fun assignVoucher(newVoucherId: Long?): OrderProductVoucher = copy(
-        voucherId = newVoucherId
-    )
-
     fun updateRevoked(newRevoked: Boolean? = null): OrderProductVoucher = copy(
         revoked = newRevoked ?: revoked
     )

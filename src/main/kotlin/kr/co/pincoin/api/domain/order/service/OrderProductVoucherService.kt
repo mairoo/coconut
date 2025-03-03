@@ -6,8 +6,6 @@ import kr.co.pincoin.api.global.exception.BusinessException
 import kr.co.pincoin.api.global.exception.code.OrderErrorCode
 import kr.co.pincoin.api.infra.order.repository.criteria.OrderProductVoucherSearchCriteria
 import org.springframework.dao.DataIntegrityViolationException
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -35,42 +33,8 @@ class OrderProductVoucherService(
 
     fun findOrderProductVoucher(
         criteria: OrderProductVoucherSearchCriteria,
-    ): OrderProductVoucher? = orderProductVoucherRepository.findOrderProductVoucher(criteria)
-
-    fun findOrderProductVouchers(
-        criteria: OrderProductVoucherSearchCriteria,
-    ): List<OrderProductVoucher> = orderProductVoucherRepository.findOrderProductVouchers(criteria)
-
-    fun findOrderProductVouchers(
-        criteria: OrderProductVoucherSearchCriteria,
-        pageable: Pageable,
-    ): Page<OrderProductVoucher> =
-        orderProductVoucherRepository.findOrderProductVouchers(criteria, pageable)
-
-    fun findOrderProductVouchersByOrderProductId(
-        orderProductId: Long,
-        isRemoved: Boolean = false,
-    ): List<OrderProductVoucher> = orderProductVoucherRepository.findOrderProductVouchers(
-        OrderProductVoucherSearchCriteria(
-            orderProductId = orderProductId,
-            isRemoved = isRemoved
-        )
-    )
-
-    @Transactional
-    fun assignVoucher(
-        id: Long,
-        voucherId: Long?,
-    ): OrderProductVoucher =
-        orderProductVoucherRepository.findOrderProductVoucher(
-            OrderProductVoucherSearchCriteria(
-                id = id,
-                isRemoved = false
-            )
-        )
-            ?.assignVoucher(voucherId)
-            ?.let { orderProductVoucherRepository.save(it) }
-            ?: throw BusinessException(OrderErrorCode.ORDER_PRODUCT_VOUCHER_NOT_FOUND)
+    ): OrderProductVoucher? =
+        orderProductVoucherRepository.findOrderProductVoucher(criteria)
 
     @Transactional
     fun updateRevoked(
@@ -125,46 +89,5 @@ class OrderProductVoucherService(
         )
 
         return save(restoredOrderProductVoucher)
-    }
-
-    @Transactional
-    fun removeOrderProductVouchers(
-        ids: List<Long>,
-    ): List<OrderProductVoucher> {
-        if (ids.isEmpty()) {
-            return emptyList()
-        }
-
-        val orderProductVouchers = ids.mapNotNull { id ->
-            orderProductVoucherRepository.findOrderProductVoucher(
-                OrderProductVoucherSearchCriteria(id = id, isRemoved = false)
-            )
-        }
-
-        if (orderProductVouchers.isEmpty()) {
-            return emptyList()
-        }
-
-        val removedOrderProductVouchers = orderProductVouchers.map { it.markAsRemoved() }
-        return saveAll(removedOrderProductVouchers)
-    }
-
-    @Transactional
-    fun removeOrderProductVouchersByOrderProductId(
-        orderProductId: Long,
-    ): List<OrderProductVoucher> {
-        val orderProductVouchers = orderProductVoucherRepository.findOrderProductVouchers(
-            OrderProductVoucherSearchCriteria(
-                orderProductId = orderProductId,
-                isRemoved = false
-            )
-        )
-
-        if (orderProductVouchers.isEmpty()) {
-            return emptyList()
-        }
-
-        val removedOrderProductVouchers = orderProductVouchers.map { it.markAsRemoved() }
-        return saveAll(removedOrderProductVouchers)
     }
 }

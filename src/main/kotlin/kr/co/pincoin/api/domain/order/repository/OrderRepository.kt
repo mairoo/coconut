@@ -11,6 +11,10 @@ interface OrderRepository {
         order: Order,
     ): Order
 
+    fun saveAndFlush(
+        order: Order,
+    ): Order
+
     fun findOrder(
         criteria: OrderSearchCriteria,
     ): Order?

@@ -3,6 +3,7 @@ package kr.co.pincoin.api.domain.order.service
 import kr.co.pincoin.api.domain.order.enums.OrderStatus
 import kr.co.pincoin.api.domain.order.enums.OrderVisibility
 import kr.co.pincoin.api.domain.order.model.Order
+import kr.co.pincoin.api.domain.order.repository.OrderProductRepository
 import kr.co.pincoin.api.domain.order.repository.OrderRepository
 import kr.co.pincoin.api.global.exception.BusinessException
 import kr.co.pincoin.api.global.exception.code.OrderErrorCode
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional(readOnly = true)
 class OrderService(
     private val orderRepository: OrderRepository,
+    private val orderProductRepository: OrderProductRepository,
 ) {
     @Transactional
     fun save(

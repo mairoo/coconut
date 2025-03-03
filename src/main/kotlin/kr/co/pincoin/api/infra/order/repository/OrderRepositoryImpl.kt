@@ -24,6 +24,14 @@ class OrderRepositoryImpl(
             ?.toModel()
             ?: throw IllegalArgumentException("주문 저장 실패")
 
+    override fun saveAndFlush(
+        order: Order,
+    ): Order =
+        order.toEntity()
+            ?.let { jpaRepository.saveAndFlush(it) }
+            ?.toModel()
+            ?: throw IllegalArgumentException("주문 저장 실패")
+
     override fun findOrder(
         criteria: OrderSearchCriteria,
     ): Order? =

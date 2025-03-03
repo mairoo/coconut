@@ -8,4 +8,7 @@ data class OrderProductVoucherSearchCriteria(
     val remarks: String? = null,
     val revoked: Boolean? = null,
     val isRemoved: Boolean? = null,
+
+    val productCode: String? = null,
+    val productName: String? = null,
 )

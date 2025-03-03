@@ -147,7 +147,9 @@ class OrderProductVoucherQueryRepositoryImpl(
         eqOrderProductVoucherCode(criteria.code),
         eqOrderProductVoucherRemarks(criteria.remarks),
         eqOrderProductVoucherRevoked(criteria.revoked),
-        eqOrderProductVoucherIsRemoved(criteria.isRemoved)
+        eqOrderProductVoucherIsRemoved(criteria.isRemoved),
+        containsOrderProductVoucherProductName(criteria.productName),
+        containsOrderProductVoucherProductCode(criteria.productCode),
     )
 
     private fun eqOrderProductVoucherId(id: Long?): BooleanExpression? =
@@ -170,4 +172,18 @@ class OrderProductVoucherQueryRepositoryImpl(
 
     private fun eqOrderProductVoucherIsRemoved(isRemoved: Boolean?): BooleanExpression? =
         isRemoved?.let { orderProductVoucher.removalFields.isRemoved.eq(it) }
+
+    private fun containsOrderProductVoucherProductName(productName: String?): BooleanExpression? {
+        val orderProduct = QOrderProductEntity.orderProductEntity
+        return productName?.let {
+            orderProduct.name.contains(it)
+        }
+    }
+
+    private fun containsOrderProductVoucherProductCode(productCode: String?): BooleanExpression? {
+        val orderProduct = QOrderProductEntity.orderProductEntity
+        return productCode?.let {
+            orderProduct.code.contains(it)
+        }
+    }
 }

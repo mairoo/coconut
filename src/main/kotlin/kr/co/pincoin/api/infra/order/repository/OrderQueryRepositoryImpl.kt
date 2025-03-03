@@ -10,6 +10,10 @@ import kr.co.pincoin.api.domain.order.enums.OrderVisibility
 import kr.co.pincoin.api.infra.order.entity.OrderEntity
 import kr.co.pincoin.api.infra.order.entity.QOrderEntity
 import kr.co.pincoin.api.infra.order.repository.criteria.OrderSearchCriteria
+import kr.co.pincoin.api.infra.order.repository.projection.OrderUserProfileProjection
+import kr.co.pincoin.api.infra.order.repository.projection.QOrderUserProfileProjection
+import kr.co.pincoin.api.infra.user.entity.QProfileEntity
+import kr.co.pincoin.api.infra.user.entity.QUserEntity
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.support.PageableExecutionUtils
@@ -22,12 +26,25 @@ class OrderQueryRepositoryImpl(
     private val queryFactory: JPAQueryFactory,
 ) : OrderQueryRepository {
     private val order = QOrderEntity.orderEntity
+    private val user = QUserEntity.userEntity
+    private val profile = QProfileEntity.profileEntity
 
     override fun findOrder(
         criteria: OrderSearchCriteria,
     ): OrderEntity? =
         queryFactory
             .selectFrom(order)
+            .where(*getCommonWhereConditions(criteria))
+            .fetchOne()
+
+    override fun findOrderWithUserProfile(
+        criteria: OrderSearchCriteria,
+    ): OrderUserProfileProjection? =
+        queryFactory
+            .select(createProjection())
+            .from(order)
+            .innerJoin(user).on(order.userId.eq(user.id))
+            .innerJoin(profile).on(user.id.eq(profile.userId))
             .where(*getCommonWhereConditions(criteria))
             .fetchOne()
 
@@ -48,6 +65,102 @@ class OrderQueryRepositoryImpl(
             criteria,
             pageable = pageable,
         ) { baseQuery -> baseQuery.select(order) }
+
+    override fun findOrdersWithUserProfile(
+        criteria: OrderSearchCriteria,
+        pageable: Pageable,
+    ): Page<OrderUserProfileProjection> {
+        val whereConditions = getCommonWhereConditions(criteria)
+
+        val query = queryFactory
+            .select(createProjection())
+            .from(order)
+            .innerJoin(user).on(order.userId.eq(user.id))
+            .innerJoin(profile).on(user.id.eq(profile.userId))
+            .where(*whereConditions)
+            .offset(pageable.offset)
+            .limit(pageable.pageSize.toLong())
+            .orderBy(order.dateTimeFields.created.desc(), order.id.desc())
+
+        val results = query.fetch()
+
+        val countQuery = {
+            queryFactory
+                .select(order.count())
+                .from(order)
+                .innerJoin(user).on(order.userId.eq(user.id))
+                .innerJoin(profile).on(user.id.eq(profile.userId))
+                .where(*whereConditions)
+                .fetchOne() ?: 0L
+        }
+
+        return PageableExecutionUtils.getPage(
+            results, pageable, countQuery
+        )
+    }
+
+    private fun createProjection() = QOrderUserProfileProjection(
+        // Order 정보
+        order.id,
+        order.dateTimeFields.created,
+        order.dateTimeFields.modified,
+        order.removalFields.isRemoved,
+        order.orderNo,
+        order.ipAddress,
+        order.fullname,
+        order.userAgent,
+        order.acceptLanguage,
+        order.paymentMethod,
+        order.transactionId,
+        order.status,
+        order.visible,
+        order.totalListPrice,
+        order.totalSellingPrice,
+        order.currency,
+        order.message,
+        order.parentId,
+        order.suspicious,
+
+        // User 정보
+        user.id,
+        user.username,
+        user.dateJoined,
+        user.lastLogin,
+        user.isSuperuser,
+        user.firstName,
+        user.lastName,
+        user.email,
+        user.isStaff,
+        user.isActive,
+
+        // Profile 정보
+        profile.id,
+        profile.dateTimeFields.created,
+        profile.dateTimeFields.modified,
+        profile.phone,
+        profile.address,
+        profile.phoneVerified,
+        profile.documentVerified,
+        profile.photoId,
+        profile.card,
+        profile.totalOrderCount,
+        profile.lastPurchased,
+        profile.maxPrice,
+        profile.averagePrice,
+        profile.memo,
+        profile.phoneVerifiedStatus,
+        profile.dateOfBirth,
+        profile.firstPurchased,
+        profile.totalListPrice,
+        profile.totalSellingPrice,
+        profile.domestic,
+        profile.gender,
+        profile.telecom,
+        profile.notPurchasedMonths,
+        profile.repurchased,
+        profile.mileage,
+        profile.allowOrder
+    )
 
     private fun <T> executePageQuery(
         criteria: OrderSearchCriteria,
@@ -106,7 +219,7 @@ class OrderQueryRepositoryImpl(
     private fun eqOrderNo(orderNo: UUID?): BooleanExpression? =
         orderNo?.let { order.orderNo.eq(it) }
 
-    private fun eqOrderUserId(userId: Long?): BooleanExpression? =
+    private fun eqOrderUserId(userId: Int?): BooleanExpression? =
         userId?.let { order.userId.eq(it) }
 
     private fun eqOrderFullname(fullname: String?): BooleanExpression? =

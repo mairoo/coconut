@@ -22,7 +22,7 @@ class Order private constructor(
     val ipAddress: String,
 
     // 4. 도메인 로직 가변 필드
-    val userId: Long?,
+    val userId: Int?,
     val fullname: String,
     val userAgent: String,
     val acceptLanguage: String,
@@ -37,42 +37,11 @@ class Order private constructor(
     val parentId: Long?,
     val suspicious: Boolean,
 ) {
-    fun updateUserInfo(
-        newUserId: Long? = null,
-        newFullname: String? = null,
-        newUserAgent: String? = null,
-        newAcceptLanguage: String? = null
-    ): Order = copy(
-        userId = newUserId,
-        fullname = newFullname ?: fullname,
-        userAgent = newUserAgent ?: userAgent,
-        acceptLanguage = newAcceptLanguage ?: acceptLanguage
-    )
-
-    fun updatePaymentInfo(
-        newPaymentMethod: OrderPaymentMethod? = null,
-        newTransactionId: String? = null
-    ): Order = copy(
-        paymentMethod = newPaymentMethod ?: paymentMethod,
-        transactionId = newTransactionId ?: transactionId,
-    )
-
     fun updateStatus(newStatus: OrderStatus? = null): Order =
         copy(status = newStatus ?: status)
 
     fun updateVisibility(newVisible: OrderVisibility? = null): Order =
         copy(visible = newVisible ?: visible)
-
-    fun updatePriceInfo(
-        newTotalListPrice: BigDecimal? = null,
-        newTotalSellingPrice: BigDecimal? = null,
-        newCurrency: OrderCurrency? = null
-    ): Order =
-        copy(
-            totalListPrice = newTotalListPrice ?: totalListPrice,
-            totalSellingPrice = newTotalSellingPrice ?: totalSellingPrice,
-            currency = newCurrency ?: currency,
-        )
 
     fun updateMessage(newMessage: String? = null): Order =
         copy(message = newMessage ?: message)
@@ -87,7 +56,7 @@ class Order private constructor(
         copy(isRemoved = true)
 
     private fun copy(
-        userId: Long? = this.userId,
+        userId: Int? = this.userId,
         fullname: String? = null,
         userAgent: String? = null,
         acceptLanguage: String? = null,
@@ -132,7 +101,7 @@ class Order private constructor(
             modified: ZonedDateTime? = null,
             isRemoved: Boolean? = null,
             orderNo: UUID = UUID.randomUUID(),
-            userId: Long? = null,
+            userId: Int? = null,
             fullname: String = "",
             userAgent: String = "",
             acceptLanguage: String = "",

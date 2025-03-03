@@ -7,6 +7,7 @@ import kr.co.pincoin.api.domain.order.repository.OrderRepository
 import kr.co.pincoin.api.global.exception.BusinessException
 import kr.co.pincoin.api.global.exception.code.OrderErrorCode
 import kr.co.pincoin.api.infra.order.repository.criteria.OrderSearchCriteria
+import kr.co.pincoin.api.infra.order.repository.projection.OrderUserProfileProjection
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -31,16 +32,30 @@ class OrderService(
 
     fun findOrder(
         criteria: OrderSearchCriteria,
-    ): Order? = orderRepository.findOrder(criteria)
+    ): Order? =
+        orderRepository.findOrder(criteria)
+
+    fun findOrderWithUserProfile(
+        criteria: OrderSearchCriteria,
+    ): OrderUserProfileProjection? =
+        orderRepository.findOrderWithUserProfile(criteria)
 
     fun findOrders(
         criteria: OrderSearchCriteria,
-    ): List<Order> = orderRepository.findOrders(criteria)
+    ): List<Order> =
+        orderRepository.findOrders(criteria)
 
     fun findOrders(
         criteria: OrderSearchCriteria,
         pageable: Pageable,
-    ): Page<Order> = orderRepository.findOrders(criteria, pageable)
+    ): Page<Order> =
+        orderRepository.findOrders(criteria, pageable)
+
+    fun findOrdersWithUserProfile(
+        criteria: OrderSearchCriteria,
+        pageable: Pageable,
+    ): Page<OrderUserProfileProjection> =
+        orderRepository.findOrdersWithUserProfile(criteria, pageable)
 
     @Transactional
     fun updateStatus(
@@ -140,7 +155,8 @@ class OrderService(
                 id = id,
                 isRemoved = true
             )
-        ) ?: throw BusinessException(OrderErrorCode.ORDER_NOT_FOUND)
+        )
+            ?: throw BusinessException(OrderErrorCode.ORDER_NOT_FOUND)
 
         val restoredOrder = Order.of(
             id = order.id,

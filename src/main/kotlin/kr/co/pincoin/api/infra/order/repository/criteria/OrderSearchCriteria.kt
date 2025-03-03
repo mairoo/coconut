@@ -10,7 +10,7 @@ import java.util.*
 data class OrderSearchCriteria(
     val id: Long? = null,
     val orderNo: UUID? = null,
-    val userId: Long? = null,
+    val userId: Int? = null,
     val fullname: String? = null,
     val ipAddress: String? = null,
     val paymentMethod: OrderPaymentMethod? = null,

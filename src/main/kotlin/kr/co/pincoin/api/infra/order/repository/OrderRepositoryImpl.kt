@@ -6,6 +6,7 @@ import kr.co.pincoin.api.infra.order.mapper.toEntity
 import kr.co.pincoin.api.infra.order.mapper.toModel
 import kr.co.pincoin.api.infra.order.mapper.toModelList
 import kr.co.pincoin.api.infra.order.repository.criteria.OrderSearchCriteria
+import kr.co.pincoin.api.infra.order.repository.projection.OrderUserProfileProjection
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
@@ -28,6 +29,11 @@ class OrderRepositoryImpl(
     ): Order? =
         queryRepository.findOrder(criteria)?.toModel()
 
+    override fun findOrderWithUserProfile(
+        criteria: OrderSearchCriteria,
+    ): OrderUserProfileProjection? =
+        queryRepository.findOrderWithUserProfile(criteria)
+
     override fun findOrders(
         criteria: OrderSearchCriteria,
     ): List<Order> =
@@ -38,4 +44,10 @@ class OrderRepositoryImpl(
         pageable: Pageable,
     ): Page<Order> =
         queryRepository.findOrders(criteria, pageable).map { it.toModel() }
+
+    override fun findOrdersWithUserProfile(
+        criteria: OrderSearchCriteria,
+        pageable: Pageable,
+    ): Page<OrderUserProfileProjection> =
+        queryRepository.findOrdersWithUserProfile(criteria, pageable)
 }

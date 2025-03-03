@@ -27,7 +27,7 @@ class OrderEntity private constructor(
     val orderNo: UUID = UUID.randomUUID(),
 
     @Column(name = "user_id", columnDefinition = "int4")
-    val userId: Long? = null,
+    val userId: Int? = null,
 
     @Column(name = "fullname")
     val fullname: String,
@@ -86,7 +86,7 @@ class OrderEntity private constructor(
             id: Long? = null,
             isRemoved: Boolean = false,
             orderNo: UUID = UUID.randomUUID(),
-            userId: Long? = null,
+            userId: Int? = null,
             fullname: String = "",
             userAgent: String = "",
             acceptLanguage: String = "",

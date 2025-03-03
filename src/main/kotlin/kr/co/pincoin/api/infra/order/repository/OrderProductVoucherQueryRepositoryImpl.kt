@@ -1,7 +1,6 @@
 package kr.co.pincoin.api.infra.order.repository
 
 import com.querydsl.core.types.dsl.BooleanExpression
-import com.querydsl.jpa.impl.JPAQuery
 import com.querydsl.jpa.impl.JPAQueryFactory
 import kr.co.pincoin.api.infra.order.entity.OrderProductVoucherEntity
 import kr.co.pincoin.api.infra.order.entity.QOrderProductEntity
@@ -33,70 +32,69 @@ class OrderProductVoucherQueryRepositoryImpl(
         criteria: OrderProductVoucherSearchCriteria,
     ): List<OrderProductVoucherProjection> =
         queryFactory
-            .select(
-                QOrderProductVoucherProjection(
-                    // OrderProduct 정보
-                    orderProduct.id,
-                    orderProduct.dateTimeFields.created,
-                    orderProduct.dateTimeFields.modified,
-                    orderProduct.removalFields.isRemoved,
-                    orderProduct.orderId,
-                    orderProduct.code,
-                    orderProduct.name,
-                    orderProduct.subtitle,
-                    orderProduct.listPrice,
-                    orderProduct.sellingPrice,
-                    orderProduct.quantity,
-
-                    // OrderProductVoucher 정보
-                    orderProductVoucher.id,
-                    orderProductVoucher.dateTimeFields.created,
-                    orderProductVoucher.dateTimeFields.modified,
-                    orderProductVoucher.removalFields.isRemoved,
-                    orderProductVoucher.orderProductId,
-                    orderProductVoucher.code,
-                    orderProductVoucher.voucherId,
-                    orderProductVoucher.revoked,
-                    orderProductVoucher.remarks
-                )
-            )
+            .select(createProjection())
             .from(orderProductVoucher)
             .innerJoin(orderProduct).on(orderProductVoucher.orderProductId.eq(orderProduct.id))
             .where(*getCommonWhereConditions(criteria))
             .orderBy(orderProductVoucher.id.desc())
             .fetch()
 
-    private fun <T> executePageQuery(
+    override fun findOrderProductVouchersWithProduct(
         criteria: OrderProductVoucherSearchCriteria,
-        pageable: Pageable,
-        selectClause: (JPAQuery<*>) -> JPAQuery<T>
-    ): Page<T> {
+        pageable: Pageable
+    ): Page<OrderProductVoucherProjection> {
         val whereConditions = getCommonWhereConditions(criteria)
 
-        fun createBaseQuery() = queryFactory
+        val query = queryFactory
+            .select(createProjection())
             .from(orderProductVoucher)
+            .innerJoin(orderProduct).on(orderProductVoucher.orderProductId.eq(orderProduct.id))
             .where(*whereConditions)
-
-        val results = selectClause(createBaseQuery())
             .offset(pageable.offset)
             .limit(pageable.pageSize.toLong())
             .orderBy(orderProductVoucher.id.desc())
-            .fetch()
+
+        val results = query.fetch()
 
         val countQuery = {
             queryFactory
                 .select(orderProductVoucher.count())
                 .from(orderProductVoucher)
+                .innerJoin(orderProduct).on(orderProductVoucher.orderProductId.eq(orderProduct.id))
                 .where(*whereConditions)
                 .fetchOne() ?: 0L
         }
 
         return PageableExecutionUtils.getPage(
-            results,
-            pageable,
-            countQuery
+            results, pageable, countQuery
         )
     }
+
+    private fun createProjection() = QOrderProductVoucherProjection(
+        // OrderProduct 정보
+        orderProduct.id,
+        orderProduct.dateTimeFields.created,
+        orderProduct.dateTimeFields.modified,
+        orderProduct.removalFields.isRemoved,
+        orderProduct.orderId,
+        orderProduct.code,
+        orderProduct.name,
+        orderProduct.subtitle,
+        orderProduct.listPrice,
+        orderProduct.sellingPrice,
+        orderProduct.quantity,
+
+        // OrderProductVoucher 정보
+        orderProductVoucher.id,
+        orderProductVoucher.dateTimeFields.created,
+        orderProductVoucher.dateTimeFields.modified,
+        orderProductVoucher.removalFields.isRemoved,
+        orderProductVoucher.orderProductId,
+        orderProductVoucher.code,
+        orderProductVoucher.voucherId,
+        orderProductVoucher.revoked,
+        orderProductVoucher.remarks
+    )
 
     private fun getCommonWhereConditions(
         criteria: OrderProductVoucherSearchCriteria,

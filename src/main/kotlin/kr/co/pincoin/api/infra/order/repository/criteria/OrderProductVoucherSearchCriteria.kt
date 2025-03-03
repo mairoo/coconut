@@ -9,6 +9,8 @@ data class OrderProductVoucherSearchCriteria(
     val revoked: Boolean? = null,
     val isRemoved: Boolean? = null,
 
+    val orderId: Long? = null,
     val productCode: String? = null,
     val productName: String? = null,
+    val productSubtitle: String? = null,
 )

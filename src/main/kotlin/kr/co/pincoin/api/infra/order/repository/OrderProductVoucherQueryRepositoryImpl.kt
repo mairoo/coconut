@@ -19,6 +19,7 @@ class OrderProductVoucherQueryRepositoryImpl(
     private val queryFactory: JPAQueryFactory,
 ) : OrderProductVoucherQueryRepository {
     private val orderProductVoucher = QOrderProductVoucherEntity.orderProductVoucherEntity
+    private val orderProduct = QOrderProductEntity.orderProductEntity
 
     override fun findOrderProductVoucher(
         criteria: OrderProductVoucherSearchCriteria,
@@ -148,8 +149,10 @@ class OrderProductVoucherQueryRepositoryImpl(
         eqOrderProductVoucherRemarks(criteria.remarks),
         eqOrderProductVoucherRevoked(criteria.revoked),
         eqOrderProductVoucherIsRemoved(criteria.isRemoved),
-        containsOrderProductVoucherProductName(criteria.productName),
-        containsOrderProductVoucherProductCode(criteria.productCode),
+        eqOrderProductVoucherOrderId(criteria.orderId),
+        eqOrderProductVoucherProductName(criteria.productName),
+        eqOrderProductVoucherProductCode(criteria.productCode),
+        eqOrderProductVoucherProductSubtitle(criteria.productSubtitle),
     )
 
     private fun eqOrderProductVoucherId(id: Long?): BooleanExpression? =
@@ -173,17 +176,15 @@ class OrderProductVoucherQueryRepositoryImpl(
     private fun eqOrderProductVoucherIsRemoved(isRemoved: Boolean?): BooleanExpression? =
         isRemoved?.let { orderProductVoucher.removalFields.isRemoved.eq(it) }
 
-    private fun containsOrderProductVoucherProductName(productName: String?): BooleanExpression? {
-        val orderProduct = QOrderProductEntity.orderProductEntity
-        return productName?.let {
-            orderProduct.name.contains(it)
-        }
-    }
+    private fun eqOrderProductVoucherOrderId(orderId: Long?): BooleanExpression? =
+        orderId?.let { orderProduct.orderId.eq(it) }
 
-    private fun containsOrderProductVoucherProductCode(productCode: String?): BooleanExpression? {
-        val orderProduct = QOrderProductEntity.orderProductEntity
-        return productCode?.let {
-            orderProduct.code.contains(it)
-        }
-    }
+    private fun eqOrderProductVoucherProductName(productName: String?): BooleanExpression? =
+        productName?.let { orderProduct.name.eq(it) }
+
+    private fun eqOrderProductVoucherProductCode(productCode: String?): BooleanExpression? =
+        productCode?.let { orderProduct.code.eq(it) }
+
+    private fun eqOrderProductVoucherProductSubtitle(productSubtitle: String?): BooleanExpression? =
+        productSubtitle?.let { orderProduct.subtitle.eq(it) }
 }

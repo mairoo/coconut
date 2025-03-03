@@ -4,8 +4,11 @@ import com.querydsl.core.types.dsl.BooleanExpression
 import com.querydsl.jpa.impl.JPAQuery
 import com.querydsl.jpa.impl.JPAQueryFactory
 import kr.co.pincoin.api.infra.order.entity.OrderProductVoucherEntity
+import kr.co.pincoin.api.infra.order.entity.QOrderProductEntity
 import kr.co.pincoin.api.infra.order.entity.QOrderProductVoucherEntity
 import kr.co.pincoin.api.infra.order.repository.criteria.OrderProductVoucherSearchCriteria
+import kr.co.pincoin.api.infra.order.repository.projection.OrderProductVoucherProjection
+import kr.co.pincoin.api.infra.order.repository.projection.QOrderProductVoucherProjection
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.support.PageableExecutionUtils
@@ -42,6 +45,66 @@ class OrderProductVoucherQueryRepositoryImpl(
             criteria,
             pageable = pageable,
         ) { baseQuery -> baseQuery.select(orderProductVoucher) }
+
+    override fun findOrderProductVouchersWithProduct(
+        criteria: OrderProductVoucherSearchCriteria,
+        pageable: Pageable,
+    ): Page<OrderProductVoucherProjection> {
+        val orderProduct = QOrderProductEntity.orderProductEntity
+        val whereConditions = getCommonWhereConditions(criteria)
+
+        val query = queryFactory
+            .select(
+                QOrderProductVoucherProjection(
+                    // OrderProduct 정보
+                    orderProduct.id,
+                    orderProduct.dateTimeFields.created,
+                    orderProduct.dateTimeFields.modified,
+                    orderProduct.removalFields.isRemoved,
+                    orderProduct.orderId,
+                    orderProduct.code,
+                    orderProduct.name,
+                    orderProduct.subtitle,
+                    orderProduct.listPrice,
+                    orderProduct.sellingPrice,
+                    orderProduct.quantity,
+
+                    // OrderProductVoucher 정보
+                    orderProductVoucher.id,
+                    orderProductVoucher.dateTimeFields.created,
+                    orderProductVoucher.dateTimeFields.modified,
+                    orderProductVoucher.removalFields.isRemoved,
+                    orderProductVoucher.orderProductId,
+                    orderProductVoucher.code,
+                    orderProductVoucher.voucherId,
+                    orderProductVoucher.revoked,
+                    orderProductVoucher.remarks
+                )
+            )
+            .from(orderProductVoucher)
+            .innerJoin(orderProduct).on(orderProductVoucher.orderProductId.eq(orderProduct.id))
+            .where(*whereConditions)
+            .offset(pageable.offset)
+            .limit(pageable.pageSize.toLong())
+            .orderBy(orderProductVoucher.id.desc())
+
+        val results = query.fetch()
+
+        val countQuery = {
+            queryFactory
+                .select(orderProductVoucher.count())
+                .from(orderProductVoucher)
+                .innerJoin(orderProduct).on(orderProductVoucher.orderProductId.eq(orderProduct.id))
+                .where(*whereConditions)
+                .fetchOne() ?: 0L
+        }
+
+        return PageableExecutionUtils.getPage(
+            results,
+            pageable,
+            countQuery
+        )
+    }
 
     private fun <T> executePageQuery(
         criteria: OrderProductVoucherSearchCriteria,

@@ -18,3 +18,15 @@ ALTER TABLE shop_cart ADD CONSTRAINT fk_shop_cart_user_id
     FOREIGN KEY (user_id) REFERENCES auth_user(id);
 
 CREATE INDEX idx_shop_cart_user_id ON shop_cart(user_id);
+
+
+-- 성능 인덱스
+
+-- 정렬 복합 인덱스
+CREATE INDEX idx_shop_order_created_id ON "public"."shop_order" (created DESC, id DESC);
+
+-- 조인 필드, 필터링 인덱스
+CREATE INDEX idx_shop_order_user_created_id ON "public"."shop_order" (user_id, created DESC, id DESC);
+
+-- count 쿼리 성능 향상을 위한 별도의 인덱스
+CREATE INDEX idx_shop_order_count ON "public"."shop_order" (user_id) INCLUDE (id);

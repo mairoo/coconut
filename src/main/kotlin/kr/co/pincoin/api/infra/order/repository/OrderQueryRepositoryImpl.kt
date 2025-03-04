@@ -88,8 +88,8 @@ class OrderQueryRepositoryImpl(
             queryFactory
                 .select(order.count())
                 .from(order)
-                .innerJoin(user).on(order.userId.eq(user.id))
-                .innerJoin(profile).on(user.id.eq(profile.userId))
+                // .innerJoin(user).on(order.userId.eq(user.id))
+                // .innerJoin(profile).on(user.id.eq(profile.userId))
                 .where(*whereConditions)
                 .fetchOne() ?: 0L
         }

@@ -5,7 +5,10 @@ import kr.co.pincoin.api.domain.order.repository.OrderProductVoucherRepository
 import kr.co.pincoin.api.global.exception.BusinessException
 import kr.co.pincoin.api.global.exception.code.OrderErrorCode
 import kr.co.pincoin.api.infra.order.repository.criteria.OrderProductVoucherSearchCriteria
+import kr.co.pincoin.api.infra.order.repository.projection.OrderProductVoucherProjection
 import org.springframework.dao.DataIntegrityViolationException
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -35,6 +38,17 @@ class OrderProductVoucherService(
         criteria: OrderProductVoucherSearchCriteria,
     ): OrderProductVoucher? =
         orderProductVoucherRepository.findOrderProductVoucher(criteria)
+
+    fun findOrderProductVouchersWithProduct(
+        criteria: OrderProductVoucherSearchCriteria,
+    ): List<OrderProductVoucherProjection> =
+        orderProductVoucherRepository.findOrderProductVouchersWithProduct(criteria)
+
+    fun findOrderProductVouchersWithProduct(
+        criteria: OrderProductVoucherSearchCriteria,
+        pageable: Pageable,
+    ): Page<OrderProductVoucherProjection> =
+        orderProductVoucherRepository.findOrderProductVouchersWithProduct(criteria, pageable)
 
     @Transactional
     fun updateRevoked(

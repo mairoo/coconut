@@ -93,7 +93,7 @@ class OrderService(
         // 주문 상품 생성
         val orderProducts = request.items.map { item ->
             OrderProduct.of(
-                orderId = order.id!!,
+                orderId = savedOrder.id!!,
                 name = item.name,
                 subtitle = item.subtitle,
                 code = item.code,

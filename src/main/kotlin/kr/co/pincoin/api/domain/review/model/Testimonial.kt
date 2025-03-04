@@ -24,18 +24,19 @@ class Testimonial private constructor(
         newDescription: String? = null,
         newKeywords: String? = null,
         newContent: String? = null
-    ): Testimonial = copy(
-        title = newTitle ?: title,
-        description = newDescription ?: description,
-        keywords = newKeywords ?: keywords,
-        content = newContent ?: content
-    )
+    ): Testimonial =
+        copy(
+            title = newTitle ?: title,
+            description = newDescription ?: description,
+            keywords = newKeywords ?: keywords,
+            content = newContent ?: content
+        )
 
-    fun updateOwner(newOwnerId: Int?): Testimonial = copy(
-        ownerId = newOwnerId
-    )
+    fun updateOwner(newOwnerId: Int?): Testimonial =
+        copy(ownerId = newOwnerId)
 
-    fun markAsRemoved(): Testimonial = copy(isRemoved = true)
+    fun markAsRemoved(): Testimonial =
+        copy(isRemoved = true)
 
     private fun copy(
         title: String? = null,

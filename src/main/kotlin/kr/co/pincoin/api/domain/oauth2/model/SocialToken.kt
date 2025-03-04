@@ -11,18 +11,33 @@ class SocialToken private constructor(
     val appId: Int,
 
     // 3. 도메인 로직 가변 필드
-    token: String,
-    tokenSecret: String,
-    expiresAt: ZonedDateTime?,
+    val token: String,
+    val tokenSecret: String,
+    val expiresAt: ZonedDateTime?,
 ) {
-    var token: String = token
-        private set
+    fun updateToken(
+        newToken: String? = null,
+        newTokenSecret: String? = null,
+        newExpiresAt: ZonedDateTime? = null
+    ): SocialToken =
+        copy(
+            token = newToken ?: token,
+            tokenSecret = newTokenSecret ?: tokenSecret,
+            expiresAt = newExpiresAt ?: expiresAt
+        )
 
-    var tokenSecret: String = tokenSecret
-        private set
-
-    var expiresAt: ZonedDateTime? = expiresAt
-        private set
+    private fun copy(
+        token: String? = null,
+        tokenSecret: String? = null,
+        expiresAt: ZonedDateTime? = null
+    ): SocialToken = SocialToken(
+        id = this.id,
+        accountId = this.accountId,
+        appId = this.appId,
+        token = token ?: this.token,
+        tokenSecret = tokenSecret ?: this.tokenSecret,
+        expiresAt = expiresAt ?: this.expiresAt
+    )
 
     companion object {
         fun of(

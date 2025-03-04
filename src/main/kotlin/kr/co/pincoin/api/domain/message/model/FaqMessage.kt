@@ -27,26 +27,25 @@ class FaqMessage private constructor(
         newDescription: String? = null,
         newKeywords: String? = null,
         newContent: String? = null
-    ): FaqMessage = copy(
-        title = newTitle ?: title,
-        description = newDescription ?: description,
-        keywords = newKeywords ?: keywords,
-        content = newContent ?: content
-    )
+    ): FaqMessage =
+        copy(
+            title = newTitle ?: title,
+            description = newDescription ?: description,
+            keywords = newKeywords ?: keywords,
+            content = newContent ?: content
+        )
 
-    fun updateCategory(newCategory: FaqMessageCategory? = null): FaqMessage = copy(
-        category = newCategory ?: category
-    )
+    fun updateCategory(newCategory: FaqMessageCategory? = null): FaqMessage =
+        copy(category = newCategory ?: category)
 
-    fun updatePosition(newPosition: Int? = null): FaqMessage = copy(
-        position = newPosition ?: position
-    )
+    fun updatePosition(newPosition: Int? = null): FaqMessage =
+        copy(position = newPosition ?: position)
 
-    fun updateOwner(newOwnerId: Int?): FaqMessage = copy(
-        ownerId = newOwnerId
-    )
+    fun updateOwner(newOwnerId: Int?): FaqMessage =
+        copy(ownerId = newOwnerId)
 
-    fun markAsRemoved(): FaqMessage = copy(isRemoved = true)
+    fun markAsRemoved(): FaqMessage =
+        copy(isRemoved = true)
 
     private fun copy(
         title: String? = null,

@@ -26,44 +26,48 @@ class Category private constructor(
     fun update(
         newTitle: String? = null,
         newSlug: String? = null
-    ): Category = copy(
-        title = newTitle ?: title,
-        slug = newSlug ?: slug
-    )
+    ): Category =
+        copy(
+            title = newTitle ?: title,
+            slug = newSlug ?: slug
+        )
 
     fun updateDescriptions(
         newDescription: String? = null,
         newDescription1: String? = null
-    ): Category = copy(
-        description = newDescription ?: description,
-        description1 = newDescription1 ?: description1
-    )
+    ): Category =
+        copy(
+            description = newDescription ?: description,
+            description1 = newDescription1 ?: description1
+        )
 
     fun updateThumbnail(
         newThumbnail: String,
-    ): Category = copy(thumbnail = newThumbnail)
+    ): Category =
+        copy(thumbnail = newThumbnail)
 
     fun updateDiscountRate(
         newDiscountRate: BigDecimal? = null,
         newPgDiscountRate: BigDecimal? = null
-    ): Category = copy(
-        discountRate = newDiscountRate ?: discountRate,
-        pgDiscountRate = newPgDiscountRate ?: pgDiscountRate
-    )
+    ): Category =
+        copy(
+            discountRate = newDiscountRate ?: discountRate,
+            pgDiscountRate = newPgDiscountRate ?: pgDiscountRate
+        )
 
-    fun updatePgStatus(newPg: Boolean? = null): Category = copy(
-        pg = newPg ?: pg
-    )
+    fun updatePgStatus(newPg: Boolean? = null): Category =
+        copy(pg = newPg ?: pg)
 
     fun updateNaverInfo(
         newNaverSearchTag: String? = null,
         newNaverBrandName: String? = null,
         newNaverMakerName: String? = null
-    ): Category = copy(
-        naverSearchTag = newNaverSearchTag ?: naverSearchTag,
-        naverBrandName = newNaverBrandName ?: naverBrandName,
-        naverMakerName = newNaverMakerName ?: naverMakerName
-    )
+    ): Category =
+        copy(
+            naverSearchTag = newNaverSearchTag ?: naverSearchTag,
+            naverBrandName = newNaverBrandName ?: naverBrandName,
+            naverMakerName = newNaverMakerName ?: naverMakerName
+        )
 
     private fun copy(
         title: String? = null,

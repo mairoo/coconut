@@ -26,24 +26,26 @@ class OrderProduct private constructor(
     fun update(
         newName: String? = null,
         newSubtitle: String? = null
-    ): OrderProduct = copy(
-        name = newName ?: name,
-        subtitle = newSubtitle ?: subtitle
-    )
+    ): OrderProduct =
+        copy(
+            name = newName ?: name,
+            subtitle = newSubtitle ?: subtitle
+        )
 
     fun updatePrices(
         newListPrice: BigDecimal? = null,
         newSellingPrice: BigDecimal? = null
-    ): OrderProduct = copy(
-        listPrice = newListPrice ?: listPrice,
-        sellingPrice = newSellingPrice ?: sellingPrice
-    )
+    ): OrderProduct =
+        copy(
+            listPrice = newListPrice ?: listPrice,
+            sellingPrice = newSellingPrice ?: sellingPrice
+        )
 
-    fun updateQuantity(newQuantity: Int? = null): OrderProduct = copy(
-        quantity = newQuantity ?: quantity
-    )
+    fun updateQuantity(newQuantity: Int? = null): OrderProduct =
+        copy(quantity = newQuantity ?: quantity)
 
-    fun markAsRemoved(): OrderProduct = copy(isRemoved = true)
+    fun markAsRemoved(): OrderProduct =
+        copy(isRemoved = true)
 
     private fun copy(
         name: String? = null,

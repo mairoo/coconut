@@ -14,9 +14,8 @@ class TestimonialAnswer private constructor(
     // 3. 도메인 로직 가변 필드
     val content: String,
 ) {
-    fun updateContent(newContent: String? = null): TestimonialAnswer = copy(
-        content = newContent ?: content
-    )
+    fun updateContent(newContent: String? = null): TestimonialAnswer =
+        copy(content = newContent ?: content)
 
     private fun copy(
         content: String? = null

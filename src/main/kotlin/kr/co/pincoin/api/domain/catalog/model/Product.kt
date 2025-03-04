@@ -43,49 +43,50 @@ class Product private constructor(
         newName: String? = null,
         newSubtitle: String? = null,
         newCode: String? = null,
-    ): Product = copy(
-        name = newName ?: name,
-        subtitle = newSubtitle ?: subtitle,
-        code = newCode ?: code,
-    )
+    ): Product =
+        copy(
+            name = newName ?: name,
+            subtitle = newSubtitle ?: subtitle,
+            code = newCode ?: code,
+        )
 
     fun updatePrices(
         newListPrice: BigDecimal? = null,
         newSellingPrice: BigDecimal? = null,
         newPgSellingPrice: BigDecimal? = null
-    ): Product = copy(
-        listPrice = newListPrice ?: listPrice,
-        sellingPrice = newSellingPrice ?: sellingPrice,
-        pgSellingPrice = newPgSellingPrice ?: pgSellingPrice
-    )
+    ): Product =
+        copy(
+            listPrice = newListPrice ?: listPrice,
+            sellingPrice = newSellingPrice ?: sellingPrice,
+            pgSellingPrice = newPgSellingPrice ?: pgSellingPrice
+        )
 
-    fun updatePgStatus(newPg: Boolean? = null): Product = copy(
-        pg = newPg ?: pg
-    )
+    fun updatePgStatus(newPg: Boolean? = null): Product =
+        copy(pg = newPg ?: pg)
 
-    fun updateStatus(newStatus: ProductStatus? = null): Product = copy(
-        status = newStatus ?: status
-    )
+    fun updateStatus(newStatus: ProductStatus? = null): Product =
+        copy(status = newStatus ?: status)
 
-    fun updateStockStatus(newStock: ProductStock? = null): Product = copy(
-        stock = newStock ?: stock
-    )
+    fun updateStockStatus(newStock: ProductStock? = null): Product =
+        copy(stock = newStock ?: stock)
 
-    fun updateStockQuantity(newStockQuantity: Int? = null): Product = copy(
-        stockQuantity = newStockQuantity ?: stockQuantity
-    )
+    fun updateStockQuantity(newStockQuantity: Int? = null): Product =
+        copy(stockQuantity = newStockQuantity ?: stockQuantity)
 
     fun updateStockLevels(
         newMinimumStockLevel: Int? = null,
         newMaximumStockLevel: Int? = null
-    ): Product = copy(
-        minimumStockLevel = newMinimumStockLevel ?: minimumStockLevel,
-        maximumStockLevel = newMaximumStockLevel ?: maximumStockLevel
-    )
+    ): Product =
+        copy(
+            minimumStockLevel = newMinimumStockLevel ?: minimumStockLevel,
+            maximumStockLevel = newMaximumStockLevel ?: maximumStockLevel
+        )
 
-    fun increaseReviewCount(): Product = copy(reviewCount = reviewCount + 1)
+    fun increaseReviewCount(): Product =
+        copy(reviewCount = reviewCount + 1)
 
-    fun increaseReviewCountPg(): Product = copy(reviewCountPg = reviewCountPg + 1)
+    fun increaseReviewCountPg(): Product =
+        copy(reviewCountPg = reviewCountPg + 1)
 
     private fun copy(
         name: String? = null,

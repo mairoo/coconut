@@ -20,15 +20,14 @@ class OrderProductVoucher private constructor(
     val revoked: Boolean,
     val remarks: String,
 ) {
-    fun updateRevoked(newRevoked: Boolean? = null): OrderProductVoucher = copy(
-        revoked = newRevoked ?: revoked
-    )
+    fun updateRevoked(newRevoked: Boolean? = null): OrderProductVoucher =
+        copy(revoked = newRevoked ?: revoked)
 
-    fun updateRemarks(newRemarks: String? = null): OrderProductVoucher = copy(
-        remarks = newRemarks ?: remarks
-    )
+    fun updateRemarks(newRemarks: String? = null): OrderProductVoucher =
+        copy(remarks = newRemarks ?: remarks)
 
-    fun markAsRemoved(): OrderProductVoucher = copy(isRemoved = true)
+    fun markAsRemoved(): OrderProductVoucher =
+        copy(isRemoved = true)
 
     private fun copy(
         voucherId: Long? = this.voucherId,

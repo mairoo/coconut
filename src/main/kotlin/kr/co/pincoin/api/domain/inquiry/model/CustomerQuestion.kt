@@ -10,41 +10,67 @@ class CustomerQuestion private constructor(
     val modified: ZonedDateTime? = null,
 
     // 2. 공통 가변 필드
-    isRemoved: Boolean? = null,
+    val isRemoved: Boolean = false,
 
     // 3. 도메인 로직 불변 필드
     // 4. 도메인 로직 가변 필드
-    title: String,
-    description: String,
-    keywords: String,
-    content: String,
-    category: CustomerQuestionCategory,
-    orderId: Long?,
-    ownerId: Int?,
+    val title: String,
+    val description: String,
+    val keywords: String,
+    val content: String,
+    val category: CustomerQuestionCategory,
+    val orderId: Long?,
+    val ownerId: Int?,
 ) {
-    var isRemoved: Boolean = isRemoved ?: false
-        private set
+    fun update(
+        newTitle: String? = null,
+        newDescription: String? = null,
+        newKeywords: String? = null,
+        newContent: String? = null,
+        newCategory: CustomerQuestionCategory? = null
+    ): CustomerQuestion =
+        copy(
+            title = newTitle ?: title,
+            description = newDescription ?: description,
+            keywords = newKeywords ?: keywords,
+            content = newContent ?: content,
+            category = newCategory ?: category
+        )
 
-    var title: String = title
-        private set
+    fun updateOwnership(
+        newOrderId: Long? = null,
+        newOwnerId: Int? = null
+    ): CustomerQuestion =
+        copy(
+            orderId = newOrderId ?: orderId,
+            ownerId = newOwnerId ?: ownerId
+        )
 
-    var description: String = description
-        private set
+    fun remove(): CustomerQuestion =
+        copy(isRemoved = true)
 
-    var keywords: String = keywords
-        private set
-
-    var content: String = content
-        private set
-
-    var category: CustomerQuestionCategory = category
-        private set
-
-    var orderId: Long? = orderId
-        private set
-
-    var ownerId: Int? = ownerId
-        private set
+    private fun copy(
+        title: String? = null,
+        description: String? = null,
+        keywords: String? = null,
+        content: String? = null,
+        category: CustomerQuestionCategory? = null,
+        orderId: Long? = null,
+        ownerId: Int? = null,
+        isRemoved: Boolean? = null
+    ): CustomerQuestion = CustomerQuestion(
+        id = this.id,
+        created = this.created,
+        modified = this.modified,
+        isRemoved = isRemoved ?: this.isRemoved,
+        title = title ?: this.title,
+        description = description ?: this.description,
+        keywords = keywords ?: this.keywords,
+        content = content ?: this.content,
+        category = category ?: this.category,
+        orderId = orderId ?: this.orderId,
+        ownerId = ownerId ?: this.ownerId
+    )
 
     companion object {
         fun of(
@@ -64,7 +90,7 @@ class CustomerQuestion private constructor(
                 id = id,
                 created = created,
                 modified = modified,
-                isRemoved = isRemoved,
+                isRemoved = isRemoved ?: false,
                 title = title,
                 description = description,
                 keywords = keywords,

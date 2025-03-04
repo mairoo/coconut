@@ -26,22 +26,22 @@ class NoticeMessage private constructor(
         newDescription: String? = null,
         newKeywords: String? = null,
         newContent: String? = null
-    ): NoticeMessage = copy(
-        title = newTitle ?: title,
-        description = newDescription ?: description,
-        keywords = newKeywords ?: keywords,
-        content = newContent ?: content
-    )
+    ): NoticeMessage =
+        copy(
+            title = newTitle ?: title,
+            description = newDescription ?: description,
+            keywords = newKeywords ?: keywords,
+            content = newContent ?: content
+        )
 
-    fun updateCategory(newCategory: NoticeMessageCategory? = null): NoticeMessage = copy(
-        category = newCategory ?: category
-    )
+    fun updateCategory(newCategory: NoticeMessageCategory? = null): NoticeMessage =
+        copy(category = newCategory ?: category)
 
-    fun updateOwner(newOwnerId: Int?): NoticeMessage = copy(
-        ownerId = newOwnerId
-    )
+    fun updateOwner(newOwnerId: Int?): NoticeMessage =
+        copy(ownerId = newOwnerId)
 
-    fun markAsRemoved(): NoticeMessage = copy(isRemoved = true)
+    fun markAsRemoved(): NoticeMessage =
+        copy(isRemoved = true)
 
     private fun copy(
         title: String? = null,

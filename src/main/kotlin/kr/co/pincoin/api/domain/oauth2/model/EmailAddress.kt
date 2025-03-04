@@ -9,14 +9,25 @@ class EmailAddress private constructor(
     val userId: Int,
 
     // 3. 도메인 로직 가변 필드
-    verified: Boolean,
-    primary: Boolean,
+    val verified: Boolean,
+    val primary: Boolean,
 ) {
-    var verified: Boolean = verified
-        private set
+    fun verify(): EmailAddress =
+        copy(verified = true)
 
-    var primary: Boolean = primary
-        private set
+    fun setPrimary(isPrimary: Boolean): EmailAddress =
+        copy(primary = isPrimary)
+
+    private fun copy(
+        verified: Boolean? = null,
+        primary: Boolean? = null
+    ): EmailAddress = EmailAddress(
+        id = this.id,
+        email = this.email,
+        userId = this.userId,
+        verified = verified ?: this.verified,
+        primary = primary ?: this.primary
+    )
 
     companion object {
         fun of(

@@ -41,53 +41,45 @@ class Profile private constructor(
     val mileage: BigDecimal,
     val allowOrder: Boolean,
 ) {
-    fun updatePhone(newPhone: String?): Profile = copy(
-        phone = newPhone
-    )
+    fun updatePhone(newPhone: String?): Profile =
+        copy(phone = newPhone)
 
-    fun updateAddress(newAddress: String): Profile = copy(
-        address = newAddress
-    )
+    fun updateAddress(newAddress: String): Profile =
+        copy(address = newAddress)
 
-    fun updatePhoneVerification(newPhoneVerified: Boolean): Profile = copy(
-        phoneVerified = newPhoneVerified
-    )
+    fun updatePhoneVerification(newPhoneVerified: Boolean): Profile =
+        copy(phoneVerified = newPhoneVerified)
 
-    fun updateDocumentVerification(newDocumentVerified: Boolean): Profile = copy(
-        documentVerified = newDocumentVerified
-    )
+    fun updateDocumentVerification(newDocumentVerified: Boolean): Profile =
+        copy(documentVerified = newDocumentVerified)
 
-    fun updatePhotoId(newPhotoId: String): Profile = copy(
-        photoId = newPhotoId
-    )
+    fun updatePhotoId(newPhotoId: String): Profile =
+        copy(photoId = newPhotoId)
 
-    fun updateCard(newCard: String): Profile = copy(
-        card = newCard
-    )
+    fun updateCard(newCard: String): Profile =
+        copy(card = newCard)
 
     fun updateOrderStats(
         newTotalOrderCount: Int? = null,
         newLastPurchased: ZonedDateTime? = null,
         newMaxPrice: BigDecimal? = null,
         newAveragePrice: BigDecimal? = null
-    ): Profile = copy(
-        totalOrderCount = newTotalOrderCount ?: totalOrderCount,
-        lastPurchased = newLastPurchased,
-        maxPrice = newMaxPrice ?: maxPrice,
-        averagePrice = newAveragePrice ?: averagePrice
-    )
+    ): Profile =
+        copy(
+            totalOrderCount = newTotalOrderCount ?: totalOrderCount,
+            lastPurchased = newLastPurchased,
+            maxPrice = newMaxPrice ?: maxPrice,
+            averagePrice = newAveragePrice ?: averagePrice
+        )
 
-    fun updateMemo(newMemo: String): Profile = copy(
-        memo = newMemo
-    )
+    fun updateMemo(newMemo: String): Profile =
+        copy(memo = newMemo)
 
-    fun updatePhoneVerifiedStatus(newStatus: ProfilePhoneVerifiedStatus): Profile = copy(
-        phoneVerifiedStatus = newStatus
-    )
+    fun updatePhoneVerifiedStatus(newStatus: ProfilePhoneVerifiedStatus): Profile =
+        copy(phoneVerifiedStatus = newStatus)
 
-    fun updateDateOfBirth(newDateOfBirth: LocalDate?): Profile = copy(
-        dateOfBirth = newDateOfBirth
-    )
+    fun updateDateOfBirth(newDateOfBirth: LocalDate?): Profile =
+        copy(dateOfBirth = newDateOfBirth)
 
     fun updatePurchaseHistory(
         newFirstPurchased: ZonedDateTime? = null,
@@ -95,33 +87,29 @@ class Profile private constructor(
         newTotalSellingPrice: BigDecimal? = null,
         newNotPurchasedMonths: Boolean? = null,
         newRepurchased: ZonedDateTime? = null
-    ): Profile = copy(
-        firstPurchased = newFirstPurchased,
-        totalListPrice = newTotalListPrice ?: totalListPrice,
-        totalSellingPrice = newTotalSellingPrice ?: totalSellingPrice,
-        notPurchasedMonths = newNotPurchasedMonths ?: notPurchasedMonths,
-        repurchased = newRepurchased
-    )
+    ): Profile =
+        copy(
+            firstPurchased = newFirstPurchased,
+            totalListPrice = newTotalListPrice ?: totalListPrice,
+            totalSellingPrice = newTotalSellingPrice ?: totalSellingPrice,
+            notPurchasedMonths = newNotPurchasedMonths ?: notPurchasedMonths,
+            repurchased = newRepurchased
+        )
 
-    fun updateDomestic(newDomestic: ProfileDomestic): Profile = copy(
-        domestic = newDomestic
-    )
+    fun updateDomestic(newDomestic: ProfileDomestic): Profile =
+        copy(domestic = newDomestic)
 
-    fun updateGender(newGender: ProfileGender): Profile = copy(
-        gender = newGender
-    )
+    fun updateGender(newGender: ProfileGender): Profile =
+        copy(gender = newGender)
 
-    fun updateTelecom(newTelecom: String): Profile = copy(
-        telecom = newTelecom
-    )
+    fun updateTelecom(newTelecom: String): Profile =
+        copy(telecom = newTelecom)
 
-    fun updateMileage(newMileage: BigDecimal): Profile = copy(
-        mileage = newMileage
-    )
+    fun updateMileage(newMileage: BigDecimal): Profile =
+        copy(mileage = newMileage)
 
-    fun updateAllowOrder(newAllowOrder: Boolean): Profile = copy(
-        allowOrder = newAllowOrder
-    )
+    fun updateAllowOrder(newAllowOrder: Boolean): Profile =
+        copy(allowOrder = newAllowOrder)
 
     private fun copy(
         phone: String? = this.phone,

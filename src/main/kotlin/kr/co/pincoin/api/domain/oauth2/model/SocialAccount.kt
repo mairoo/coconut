@@ -13,14 +13,31 @@ class SocialAccount private constructor(
     val userId: Int,
 
     // 3. 도메인 로직 가변 필드
-    lastLogin: ZonedDateTime,
-    extraData: String,
+    val lastLogin: ZonedDateTime,
+    val extraData: String,
 ) {
-    var lastLogin: ZonedDateTime = lastLogin
-        private set
+    fun updateLastLogin(
+        loginTime: ZonedDateTime = ZonedDateTime.now(),
+    ): SocialAccount =
+        copy(lastLogin = loginTime)
 
-    var extraData: String = extraData
-        private set
+    fun updateExtraData(
+        newExtraData: String,
+    ): SocialAccount =
+        copy(extraData = newExtraData)
+
+    private fun copy(
+        lastLogin: ZonedDateTime? = null,
+        extraData: String? = null
+    ): SocialAccount = SocialAccount(
+        id = this.id,
+        provider = this.provider,
+        uid = this.uid,
+        dateJoined = this.dateJoined,
+        userId = this.userId,
+        lastLogin = lastLogin ?: this.lastLogin,
+        extraData = extraData ?: this.extraData
+    )
 
     companion object {
         fun of(

@@ -20,34 +20,29 @@ class User private constructor(
     val isStaff: Boolean,
     val isActive: Boolean,
 ) {
-    fun updatePassword(newPassword: String): User = copy(
-        password = newPassword
-    )
+    fun updatePassword(newPassword: String): User =
+        copy(password = newPassword)
 
-    fun updateLastLogin(newLastLogin: ZonedDateTime?): User = copy(
-        lastLogin = newLastLogin
-    )
+    fun updateLastLogin(newLastLogin: ZonedDateTime?): User =
+        copy(lastLogin = newLastLogin)
 
-    fun updateSuperuser(newIsSuperuser: Boolean): User = copy(
-        isSuperuser = newIsSuperuser
-    )
+    fun updateSuperuser(newIsSuperuser: Boolean): User =
+        copy(isSuperuser = newIsSuperuser)
 
-    fun updateName(newFirstName: String? = null, newLastName: String? = null): User = copy(
-        firstName = newFirstName ?: firstName,
-        lastName = newLastName ?: lastName
-    )
+    fun updateName(newFirstName: String? = null, newLastName: String? = null): User =
+        copy(
+            firstName = newFirstName ?: firstName,
+            lastName = newLastName ?: lastName
+        )
 
-    fun updateEmail(newEmail: String): User = copy(
-        email = newEmail
-    )
+    fun updateEmail(newEmail: String): User =
+        copy(email = newEmail)
 
-    fun updateStaff(newIsStaff: Boolean): User = copy(
-        isStaff = newIsStaff
-    )
+    fun updateStaff(newIsStaff: Boolean): User =
+        copy(isStaff = newIsStaff)
 
-    fun updateActive(newIsActive: Boolean): User = copy(
-        isActive = newIsActive
-    )
+    fun updateActive(newIsActive: Boolean): User =
+        copy(isActive = newIsActive)
 
     private fun copy(
         password: String = this.password,

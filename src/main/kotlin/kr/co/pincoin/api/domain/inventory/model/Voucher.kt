@@ -23,10 +23,11 @@ class Voucher private constructor(
     fun update(
         newCode: String? = null,
         newRemarks: String? = null
-    ): Voucher = copy(
-        code = newCode ?: code,
-        remarks = newRemarks ?: remarks
-    )
+    ): Voucher =
+        copy(
+            code = newCode ?: code,
+            remarks = newRemarks ?: remarks
+        )
 
     fun updateProduct(newProductId: Long? = null): Voucher =
         copy(productId = newProductId ?: productId)

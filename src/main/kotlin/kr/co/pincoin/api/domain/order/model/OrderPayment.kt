@@ -22,15 +22,14 @@ class OrderPayment private constructor(
     val account: PaymentBankAccount,
     val balance: BigDecimal,
 ) {
-    fun updateAccount(newAccount: PaymentBankAccount? = null): OrderPayment = copy(
-        account = newAccount ?: account
-    )
+    fun updateAccount(newAccount: PaymentBankAccount? = null): OrderPayment =
+        copy(account = newAccount ?: account)
 
-    fun updateBalance(newBalance: BigDecimal? = null): OrderPayment = copy(
-        balance = newBalance ?: balance
-    )
+    fun updateBalance(newBalance: BigDecimal? = null): OrderPayment =
+        copy(balance = newBalance ?: balance)
 
-    fun markAsRemoved(): OrderPayment = copy(isRemoved = true)
+    fun markAsRemoved(): OrderPayment =
+        copy(isRemoved = true)
 
     private fun copy(
         account: PaymentBankAccount? = null,

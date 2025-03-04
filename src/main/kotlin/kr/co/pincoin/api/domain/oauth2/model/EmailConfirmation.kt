@@ -12,10 +12,22 @@ class EmailConfirmation private constructor(
     val emailAddressId: Int,
 
     // 3. 도메인 로직 가변 필드
-    sent: ZonedDateTime?,
+    val sent: ZonedDateTime?,
 ) {
-    var sent: ZonedDateTime? = sent
-        private set
+    fun markAsSent(
+        sentTime: ZonedDateTime = ZonedDateTime.now(),
+    ): EmailConfirmation =
+        copy(sent = sentTime)
+
+    private fun copy(
+        sent: ZonedDateTime? = null
+    ): EmailConfirmation = EmailConfirmation(
+        id = this.id,
+        created = this.created,
+        key = this.key,
+        emailAddressId = this.emailAddressId,
+        sent = sent ?: this.sent
+    )
 
     companion object {
         fun of(

@@ -1,4 +1,4 @@
-package kr.or.bigs.firmbank.external.support.notification.telegram.service
+package kr.co.pincoin.api.external.telegram.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import kr.co.pincoin.api.external.telegram.api.request.TelegramMessagePayload

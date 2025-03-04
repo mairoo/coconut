@@ -1,11 +1,11 @@
-package kr.or.bigs.firmbank.external.support.notification.mailgun.service
+package kr.co.pincoin.api.external.mailgun.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import kr.co.pincoin.api.external.mailgun.api.request.MailgunRequest
 import kr.co.pincoin.api.external.mailgun.api.response.MailgunResponse
 import kr.co.pincoin.api.external.mailgun.code.MailgunErrorCode
-import kr.co.pincoin.api.global.exception.BusinessException
 import kr.co.pincoin.api.external.mailgun.properties.MailgunProperties
+import kr.co.pincoin.api.global.exception.BusinessException
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.util.LinkedMultiValueMap

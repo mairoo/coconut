@@ -68,11 +68,11 @@ class AdminCategoryService(
             ), pageable
         )
 
-    fun updateBasicInfo(
+    fun update(
         id: Long,
         request: CategoryBasicInfoUpdateRequest,
     ): Category =
-        categoryService.updateBasicInfo(id, request)
+        categoryService.update(id, request)
 
     fun updateDescriptions(
         id: Long,

@@ -23,7 +23,7 @@ class OrderProduct private constructor(
     val sellingPrice: BigDecimal,
     val quantity: Int,
 ) {
-    fun updateBasicInfo(
+    fun update(
         newName: String? = null,
         newSubtitle: String? = null
     ): OrderProduct = copy(
@@ -31,7 +31,7 @@ class OrderProduct private constructor(
         subtitle = newSubtitle ?: subtitle
     )
 
-    fun updatePriceInfo(
+    fun updatePrices(
         newListPrice: BigDecimal? = null,
         newSellingPrice: BigDecimal? = null
     ): OrderProduct = copy(

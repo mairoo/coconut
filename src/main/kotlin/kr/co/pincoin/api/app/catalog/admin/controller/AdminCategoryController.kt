@@ -89,11 +89,11 @@ class AdminCategoryController(
      * @return 수정된 카테고리 정보 응답
      */
     @PatchMapping("/{id}")
-    fun updateBasicInfo(
+    fun update(
         @PathVariable id: Long,
         @RequestBody @Valid request: CategoryBasicInfoUpdateRequest,
     ): ResponseEntity<ApiResponse<CategoryResponse>> =
-        adminCategoryService.updateBasicInfo(id, request)
+        adminCategoryService.update(id, request)
             .let { CategoryResponse.from(it) }
             .let { ApiResponse.of(it) }
             .let { ResponseEntity.ok(it) }
@@ -123,7 +123,7 @@ class AdminCategoryController(
      * @return 수정된 카테고리 정보 응답
      */
     @PatchMapping("/{id}/discount-rate")
-    fun updatePriceInfo(
+    fun updateDiscountRates(
         @PathVariable id: Long,
         @RequestBody @Valid request: CategoryDiscountRateUpdateRequest,
     ): ResponseEntity<ApiResponse<CategoryResponse>> =

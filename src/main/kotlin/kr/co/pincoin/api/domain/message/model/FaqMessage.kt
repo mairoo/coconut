@@ -22,7 +22,7 @@ class FaqMessage private constructor(
     val position: Int,
     val ownerId: Int?,
 ) {
-    fun updateBasicInfo(
+    fun update(
         newTitle: String? = null,
         newDescription: String? = null,
         newKeywords: String? = null,

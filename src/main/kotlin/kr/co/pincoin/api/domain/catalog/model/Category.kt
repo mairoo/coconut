@@ -23,7 +23,7 @@ class Category private constructor(
     val naverBrandName: String,
     val naverMakerName: String,
 ) {
-    fun updateBasicInfo(
+    fun update(
         newTitle: String? = null,
         newSlug: String? = null
     ): Category = copy(

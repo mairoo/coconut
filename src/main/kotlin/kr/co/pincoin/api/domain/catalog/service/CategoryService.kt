@@ -65,12 +65,12 @@ class CategoryService(
         categoryRepository.findCategories(criteria, pageable)
 
     @Transactional
-    fun updateBasicInfo(
+    fun update(
         id: Long,
         request: CategoryBasicInfoUpdateRequest,
     ): Category =
         categoryRepository.findCategory(id, CategorySearchCriteria())
-            ?.updateBasicInfo(
+            ?.update(
                 newTitle = request.title,
                 newSlug = request.slug
             )

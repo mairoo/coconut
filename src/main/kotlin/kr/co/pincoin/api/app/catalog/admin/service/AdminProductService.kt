@@ -104,17 +104,17 @@ class AdminProductService(
             ), pageable
         )
 
-    fun updateBasicInfo(
+    fun update(
         id: Long,
         request: ProductBasicInfoUpdateRequest,
     ): Product =
-        productService.updateBasicInfo(id, request)
+        productService.update(id, request)
 
-    fun updatePriceInfo(
+    fun updatePrices(
         id: Long,
         request: ProductPriceUpdateRequest,
     ): Product =
-        productService.updatePriceInfo(id, request)
+        productService.updatePrices(id, request)
 
     fun updatePgStatus(
         id: Long,

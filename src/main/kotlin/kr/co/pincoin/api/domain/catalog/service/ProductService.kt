@@ -77,12 +77,12 @@ class ProductService(
         productRepository.findProducts(criteria, pageable)
 
     @Transactional
-    fun updateBasicInfo(
+    fun update(
         id: Long,
         request: ProductBasicInfoUpdateRequest,
     ): Product =
         productRepository.findProduct(id, ProductSearchCriteria())
-            ?.updateBasicInfo(
+            ?.update(
                 newName = request.name,
                 newSubtitle = request.subtitle,
                 newCode = request.code,
@@ -91,12 +91,12 @@ class ProductService(
             ?: throw BusinessException(CatalogErrorCode.PRODUCT_NOT_FOUND)
 
     @Transactional
-    fun updatePriceInfo(
+    fun updatePrices(
         id: Long,
         request: ProductPriceUpdateRequest,
     ): Product =
         productRepository.findProduct(id, ProductSearchCriteria())
-            ?.updatePriceInfo(
+            ?.updatePrices(
                 newListPrice = request.listPrice,
                 newSellingPrice = request.sellingPrice,
                 newPgSellingPrice = request.pgSellingPrice,

@@ -19,7 +19,7 @@ class Testimonial private constructor(
     val content: String,
     val ownerId: Int?,
 ) {
-    fun updateBasicInfo(
+    fun update(
         newTitle: String? = null,
         newDescription: String? = null,
         newKeywords: String? = null,

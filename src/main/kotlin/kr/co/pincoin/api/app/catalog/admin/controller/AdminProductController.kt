@@ -89,11 +89,11 @@ class AdminProductController(
      * @return 수정된 상품 정보 응답
      */
     @PutMapping("/{id}/basic-info")
-    fun updateBasicInfo(
+    fun update(
         @PathVariable id: Long,
         @RequestBody @Valid request: ProductBasicInfoUpdateRequest,
     ): ResponseEntity<ApiResponse<ProductResponse>> =
-        adminProductService.updateBasicInfo(id, request)
+        adminProductService.update(id, request)
             .let { ProductResponse.from(it) }
             .let { ApiResponse.of(it) }
             .let { ResponseEntity.ok(it) }
@@ -106,11 +106,11 @@ class AdminProductController(
      * @return 수정된 상품 정보 응답
      */
     @PutMapping("/{id}/price-info")
-    fun updatePriceInfo(
+    fun updatePrices(
         @PathVariable id: Long,
         @RequestBody @Valid request: ProductPriceUpdateRequest,
     ): ResponseEntity<ApiResponse<ProductResponse>> =
-        adminProductService.updatePriceInfo(id, request)
+        adminProductService.updatePrices(id, request)
             .let { ProductResponse.from(it) }
             .let { ApiResponse.of(it) }
             .let { ResponseEntity.ok(it) }

@@ -39,7 +39,7 @@ class Product private constructor(
     val naverPartnerTitlePg: String,
     val naverAttribute: String,
 ) {
-    fun updateBasicInfo(
+    fun update(
         newName: String? = null,
         newSubtitle: String? = null,
         newCode: String? = null,
@@ -49,7 +49,7 @@ class Product private constructor(
         code = newCode ?: code,
     )
 
-    fun updatePriceInfo(
+    fun updatePrices(
         newListPrice: BigDecimal? = null,
         newSellingPrice: BigDecimal? = null,
         newPgSellingPrice: BigDecimal? = null

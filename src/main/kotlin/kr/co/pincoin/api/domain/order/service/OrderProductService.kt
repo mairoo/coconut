@@ -58,7 +58,7 @@ class OrderProductService(
     )
 
     @Transactional
-    fun updateBasicInfo(
+    fun update(
         id: Long,
         name: String? = null,
         subtitle: String? = null,
@@ -69,12 +69,12 @@ class OrderProductService(
                 isRemoved = false
             )
         )
-            ?.updateBasicInfo(name, subtitle)
+            ?.update(name, subtitle)
             ?.let { orderProductRepository.save(it) }
             ?: throw BusinessException(OrderErrorCode.ORDER_PRODUCT_NOT_FOUND)
 
     @Transactional
-    fun updatePriceInfo(
+    fun updatePrices(
         id: Long,
         listPrice: BigDecimal? = null,
         sellingPrice: BigDecimal? = null,
@@ -85,7 +85,7 @@ class OrderProductService(
                 isRemoved = false
             )
         )
-            ?.updatePriceInfo(listPrice, sellingPrice)
+            ?.updatePrices(listPrice, sellingPrice)
             ?.let { orderProductRepository.save(it) }
             ?: throw BusinessException(OrderErrorCode.ORDER_PRODUCT_NOT_FOUND)
 

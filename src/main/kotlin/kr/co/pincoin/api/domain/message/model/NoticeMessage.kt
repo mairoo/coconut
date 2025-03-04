@@ -21,7 +21,7 @@ class NoticeMessage private constructor(
     val category: NoticeMessageCategory,
     val ownerId: Int?,
 ) {
-    fun updateBasicInfo(
+    fun update(
         newTitle: String? = null,
         newDescription: String? = null,
         newKeywords: String? = null,

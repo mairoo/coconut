@@ -14,6 +14,14 @@ enum class OrderErrorCode(
         HttpStatus.INTERNAL_SERVER_ERROR,
         "주문 저장에 실패했습니다",
     ),
+    ORDER_OUT_OF_STOCK(
+        HttpStatus.BAD_REQUEST,
+        "상품권 재고가 부족합니다",
+    ),
+    ORDER_PRICE_MISMATCH(
+        HttpStatus.BAD_REQUEST,
+        "상품권 가격이 일치하지 않습니다"
+    ),
     ORDER_PRODUCT_NOT_FOUND(
         HttpStatus.NOT_FOUND,
         "유효한 주문상품이 없습니다",

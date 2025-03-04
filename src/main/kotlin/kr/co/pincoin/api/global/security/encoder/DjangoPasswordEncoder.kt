@@ -3,12 +3,12 @@ package kr.co.pincoin.api.global.security.encoder
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.security.crypto.password.PasswordEncoder
 import java.security.SecureRandom
-import java.util.Base64
+import java.util.*
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
 
 class DjangoPasswordEncoder : PasswordEncoder {
-    private val logger = KotlinLogging.logger {}
+    private val log = KotlinLogging.logger {}
 
     companion object {
         private const val ALGORITHM = "pbkdf2_sha256"
@@ -44,7 +44,7 @@ class DjangoPasswordEncoder : PasswordEncoder {
         val secret = secretKeyFactory.generateSecret(keySpec)
         Base64.getEncoder().encodeToString(secret.encoded)
     } catch (e: Exception) {
-        logger.error(e) { "Password encryption failed" }
+        log.error(e) { "Password encryption failed" }
         throw IllegalStateException("Password encryption error", e)
     }
 
@@ -82,7 +82,7 @@ class DjangoPasswordEncoder : PasswordEncoder {
 
         regeneratedHash == encodedPassword
     } catch (e: Exception) {
-        logger.error(e) { "Password match validation failed" }
+        log.error(e) { "Password match validation failed" }
         false
     }
 }

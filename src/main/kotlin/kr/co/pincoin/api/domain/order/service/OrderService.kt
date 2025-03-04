@@ -263,77 +263,82 @@ class OrderService(
         return save(restoredOrder)
     }
 
-    private fun validateProductsForCartOrder(
-        items: List<CartItem>,
-    ): List<Product> {
-        // 장바구니에 담긴 상품권 권종 목록 가져오기
-        val codes: List<String> = items.map { it.code }.distinct()
+    private fun validateProductsForCartOrder(items: List<CartItem>): List<Product> {
+        // 장바구니에 담긴 상품 코드 추출
+        val requestedCodes = items.map { it.code }.toSet()
 
-        // 실제 데이터베이스에 존재하는 상품권 권종 목록 가져오기
+        // 데이터베이스에서 실제 상품 조회
         val products = productRepository.findProducts(
             ProductSearchCriteria(
-                codes = codes,
+                codes = requestedCodes.toList(),
                 status = ProductStatus.ENABLED,
                 stock = ProductStock.IN_STOCK,
             )
         )
 
-        val requestedCodes = codes.toSet()
+        // 존재하지 않는 상품 코드 확인
         val foundCodes = products.map { it.code }.toSet()
 
-        if (!foundCodes.containsAll(requestedCodes)) {
-            val notFoundCodes = HashSet(requestedCodes)
-            notFoundCodes.removeAll(foundCodes)
-            throw BusinessException(CatalogErrorCode.PRODUCT_NOT_FOUND, notFoundCodes.joinToString(", "))
-        }
+        requestedCodes
+            .minus(foundCodes)
+            .takeIf { it.isNotEmpty() }
+            ?.let { notFoundCodes ->
+                throw BusinessException(
+                    CatalogErrorCode.PRODUCT_NOT_FOUND,
+                    notFoundCodes.joinToString(", ")
+                )
+            }
 
+        // 수량별 상품 코드 집계
         val quantityByCode = items
             .groupBy { it.code }
             .mapValues { (_, items) -> items.sumOf { it.quantity } }
 
-        val errors = mutableListOf<String>()
-        for (product in products) {
-            val requestedQuantity = quantityByCode[product.code]
+        // 상품 유효성 검사
+        val errors = products.mapNotNull { product ->
+            val requestedQuantity = quantityByCode[product.code] ?: 0
             when {
-                product.status == ProductStatus.DISABLED || product.stock == ProductStock.SOLD_OUT -> {
-                    errors.add("판매 중인 상품이 아닙니다: ${product.code}")
-                }
+                product.status == ProductStatus.DISABLED || product.stock == ProductStock.SOLD_OUT ->
+                    "판매 중인 상품이 아닙니다: ${product.code}"
 
-                product.stockQuantity < requestedQuantity!! -> {
-                    errors.add("상품 '${product.name}'의 재고가 부족합니다. 요청: $requestedQuantity, 재고: ${product.stockQuantity}")
-                }
+                product.stockQuantity < requestedQuantity ->
+                    "상품 '${product.name}'의 재고가 부족합니다. 요청: $requestedQuantity, 재고: ${product.stockQuantity}"
+
+                else -> null
             }
         }
 
         if (errors.isNotEmpty()) {
             log.warn { errors.joinToString("\n") }
-            throw BusinessException(OrderErrorCode.ORDER_OUT_OF_STOCK, errors.joinToString(", "))
+            throw BusinessException(
+                OrderErrorCode.ORDER_OUT_OF_STOCK,
+                errors.joinToString(", ")
+            )
         }
 
         return products
     }
 
-    private fun validateCartPrices(
-        products: List<Product>,
-        items: List<CartItem>,
-    ) {
+    private fun validateCartPrices(products: List<Product>, items: List<CartItem>) {
         val productMap = products.associateBy { it.id }
 
-        val priceErrors = mutableListOf<String>()
-
-        for (item in items) {
-            val product = productMap[item.productId]
-
-            if (product != null && product.sellingPrice.compareTo(item.sellingPrice) != 0) {
-                priceErrors.add(
-                    "상품 '${product.name}'의 가격이 변경되었습니다. 장바구니: ${item.sellingPrice}, 실제: ${product.sellingPrice}"
+        items
+            .mapNotNull { item ->
+                productMap[item.productId]
+                    ?.takeIf { product ->
+                        product.sellingPrice.compareTo(item.sellingPrice) != 0
+                    }
+                    ?.let { product ->
+                        "상품 '${product.name}'의 가격이 변경되었습니다. 장바구니: ${item.sellingPrice}, 실제: ${product.sellingPrice}"
+                    }
+            }
+            .takeIf { it.isNotEmpty() }
+            ?.let { priceErrors ->
+                log.warn { priceErrors.joinToString("\n") }
+                throw BusinessException(
+                    OrderErrorCode.ORDER_PRICE_MISMATCH,
+                    priceErrors.joinToString(", ")
                 )
             }
-        }
-
-        if (priceErrors.isNotEmpty()) {
-            log.warn { priceErrors.joinToString("\n") }
-            throw BusinessException(OrderErrorCode.ORDER_PRICE_MISMATCH, priceErrors.joinToString(", "))
-        }
     }
 }

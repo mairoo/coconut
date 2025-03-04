@@ -1,5 +1,7 @@
 package kr.co.pincoin.api.app.order.member.service
 
+import jakarta.servlet.http.HttpServletRequest
+import kr.co.pincoin.api.app.order.member.request.CartOrderCreateRequest
 import kr.co.pincoin.api.app.order.member.request.OrderSearchRequest
 import kr.co.pincoin.api.domain.order.enums.OrderVisibility
 import kr.co.pincoin.api.domain.order.model.Order
@@ -55,4 +57,11 @@ class MemberOrderService(
             ),
             pageable
         )
+
+    fun createOrder(
+        userId: Int,
+        request: CartOrderCreateRequest,
+        servletRequest: HttpServletRequest,
+    ): Order =
+        orderService.createOrderFromCart(userId, request, servletRequest)
 }

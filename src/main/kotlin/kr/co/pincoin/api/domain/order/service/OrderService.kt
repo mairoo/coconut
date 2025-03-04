@@ -1,12 +1,17 @@
 package kr.co.pincoin.api.domain.order.service
 
+import jakarta.servlet.http.HttpServletRequest
+import kr.co.pincoin.api.app.order.member.request.CartOrderCreateRequest
+import kr.co.pincoin.api.domain.order.enums.OrderCurrency
 import kr.co.pincoin.api.domain.order.enums.OrderStatus
 import kr.co.pincoin.api.domain.order.enums.OrderVisibility
 import kr.co.pincoin.api.domain.order.model.Order
+import kr.co.pincoin.api.domain.order.model.OrderProduct
 import kr.co.pincoin.api.domain.order.repository.OrderProductRepository
 import kr.co.pincoin.api.domain.order.repository.OrderRepository
 import kr.co.pincoin.api.global.exception.BusinessException
 import kr.co.pincoin.api.global.exception.code.OrderErrorCode
+import kr.co.pincoin.api.global.utils.ClientUtils
 import kr.co.pincoin.api.infra.order.repository.criteria.OrderSearchCriteria
 import kr.co.pincoin.api.infra.order.repository.projection.OrderUserProfileProjection
 import org.springframework.dao.DataIntegrityViolationException
@@ -14,6 +19,7 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.util.*
 
 @Service
 @Transactional(readOnly = true)
@@ -30,6 +36,63 @@ class OrderService(
         } catch (e: DataIntegrityViolationException) {
             throw BusinessException(OrderErrorCode.ORDER_SAVE_FAILED)
         }
+    }
+
+    @Transactional
+    fun createOrderFromCart(
+        userId: Int,
+        request: CartOrderCreateRequest,
+        servletRequest: HttpServletRequest,
+    ): Order {
+        val clientInfo = ClientUtils.getClientInfo(servletRequest)
+
+        // 총 금액 계산
+        val totalListPrice =
+            request.items.sumOf { checkNotNull(it.listPrice) * checkNotNull(it.quantity).toBigDecimal() }
+        val totalSellingPrice =
+            request.items.sumOf { checkNotNull(it.sellingPrice) * checkNotNull(it.quantity).toBigDecimal() }
+
+        // 주문 생성
+        val order = Order.of(
+            isRemoved = false,
+            orderNo = UUID.randomUUID(),
+            userId = userId,
+            fullname = "",
+            userAgent = "",
+            acceptLanguage = "",
+            ipAddress = clientInfo.ipAddress,
+            paymentMethod = request.paymentMethod,
+            transactionId = "",
+            status = OrderStatus.PAYMENT_PENDING,
+            visible = OrderVisibility.VISIBLE,
+            totalListPrice = totalListPrice,
+            totalSellingPrice = totalSellingPrice,
+            currency = OrderCurrency.KRW,
+            message = "",
+            parentId = null,
+            suspicious = false,
+        )
+
+        // 주문 저장
+        val savedOrder = orderRepository.saveAndFlush(order)
+
+        // 주문 상품 생성
+        val orderProducts = request.items.map { item ->
+            OrderProduct.of(
+                orderId = order.id!!,
+                name = item.name!!,
+                subtitle = item.subtitle!!,
+                code = item.code!!,
+                listPrice = item.listPrice!!,
+                sellingPrice = item.sellingPrice!!,
+                quantity = item.quantity!!,
+            )
+        }
+
+        // 주문 상품 저장
+        orderProductRepository.saveAll(orderProducts)
+
+        return savedOrder
     }
 
     fun findOrder(

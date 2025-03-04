@@ -9,6 +9,7 @@ data class ProductSearchCriteria(
     val name: String? = null,
     val subtitle: String? = null,
     val code: String? = null,
+    val codes: Collection<String>? = null,
     val categoryId: Long? = null,
     val listPrice: BigDecimal? = null,
     val pg: Boolean? = null,

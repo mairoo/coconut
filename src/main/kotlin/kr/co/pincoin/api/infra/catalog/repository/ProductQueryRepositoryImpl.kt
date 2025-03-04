@@ -102,6 +102,7 @@ class ProductQueryRepositoryImpl(
         eqProductName(criteria.name),
         eqProductSubtitle(criteria.subtitle),
         eqProductCode(criteria.code),
+        inProductCodes(criteria.codes),
         eqProductCategoryId(criteria.categoryId),
         eqProductPg(criteria.pg),
         eqProductStatus(criteria.status),
@@ -125,6 +126,9 @@ class ProductQueryRepositoryImpl(
 
     private fun eqProductCode(code: String?): BooleanExpression? =
         code?.let { product.code.eq(it) }
+
+    private fun inProductCodes(codes: Collection<String>?): BooleanExpression? =
+        if (!codes.isNullOrEmpty()) product.code.`in`(codes) else null
 
     private fun eqProductCategoryId(categoryId: Long?): BooleanExpression? =
         categoryId?.let { product.categoryId.eq(it) }

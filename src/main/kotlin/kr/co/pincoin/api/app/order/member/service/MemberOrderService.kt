@@ -16,11 +16,13 @@ class MemberOrderService(
     private val orderService: OrderService,
 ) {
     fun getOrder(
+        userId: Int,
         id: Long,
         request: OrderSearchRequest,
     ): Order =
         orderService.findOrder(
             OrderSearchCriteria(
+                userId = userId,
                 id = id,
                 orderNo = request.orderNo,
                 paymentMethod = request.paymentMethod,
@@ -34,11 +36,13 @@ class MemberOrderService(
         ) ?: throw BusinessException(OrderErrorCode.ORDER_NOT_FOUND)
 
     fun getOrders(
+        userId: Int,
         request: OrderSearchRequest,
         pageable: Pageable,
     ): Page<Order> =
         orderService.findOrders(
             OrderSearchCriteria(
+                userId = userId,
                 id = request.orderId,
                 orderNo = request.orderNo,
                 paymentMethod = request.paymentMethod,

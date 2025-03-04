@@ -100,8 +100,18 @@ class GlobalExceptionHandler {
                 )
         }
 
-        // 다른 NPE는 일반적인 서버 오류로 처리
-        else -> handleInternalServerError(e, request)
+        else -> {
+            log.error(e) { "[NullPointerException] ${e.message}, Stack trace: ${e.stackTraceToString()}" }
+            ResponseEntity
+                .status(CommonErrorCode.NULL_POINTER_EXCEPTION.status)
+                .body(
+                    ErrorResponse.of(
+                        request,
+                        CommonErrorCode.NULL_POINTER_EXCEPTION.status,
+                        CommonErrorCode.NULL_POINTER_EXCEPTION.message
+                    )
+                )
+        }
     }
 
     /**

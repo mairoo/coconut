@@ -34,6 +34,10 @@ enum class CommonErrorCode(
         HttpStatus.PAYLOAD_TOO_LARGE,
         "업로드 파일 크기가 제한을 초과했습니다",
     ),
+    NULL_POINTER_EXCEPTION(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        "객체 참조 오류가 발생했습니다",
+    ),
     INTERNAL_SERVER_ERROR(
         HttpStatus.INTERNAL_SERVER_ERROR,
         "서버 오류가 발생했습니다",

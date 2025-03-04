@@ -47,16 +47,6 @@ class OrderProductService(
         pageable: Pageable,
     ): Page<OrderProduct> = orderProductRepository.findOrderProducts(criteria, pageable)
 
-    fun findOrderProductsByOrderId(
-        orderId: Long,
-        isRemoved: Boolean = false,
-    ): List<OrderProduct> = orderProductRepository.findOrderProducts(
-        OrderProductSearchCriteria(
-            orderId = orderId,
-            isRemoved = isRemoved
-        )
-    )
-
     @Transactional
     fun update(
         id: Long,

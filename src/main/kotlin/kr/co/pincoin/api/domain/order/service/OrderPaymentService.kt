@@ -48,16 +48,6 @@ class OrderPaymentService(
         pageable: Pageable,
     ): Page<OrderPayment> = orderPaymentRepository.findOrderPayments(criteria, pageable)
 
-    fun findOrderPaymentsByOrderId(
-        orderId: Long,
-        isRemoved: Boolean = false,
-    ): List<OrderPayment> = orderPaymentRepository.findOrderPayments(
-        OrderPaymentSearchCriteria(
-            orderId = orderId,
-            isRemoved = isRemoved
-        )
-    )
-
     @Transactional
     fun updateAccount(
         id: Long,

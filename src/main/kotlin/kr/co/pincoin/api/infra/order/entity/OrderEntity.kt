@@ -13,6 +13,7 @@ import kr.co.pincoin.api.infra.order.converter.OrderStatusConverter
 import kr.co.pincoin.api.infra.order.converter.OrderVisibilityConverter
 
 import java.math.BigDecimal
+import java.net.InetAddress
 import java.util.*
 
 @Entity
@@ -39,7 +40,7 @@ class OrderEntity private constructor(
     val acceptLanguage: String,
 
     @Column(name = "ip_address", columnDefinition = "inet")
-    val ipAddress: String,
+    val ipAddress: InetAddress,
 
     @Column(name = "payment_method")
     @Convert(converter = OrderPaymentMethodConverter::class)
@@ -90,7 +91,7 @@ class OrderEntity private constructor(
             fullname: String = "",
             userAgent: String = "",
             acceptLanguage: String = "",
-            ipAddress: String,
+            ipAddress: InetAddress,
             paymentMethod: OrderPaymentMethod = OrderPaymentMethod.BANK_TRANSFER,
             transactionId: String = "",
             status: OrderStatus = OrderStatus.PAYMENT_PENDING,

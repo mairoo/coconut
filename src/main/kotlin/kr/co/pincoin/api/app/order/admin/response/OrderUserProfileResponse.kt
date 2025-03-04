@@ -11,6 +11,7 @@ import kr.co.pincoin.api.domain.user.enums.ProfileGender
 import kr.co.pincoin.api.domain.user.enums.ProfilePhoneVerifiedStatus
 import kr.co.pincoin.api.infra.order.repository.projection.OrderUserProfileProjection
 import java.math.BigDecimal
+import java.net.InetAddress
 import java.time.LocalDate
 import java.time.ZonedDateTime
 import java.util.*
@@ -34,7 +35,7 @@ data class OrderUserProfileResponse(
     val orderNo: UUID,
 
     @JsonProperty("ipAddress")
-    val ipAddress: String,
+    val ipAddress: InetAddress,
 
     @JsonProperty("fullname")
     val fullname: String,

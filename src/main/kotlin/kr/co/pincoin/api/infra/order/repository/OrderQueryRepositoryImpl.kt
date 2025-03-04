@@ -18,6 +18,7 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.support.PageableExecutionUtils
 import org.springframework.stereotype.Repository
+import java.net.InetAddress
 import java.time.ZonedDateTime
 import java.util.*
 
@@ -225,7 +226,7 @@ class OrderQueryRepositoryImpl(
     private fun eqOrderFullname(fullname: String?): BooleanExpression? =
         fullname?.let { order.fullname.eq(it) }
 
-    private fun eqOrderIpAddress(ipAddress: String?): BooleanExpression? =
+    private fun eqOrderIpAddress(ipAddress: InetAddress?): BooleanExpression? =
         ipAddress?.let { order.ipAddress.eq(it) }
 
     private fun eqOrderPaymentMethod(paymentMethod: OrderPaymentMethod?): BooleanExpression? =

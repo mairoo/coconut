@@ -5,6 +5,7 @@ import kr.co.pincoin.api.domain.order.enums.OrderPaymentMethod
 import kr.co.pincoin.api.domain.order.enums.OrderStatus
 import kr.co.pincoin.api.domain.order.enums.OrderVisibility
 import java.math.BigDecimal
+import java.net.InetAddress
 import java.time.ZonedDateTime
 import java.util.*
 
@@ -19,7 +20,7 @@ class Order private constructor(
 
     // 3. 도메인 로직 불변 필드
     val orderNo: UUID,
-    val ipAddress: String,
+    val ipAddress: InetAddress,
 
     // 4. 도메인 로직 가변 필드
     val userId: Int?,
@@ -105,7 +106,7 @@ class Order private constructor(
             fullname: String = "",
             userAgent: String = "",
             acceptLanguage: String = "",
-            ipAddress: String,
+            ipAddress: InetAddress,
             paymentMethod: OrderPaymentMethod = OrderPaymentMethod.BANK_TRANSFER,
             transactionId: String = "",
             status: OrderStatus = OrderStatus.PAYMENT_PENDING,

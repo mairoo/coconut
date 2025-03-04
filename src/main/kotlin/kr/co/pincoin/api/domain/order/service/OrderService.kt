@@ -19,6 +19,7 @@ import kr.co.pincoin.api.global.exception.BusinessException
 import kr.co.pincoin.api.global.exception.code.CatalogErrorCode
 import kr.co.pincoin.api.global.exception.code.OrderErrorCode
 import kr.co.pincoin.api.global.utils.ClientUtils
+import kr.co.pincoin.api.global.utils.IpUtils
 import kr.co.pincoin.api.infra.catalog.repository.criteria.ProductSearchCriteria
 import kr.co.pincoin.api.infra.order.repository.criteria.OrderSearchCriteria
 import kr.co.pincoin.api.infra.order.repository.projection.OrderUserProfileProjection
@@ -73,7 +74,7 @@ class OrderService(
             fullname = "",
             userAgent = clientInfo.userAgent,
             acceptLanguage = clientInfo.acceptLanguage,
-            ipAddress = clientInfo.ipAddress,
+            ipAddress = IpUtils.parseInetAddress(clientInfo.ipAddress),
             paymentMethod = request.paymentMethod,
             transactionId = "",
             status = OrderStatus.PAYMENT_PENDING,

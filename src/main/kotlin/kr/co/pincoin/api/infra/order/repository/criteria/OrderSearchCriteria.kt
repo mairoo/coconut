@@ -4,6 +4,7 @@ import kr.co.pincoin.api.domain.order.enums.OrderCurrency
 import kr.co.pincoin.api.domain.order.enums.OrderPaymentMethod
 import kr.co.pincoin.api.domain.order.enums.OrderStatus
 import kr.co.pincoin.api.domain.order.enums.OrderVisibility
+import java.net.InetAddress
 import java.time.ZonedDateTime
 import java.util.*
 
@@ -12,7 +13,7 @@ data class OrderSearchCriteria(
     val orderNo: UUID? = null,
     val userId: Int? = null,
     val fullname: String? = null,
-    val ipAddress: String? = null,
+    val ipAddress: InetAddress? = null,
     val paymentMethod: OrderPaymentMethod? = null,
     val transactionId: String? = null,
     val status: OrderStatus? = null,

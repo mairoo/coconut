@@ -7,6 +7,7 @@ import kr.co.pincoin.api.domain.order.enums.OrderPaymentMethod
 import kr.co.pincoin.api.domain.order.enums.OrderStatus
 import kr.co.pincoin.api.domain.order.model.Order
 import java.math.BigDecimal
+import java.net.InetAddress
 import java.time.ZonedDateTime
 import java.util.*
 
@@ -37,7 +38,7 @@ data class OrderResponse(
     val acceptLanguage: String,
 
     @JsonProperty("ipAddress")
-    val ipAddress: String,
+    val ipAddress: InetAddress,
 
     @JsonProperty("paymentMethod")
     val paymentMethod: OrderPaymentMethod,

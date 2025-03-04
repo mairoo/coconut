@@ -9,6 +9,7 @@ import kr.co.pincoin.api.domain.user.enums.ProfileDomestic
 import kr.co.pincoin.api.domain.user.enums.ProfileGender
 import kr.co.pincoin.api.domain.user.enums.ProfilePhoneVerifiedStatus
 import java.math.BigDecimal
+import java.net.InetAddress
 import java.time.LocalDate
 import java.time.ZonedDateTime
 import java.util.*
@@ -20,7 +21,7 @@ data class OrderUserProfileProjection @QueryProjection constructor(
     val orderModified: ZonedDateTime,
     val orderIsRemoved: Boolean,
     val orderNo: UUID,
-    val ipAddress: String,
+    val ipAddress: InetAddress,
     val fullname: String,
     val userAgent: String,
     val acceptLanguage: String,

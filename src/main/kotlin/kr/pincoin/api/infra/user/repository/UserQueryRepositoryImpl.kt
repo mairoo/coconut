@@ -70,7 +70,7 @@ class UserQueryRepositoryImpl(
         lastName?.let { user.lastName.eq(it) }
 
     private fun eqEmail(email: String?): BooleanExpression? =
-        email?.let { user.lastName.eq(it) }
+        email?.let { user.email.eq(it) }
 
     private fun eqIsActive(isActive: Boolean?): BooleanExpression? =
         isActive?.let { user.isActive.eq(it) }

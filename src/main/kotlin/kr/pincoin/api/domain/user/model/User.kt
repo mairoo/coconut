@@ -15,59 +15,49 @@ class User private constructor(
     val isActive: Boolean = true,
     val dateJoined: LocalDateTime = LocalDateTime.now()
 ) {
-
     fun updateProfile(
         newFirstName: String? = null,
         newLastName: String? = null,
         newEmail: String? = null
-    ): User {
-        return copy(
+    ): User =
+        copy(
             firstName = newFirstName ?: firstName,
             lastName = newLastName ?: lastName,
             email = newEmail ?: email
         )
-    }
 
     fun updatePassword(newPassword: String): User {
         require(newPassword.isNotBlank()) { "비밀번호는 필수 입력값입니다" }
         return copy(password = newPassword)
     }
 
-    fun updateLastLogin(loginTime: LocalDateTime): User {
-        return copy(lastLogin = loginTime)
-    }
+    fun updateLastLogin(loginTime: LocalDateTime): User =
+        copy(lastLogin = loginTime)
 
-    fun activate(): User {
-        return copy(isActive = true)
-    }
+    fun activate(): User =
+        copy(isActive = true)
 
-    fun deactivate(): User {
-        return copy(isActive = false)
-    }
+    fun deactivate(): User =
+        copy(isActive = false)
 
-    fun grantStaffPermission(): User {
-        return copy(isStaff = true)
-    }
+    fun grantStaffPermission(): User =
+        copy(isStaff = true)
 
-    fun revokeStaffPermission(): User {
-        return copy(isStaff = false)
-    }
+    fun revokeStaffPermission(): User =
+        copy(isStaff = false)
 
-    fun grantSuperuserPermission(): User {
-        return copy(isSuperuser = true)
-    }
+    fun grantSuperuserPermission(): User =
+        copy(isSuperuser = true)
 
-    fun revokeSuperuserPermission(): User {
-        return copy(isSuperuser = false)
-    }
+    fun revokeSuperuserPermission(): User =
+        copy(isSuperuser = false)
 
-    fun getFullName(): String {
-        return when {
+    fun getFullName(): String =
+        when {
             firstName.isNotBlank() && lastName.isNotBlank() -> "$firstName $lastName"
             firstName.isNotBlank() -> firstName
             lastName.isNotBlank() -> lastName
             else -> username
-        }
     }
 
     fun hasStaffPermission(): Boolean = isStaff || isSuperuser
@@ -124,24 +114,6 @@ class User private constructor(
             isStaff = isStaff,
             isActive = isActive,
             dateJoined = dateJoined
-        )
-
-        fun create(
-            username: String,
-            password: String,
-            email: String,
-            firstName: String = "",
-            lastName: String = "",
-            isStaff: Boolean = false,
-            isSuperuser: Boolean = false
-        ): User = User(
-            username = username,
-            password = password,
-            email = email,
-            firstName = firstName,
-            lastName = lastName,
-            isStaff = isStaff,
-            isSuperuser = isSuperuser
         )
     }
 }

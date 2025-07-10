@@ -1,15 +1,15 @@
 package kr.pincoin.api.global.config
 
+import kr.pincoin.api.global.properties.CorsProperties
+import kr.pincoin.api.global.security.encoder.DjangoPasswordEncoder
 import kr.pincoin.api.global.security.filter.JwtAuthenticationFilter
 import kr.pincoin.api.global.security.handler.ApiAuthenticationEntryPoint
-import kr.pincoin.api.global.properties.CorsProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.access.AccessDeniedHandler
@@ -17,12 +17,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
-import kotlin.apply
-import kotlin.collections.map
-import kotlin.jvm.java
-import kotlin.text.contains
-import kotlin.text.split
-import kotlin.text.trim
 
 @Configuration
 @EnableWebSecurity
@@ -108,6 +102,7 @@ class SecurityConfig(
         }
     }
 
+    // 비밀번호 암호화 알고리즘: 디폴트 - BCryptPasswordEncoder
     @Bean
-    fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
+    fun passwordEncoder(): PasswordEncoder = DjangoPasswordEncoder()
 }

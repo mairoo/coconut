@@ -2,6 +2,8 @@
 
 ## 개발환경
 
+### `compose.local.yml`
+
 ```yaml
 services:
   redis:
@@ -62,4 +64,30 @@ volumes:
     name: ${PREFIX}-gradle-cache
 ```
 
+### 명령어
+
+```shell
+# redis, backend 모두 시작
+docker compose -f compose.local.yml up -d
+
+# 백엔드 인스턴스 이미지 빌드
+docker compose -f compose.local.yml build --no-cache backend
+
+# 백엔드 인스턴스 중지
+docker compose -f compose.local.yml stop backend
+
+# 백엔드 인스턴스 시작
+docker compose -f compose.local.yml up -d backend
+
+# redis CLI
+docker compose -f compose.local.yml exec redis redis-cli
+
+# 로그
+docker compose -f compose.local.yml logs -f backend
+```
+
 ## 운영 배포
+
+### `compose.prod.yml`
+
+### 명령어

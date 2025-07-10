@@ -3,7 +3,7 @@ package kr.pincoin.api.domain.user.model
 import java.time.LocalDateTime
 
 class User private constructor(
-    val id: Long? = null,
+    val id: Int? = null,
     val password: String,
     val lastLogin: LocalDateTime? = null,
     val isSuperuser: Boolean = false,
@@ -101,7 +101,7 @@ class User private constructor(
 
     companion object {
         fun of(
-            id: Long? = null,
+            id: Int? = null,
             password: String,
             lastLogin: LocalDateTime? = null,
             isSuperuser: Boolean = false,

@@ -1,7 +1,9 @@
 package kr.pincoin.api.global.config
 
 import org.springframework.context.annotation.Configuration
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing
 
 @Configuration
-// @EnableJpaAuditing(auditorAwareRef = "userAuditorAware") // created, modified 필드 자동 관리
+// created, modified 필드 자동 관리
+@EnableJpaAuditing // (auditorAwareRef = "userAuditorAware")
 class JpaConfig

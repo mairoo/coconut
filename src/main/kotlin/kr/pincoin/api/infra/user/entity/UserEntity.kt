@@ -9,7 +9,7 @@ class UserEntity private constructor(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    val id: Long? = null,
+    val id: Int? = null,
 
     @Column(name = "password")
     val password: String,
@@ -43,7 +43,7 @@ class UserEntity private constructor(
 ) {
     companion object {
         fun of(
-            id: Long? = null,
+            id: Int? = null,
             password: String,
             lastLogin: LocalDateTime? = null,
             isSuperuser: Boolean = false,

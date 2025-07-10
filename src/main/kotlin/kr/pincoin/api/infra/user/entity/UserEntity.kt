@@ -9,37 +9,37 @@ class UserEntity private constructor(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    val id: Int? = null,
+    val id: Int?,
 
     @Column(name = "password")
     val password: String,
 
     @Column(name = "last_login")
-    val lastLogin: LocalDateTime? = null,
+    val lastLogin: LocalDateTime?,
 
     @Column(name = "is_superuser")
-    val isSuperuser: Boolean = false,
+    val isSuperuser: Boolean,
 
     @Column(name = "username")
     val username: String,
 
     @Column(name = "first_name")
-    val firstName: String = "",
+    val firstName: String,
 
     @Column(name = "last_name")
-    val lastName: String = "",
+    val lastName: String,
 
     @Column(name = "email")
     val email: String,
 
     @Column(name = "is_staff")
-    val isStaff: Boolean = false,
+    val isStaff: Boolean,
 
     @Column(name = "is_active")
-    val isActive: Boolean = true,
+    val isActive: Boolean,
 
     @Column(name = "date_joined")
-    val dateJoined: LocalDateTime = LocalDateTime.now()
+    val dateJoined: LocalDateTime,
 ) {
     companion object {
         fun of(

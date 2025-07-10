@@ -1,0 +1,5 @@
+FROM eclipse-temurin:21-jdk-alpine
+WORKDIR /app
+RUN apk add --no-cache curl
+VOLUME ["/app"]
+CMD ["./gradlew", "bootRun", "--args=--spring.profiles.active=local"]

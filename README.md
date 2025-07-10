@@ -2,6 +2,21 @@
 
 ## 개발환경
 
+### 구성
+
+```
+~/Projects/tropical/backend/
+~/Projects/tropical/backend/.env
+~/Projects/tropical/backend/compose.local.yml
+~/Projects/tropical/backend/repo/
+```
+
+### `.env`
+
+```
+PREFIX=pincoin-tropical
+```
+
 ### `compose.local.yml`
 
 ```yaml

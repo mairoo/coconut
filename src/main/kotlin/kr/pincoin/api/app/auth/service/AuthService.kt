@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletRequest
 import kr.pincoin.api.app.auth.request.SignInRequest
 import kr.pincoin.api.app.auth.response.AccessTokenResponse
 import kr.pincoin.api.domain.user.error.AuthErrorCode
+import kr.pincoin.api.domain.user.event.LoginEvent
 import kr.pincoin.api.domain.user.repository.UserRepository
 import kr.pincoin.api.domain.user.vo.TokenPair
 import kr.pincoin.api.global.constant.RedisKey
@@ -14,6 +15,7 @@ import kr.pincoin.api.global.properties.JwtProperties
 import kr.pincoin.api.global.security.jwt.JwtTokenProvider
 import kr.pincoin.api.global.utils.IpUtils
 import kr.pincoin.api.infra.user.repository.criteria.UserSearchCriteria
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
@@ -27,6 +29,7 @@ class AuthService(
     private val jwtTokenProvider: JwtTokenProvider,
     private val jwtProperties: JwtProperties,
     private val redisTemplate: RedisTemplate<String, String>,
+    private val eventPublisher: ApplicationEventPublisher,
 ) {
     private val logger = KotlinLogging.logger {}
 
@@ -39,18 +42,36 @@ class AuthService(
             userRepository.findUser(UserSearchCriteria(email = request.email, isActive = true))
                 ?: throw BusinessException(AuthErrorCode.INVALID_CREDENTIALS)
         } catch (e: Exception) {
-            // TODO: 로그인 실패 이벤트 발행 - 비밀번호 로그인 사용자 찾을 수 없음
+            // 로그인 실패: 비밀번호 로그인 사용자 찾을 수 없음
+            eventPublisher.publishEvent(
+                LoginEvent(
+                    ipAddress = IpUtils.getClientIp(servletRequest),
+                    userId = null,
+                )
+            )
             logger.error { "사용자 없음" }
             throw BusinessException(AuthErrorCode.INVALID_CREDENTIALS)
         }
 
         if (!passwordEncoder.matches(request.password, user.password)) {
-            // TODO: 로그인 실패 이벤트 발행 - 비밀번호 불일치
+            // 로그인 실패: 비밀번호 불일치
+            eventPublisher.publishEvent(
+                LoginEvent(
+                    ipAddress = IpUtils.getClientIp(servletRequest),
+                    userId = null,
+                )
+            )
             logger.error { "비밀번호 틀림" }
             throw BusinessException(AuthErrorCode.INVALID_CREDENTIALS)
         }
 
-        // TODO: 로그인 성공 이벤트 발행 - 비밀번호 로그인
+        // 로그인 성공
+        eventPublisher.publishEvent(
+            LoginEvent(
+                ipAddress = IpUtils.getClientIp(servletRequest),
+                userId = user.id,
+            )
+        )
 
         val accessToken = jwtTokenProvider.createAccessToken(user)
 
@@ -86,7 +107,13 @@ class AuthService(
         try {
             validateRefreshToken(refreshToken, servletRequest)
         } catch (e: JwtAuthenticationException) {
-            // TODO: 리프레시 실패 이벤트 발행 - 리프레시 토큰 검증 실패
+            // 리프레시 실패: 토큰 검증 실패
+            eventPublisher.publishEvent(
+                LoginEvent(
+                    ipAddress = IpUtils.getClientIp(servletRequest),
+                    userId = null,
+                )
+            )
             throw e
         }
 
@@ -94,7 +121,13 @@ class AuthService(
             val email = opsForHash<String, String>()
                 .get(refreshToken, RedisKey.EMAIL)
                 ?: run {
-                    // TODO: 리프레시 실패 이벤트 발행 - 토큰에서 이메일 조회 불가
+                    // 리프레시 실패: 토큰에서 이메일 조회 불가
+                    eventPublisher.publishEvent(
+                        LoginEvent(
+                            ipAddress = IpUtils.getClientIp(servletRequest),
+                            userId = null,
+                        )
+                    )
                     throw JwtAuthenticationException(AuthErrorCode.INVALID_REFRESH_TOKEN)
                 }
 
@@ -103,11 +136,23 @@ class AuthService(
                 userRepository.findUser(UserSearchCriteria(email = email, isActive = true))
                     ?: throw BusinessException(AuthErrorCode.INVALID_CREDENTIALS)
             } catch (e: Exception) {
-                // TODO: 리프레시 실패 이벤트 발행 - 리프레시 로그인 사용자 찾을 수 없음
+                // 리프레시 실패: 리프레시 로그인 사용자 없음
+                eventPublisher.publishEvent(
+                    LoginEvent(
+                        ipAddress = IpUtils.getClientIp(servletRequest),
+                        userId = null,
+                    )
+                )
                 throw BusinessException(AuthErrorCode.INVALID_CREDENTIALS)
             }
 
-            // TODO: 리프레시 성공 이벤트 발행
+            // 리프레시 성공
+            eventPublisher.publishEvent(
+                LoginEvent(
+                    ipAddress = IpUtils.getClientIp(servletRequest),
+                    userId = user.id,
+                )
+            )
 
             // 최신 사용자 정보로 새 액세스 토큰 생성
             val newAccessToken = jwtTokenProvider.createAccessToken(user)
@@ -117,7 +162,13 @@ class AuthService(
                 delete(refreshToken)
                 saveRefreshTokenInfo(newRefreshToken, email, servletRequest)
             } catch (e: Exception) {
-                // TODO: 리프레시 실패 이벤트 발행 - 토큰 갱신 과정에서 오류 (Redis 연결 문제 등)
+                // 리프레시 실패: 토큰 갱신 과정에서 오류 (Redis 연결 문제 등)
+                eventPublisher.publishEvent(
+                    LoginEvent(
+                        ipAddress = IpUtils.getClientIp(servletRequest),
+                        userId = null,
+                    )
+                )
                 throw e
             }
 

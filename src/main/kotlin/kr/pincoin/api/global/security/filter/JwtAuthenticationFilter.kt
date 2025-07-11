@@ -5,9 +5,12 @@ import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import kr.pincoin.api.domain.user.error.AuthErrorCode
+import kr.pincoin.api.domain.user.event.LoginEvent
 import kr.pincoin.api.global.exception.JwtAuthenticationException
 import kr.pincoin.api.global.response.error.ErrorResponse
+import kr.pincoin.api.global.security.adapter.UserDetailsAdapter
 import kr.pincoin.api.global.security.jwt.JwtTokenProvider
+import kr.pincoin.api.global.utils.IpUtils
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -103,17 +106,12 @@ class JwtAuthenticationFilter(
             SecurityContextHolder.getContext().authentication = auth
 
             // 5. JWT 로그인 성공 로깅
-            // TODO:
-//            eventPublisher.publishEvent(
-//                LoginEvent(
-//                    ipAddress = IpUtils.getClientIp(request),
-//                    email = username,
-//                    userAgent = request.getHeader("User-Agent"),
-//                    isSuccessful = true,
-//                    reason = "JWT 인증: ${request.requestURI}",
-//                    userId = (userDetails as? UserDetailsAdapter)?.user?.id
-//                )
-//            )
+            eventPublisher.publishEvent(
+                LoginEvent(
+                    ipAddress = IpUtils.getClientIp(request),
+                    userId = (userDetails as? UserDetailsAdapter)?.user?.id
+                )
+            )
         } catch (_: UsernameNotFoundException) {
             // 인증 실패 시 상위 예외 핸들러에서 로깅하므로 예외만 변환하여 던짐
             throw JwtAuthenticationException(AuthErrorCode.INVALID_CREDENTIALS)
@@ -124,17 +122,13 @@ class JwtAuthenticationFilter(
         request: HttpServletRequest,
         response: HttpServletResponse
     ) {
-        // TODO: 로그인 실패 로그
-//        eventPublisher.publishEvent(
-//            LoginEvent(
-//                ipAddress = IpUtils.getClientIp(request),
-//                email = null,
-//                userAgent = request.getHeader("User-Agent"),
-//                isSuccessful = false,
-//                reason = "JWT 인증 실패",
-//                userId = null
-//            )
-//        )
+        // JWT 로그인 실패 로깅
+        eventPublisher.publishEvent(
+            LoginEvent(
+                ipAddress = IpUtils.getClientIp(request),
+                userId = null,
+            )
+        )
 
         response.apply {
             status = HttpStatus.UNAUTHORIZED.value()

@@ -115,7 +115,7 @@ class ProfileEntity private constructor(
             notPurchasedMonths: Boolean = false,
             repurchased: LocalDateTime? = null,
             mileage: BigDecimal = BigDecimal.ZERO,
-            allowOrder: Boolean = true
+            allowOrder: Boolean = false,
         ) = ProfileEntity(
             id = id,
             phone = phone,
@@ -141,7 +141,7 @@ class ProfileEntity private constructor(
             notPurchasedMonths = notPurchasedMonths,
             repurchased = repurchased,
             mileage = mileage,
-            allowOrder = allowOrder
+            allowOrder = allowOrder,
         )
     }
 }

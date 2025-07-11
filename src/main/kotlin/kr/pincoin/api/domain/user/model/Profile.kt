@@ -31,7 +31,7 @@ class Profile private constructor(
     val notPurchasedMonths: Boolean = false,
     val repurchased: LocalDateTime? = null,
     val mileage: BigDecimal = BigDecimal.ZERO,
-    val allowOrder: Boolean = true
+    val allowOrder: Boolean = false,
 ) {
     fun updatePhone(newPhone: String): Profile =
         copy(phone = newPhone)
@@ -142,7 +142,7 @@ class Profile private constructor(
         notPurchasedMonths = notPurchasedMonths,
         repurchased = repurchased,
         mileage = mileage,
-        allowOrder = allowOrder
+        allowOrder = allowOrder,
     )
 
     companion object {
@@ -173,7 +173,7 @@ class Profile private constructor(
             notPurchasedMonths: Boolean = false,
             repurchased: LocalDateTime? = null,
             mileage: BigDecimal = BigDecimal.ZERO,
-            allowOrder: Boolean = true
+            allowOrder: Boolean = false,
         ): Profile = Profile(
             id = id,
             created = created,
@@ -201,7 +201,7 @@ class Profile private constructor(
             notPurchasedMonths = notPurchasedMonths,
             repurchased = repurchased,
             mileage = mileage,
-            allowOrder = allowOrder
+            allowOrder = allowOrder,
         )
     }
 }

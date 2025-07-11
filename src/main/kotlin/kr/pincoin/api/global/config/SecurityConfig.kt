@@ -65,7 +65,6 @@ class SecurityConfig(
                 .requestMatchers(
                     "/auth/**",
                     "/oauth2/**",
-                    "/disbursements/{id:[\\d]+}/welcome-notification",
                     "/health"
                 ).permitAll()
                 .anyRequest().authenticated()

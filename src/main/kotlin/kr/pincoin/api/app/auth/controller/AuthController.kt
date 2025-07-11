@@ -6,6 +6,8 @@ import kr.pincoin.api.app.auth.request.SignInRequest
 import kr.pincoin.api.app.auth.response.AccessTokenResponse
 import kr.pincoin.api.app.auth.response.RequestInfoResponse
 import kr.pincoin.api.app.auth.service.AuthService
+import kr.pincoin.api.app.user.member.request.MemberUserCreateRequest
+import kr.pincoin.api.app.user.member.response.MemberUserResponse
 import kr.pincoin.api.global.constant.CookieKey
 import kr.pincoin.api.global.properties.JwtProperties
 import kr.pincoin.api.global.response.success.ApiResponse
@@ -15,16 +17,6 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.ResponseCookie
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import kotlin.apply
-import kotlin.collections.associate
-import kotlin.collections.associateWith
-import kotlin.collections.toList
-import kotlin.let
-import kotlin.takeIf
-import kotlin.text.contains
-import kotlin.text.isNotEmpty
-import kotlin.text.orEmpty
-import kotlin.to
 
 @RestController
 @RequestMapping("/auth")
@@ -87,6 +79,15 @@ class AuthController(
             .headers(createRefreshTokenCookie(null, servletRequest)) // 쿠키 삭제 효과
             .body(ApiResponse.of(Unit))
     }
+
+    @PostMapping("/sign-up")
+    fun createUser(
+        @Valid @RequestBody request: MemberUserCreateRequest,
+    ): ResponseEntity<ApiResponse<MemberUserResponse>> =
+        authService.createUser(request)
+            .let { MemberUserResponse.from(it) }
+            .let { ApiResponse.of(it) }
+            .let { ResponseEntity.ok(it) }
 
     @GetMapping("/echo")
     fun echo(

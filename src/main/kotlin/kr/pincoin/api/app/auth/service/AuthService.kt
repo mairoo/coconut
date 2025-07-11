@@ -4,8 +4,11 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.servlet.http.HttpServletRequest
 import kr.pincoin.api.app.auth.request.SignInRequest
 import kr.pincoin.api.app.auth.response.AccessTokenResponse
+import kr.pincoin.api.app.user.member.request.MemberUserCreateRequest
+import kr.pincoin.api.domain.coordinator.user.UserResourceCoordinator
 import kr.pincoin.api.domain.user.error.AuthErrorCode
 import kr.pincoin.api.domain.user.event.LoginEvent
+import kr.pincoin.api.domain.user.model.User
 import kr.pincoin.api.domain.user.repository.UserRepository
 import kr.pincoin.api.domain.user.vo.TokenPair
 import kr.pincoin.api.global.constant.RedisKey
@@ -24,6 +27,7 @@ import java.util.concurrent.TimeUnit
 
 @Service
 class AuthService(
+    private val userResourceCoordinator: UserResourceCoordinator,
     private val userRepository: UserRepository,
     private val passwordEncoder: PasswordEncoder,
     private val jwtTokenProvider: JwtTokenProvider,
@@ -218,6 +222,11 @@ class AuthService(
             delete(email)
         }
     }
+
+    fun createUser(
+        request: MemberUserCreateRequest,
+    ): User =
+        userResourceCoordinator.createUser(request)
 
     /**
      * Redis에 리프레시 토큰 관련 정보 저장

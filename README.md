@@ -39,6 +39,7 @@ services:
 
   backend:
     container_name: ${PREFIX}-backend
+    image: ${PREFIX}-backend:local
     build:
       context: ./repo
       dockerfile: Dockerfile.local

@@ -4,8 +4,8 @@ import java.time.LocalDateTime
 
 class PhoneBanned private constructor(
     val id: Long? = null,
-    val created: LocalDateTime = LocalDateTime.now(),
-    val modified: LocalDateTime = LocalDateTime.now(),
+    val created: LocalDateTime? = null,
+    val modified: LocalDateTime? = null,
     val isRemoved: Boolean = false,
     val phone: String
 ) {
@@ -13,34 +13,34 @@ class PhoneBanned private constructor(
 
     fun isInactive(): Boolean = isRemoved
 
-    fun remove(): PhoneBanned = copy(
-        isRemoved = true,
-        modified = LocalDateTime.now()
-    )
+    fun remove(): PhoneBanned {
+        if (isRemoved) return this
+        return copy(isRemoved = true)
+    }
 
-    fun restore(): PhoneBanned = copy(
-        isRemoved = false,
-        modified = LocalDateTime.now()
-    )
+    fun restore(): PhoneBanned {
+        if (!isRemoved) return this
+        return copy(isRemoved = false)
+    }
 
     fun isSamePhone(phoneNumber: String): Boolean = phone == phoneNumber
 
     private fun copy(
         isRemoved: Boolean = this.isRemoved,
-        modified: LocalDateTime = this.modified
+        phone: String = this.phone,
     ): PhoneBanned = PhoneBanned(
         id = this.id,
         created = this.created,
-        modified = modified,
+        modified = this.modified,
         isRemoved = isRemoved,
-        phone = this.phone
+        phone = phone,
     )
 
     companion object {
         fun of(
             id: Long? = null,
-            created: LocalDateTime = LocalDateTime.now(),
-            modified: LocalDateTime = LocalDateTime.now(),
+            created: LocalDateTime? = null,
+            modified: LocalDateTime? = null,
             isRemoved: Boolean = false,
             phone: String
         ): PhoneBanned {

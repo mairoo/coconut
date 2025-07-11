@@ -1,6 +1,7 @@
 package kr.pincoin.api.infra.user.entity
 
 import jakarta.persistence.*
+import kr.pincoin.api.infra.common.jpa.DateTimeFields
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -13,11 +14,8 @@ class ProfileEntity private constructor(
     @Column(name = "id")
     val id: Long?,
 
-    @Column(name = "created")
-    val created: LocalDateTime,
-
-    @Column(name = "modified")
-    val modified: LocalDateTime,
+    @Embedded
+    val dateTimeFields: DateTimeFields = DateTimeFields(),
 
     @Column(name = "phone")
     val phone: String? = null,
@@ -94,8 +92,6 @@ class ProfileEntity private constructor(
     companion object {
         fun of(
             id: Long? = null,
-            created: LocalDateTime = LocalDateTime.now(),
-            modified: LocalDateTime = LocalDateTime.now(),
             phone: String? = null,
             address: String,
             phoneVerified: Boolean = false,
@@ -122,8 +118,6 @@ class ProfileEntity private constructor(
             allowOrder: Boolean = true
         ) = ProfileEntity(
             id = id,
-            created = created,
-            modified = modified,
             phone = phone,
             address = address,
             phoneVerified = phoneVerified,

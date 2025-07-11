@@ -4,8 +4,8 @@ import java.time.LocalDateTime
 
 class LoginLog private constructor(
     val id: Long? = null,
-    val created: LocalDateTime = LocalDateTime.now(),
-    val modified: LocalDateTime = LocalDateTime.now(),
+    val created: LocalDateTime? = null,
+    val modified: LocalDateTime? = null,
     val ipAddress: String,
     val userId: Int? = null
 ) {
@@ -17,21 +17,11 @@ class LoginLog private constructor(
 
     fun isSameIpAddress(targetIpAddress: String): Boolean = ipAddress == targetIpAddress
 
-    fun isRecentLogin(minutesAgo: Long = 30): Boolean {
-        val cutoffTime = LocalDateTime.now().minusMinutes(minutesAgo)
-        return created.isAfter(cutoffTime)
-    }
-
-    fun isOldLogin(daysAgo: Long = 30): Boolean {
-        val cutoffTime = LocalDateTime.now().minusDays(daysAgo)
-        return created.isBefore(cutoffTime)
-    }
-
     companion object {
         fun of(
             id: Long? = null,
-            created: LocalDateTime = LocalDateTime.now(),
-            modified: LocalDateTime = LocalDateTime.now(),
+            created: LocalDateTime? = null,
+            modified: LocalDateTime? = null,
             ipAddress: String,
             userId: Int? = null
         ): LoginLog {

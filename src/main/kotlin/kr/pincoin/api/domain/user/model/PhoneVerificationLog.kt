@@ -4,6 +4,8 @@ import java.time.LocalDateTime
 
 class PhoneVerificationLog private constructor(
     val id: Long? = null,
+    val created: LocalDateTime? = null,
+    val modified: LocalDateTime? = null,
     val token: String,
     val code: String,
     val reason: String,
@@ -20,8 +22,6 @@ class PhoneVerificationLog private constructor(
     val cellphone: String,
     val returnMessage: String,
     val ownerId: Int? = null,
-    val created: LocalDateTime = LocalDateTime.now(),
-    val modified: LocalDateTime = LocalDateTime.now()
 ) {
     fun isSuccessful(): Boolean = resultCode == "0000"
 
@@ -58,6 +58,8 @@ class PhoneVerificationLog private constructor(
     companion object {
         fun of(
             id: Long? = null,
+            created: LocalDateTime? = null,
+            modified: LocalDateTime? = null,
             token: String,
             code: String,
             reason: String,
@@ -74,10 +76,10 @@ class PhoneVerificationLog private constructor(
             cellphone: String,
             returnMessage: String,
             ownerId: Int? = null,
-            created: LocalDateTime = LocalDateTime.now(),
-            modified: LocalDateTime = LocalDateTime.now()
         ): PhoneVerificationLog = PhoneVerificationLog(
             id = id,
+            created = created,
+            modified = modified,
             token = token,
             code = code,
             reason = reason,
@@ -94,8 +96,6 @@ class PhoneVerificationLog private constructor(
             cellphone = cellphone,
             returnMessage = returnMessage,
             ownerId = ownerId,
-            created = created,
-            modified = modified
         )
     }
 }

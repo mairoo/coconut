@@ -1,7 +1,8 @@
 package kr.pincoin.api.infra.user.entity
 
 import jakarta.persistence.*
-import java.time.LocalDateTime
+import kr.pincoin.api.infra.common.jpa.DateTimeFields
+import kr.pincoin.api.infra.common.jpa.RemovalFields
 
 @Entity
 @Table(name = "member_phoneverificationlog")
@@ -10,6 +11,9 @@ class PhoneVerificationLogEntity private constructor(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     val id: Long?,
+
+    @Embedded
+    val dateTimeFields: DateTimeFields = DateTimeFields(),
 
     @Column(name = "token")
     val token: String,
@@ -58,12 +62,6 @@ class PhoneVerificationLogEntity private constructor(
 
     @Column(name = "owner_id")
     val ownerId: Int?,
-
-    @Column(name = "created")
-    val created: LocalDateTime,
-
-    @Column(name = "modified")
-    val modified: LocalDateTime,
 ) {
     companion object {
         fun of(
@@ -84,8 +82,6 @@ class PhoneVerificationLogEntity private constructor(
             cellphone: String,
             returnMessage: String,
             ownerId: Int? = null,
-            created: LocalDateTime = LocalDateTime.now(),
-            modified: LocalDateTime = LocalDateTime.now()
         ) = PhoneVerificationLogEntity(
             id = id,
             token = token,
@@ -104,8 +100,6 @@ class PhoneVerificationLogEntity private constructor(
             cellphone = cellphone,
             returnMessage = returnMessage,
             ownerId = ownerId,
-            created = created,
-            modified = modified
         )
     }
 }

@@ -1,7 +1,8 @@
 package kr.pincoin.api.infra.user.entity
 
 import jakarta.persistence.*
-import java.time.LocalDateTime
+import kr.pincoin.api.infra.common.jpa.DateTimeFields
+import kr.pincoin.api.infra.common.jpa.RemovalFields
 
 @Entity
 @Table(name = "member_phonebanned")
@@ -11,14 +12,11 @@ class PhoneBannedEntity private constructor(
     @Column(name = "id")
     val id: Long?,
 
-    @Column(name = "created")
-    val created: LocalDateTime,
+    @Embedded
+    val dateTimeFields: DateTimeFields = DateTimeFields(),
 
-    @Column(name = "modified")
-    val modified: LocalDateTime,
-
-    @Column(name = "is_removed")
-    val isRemoved: Boolean,
+    @Embedded
+    val removalFields: RemovalFields = RemovalFields(),
 
     @Column(name = "phone")
     val phone: String,
@@ -26,16 +24,14 @@ class PhoneBannedEntity private constructor(
     companion object {
         fun of(
             id: Long? = null,
-            created: LocalDateTime = LocalDateTime.now(),
-            modified: LocalDateTime = LocalDateTime.now(),
+            phone: String,
             isRemoved: Boolean = false,
-            phone: String
         ) = PhoneBannedEntity(
             id = id,
-            created = created,
-            modified = modified,
-            isRemoved = isRemoved,
-            phone = phone
+            removalFields = RemovalFields().apply {
+                this.isRemoved = isRemoved
+            },
+            phone = phone,
         )
     }
 }

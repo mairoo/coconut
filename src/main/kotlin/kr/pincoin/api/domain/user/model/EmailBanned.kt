@@ -4,8 +4,8 @@ import java.time.LocalDateTime
 
 class EmailBanned private constructor(
     val id: Long? = null,
-    val created: LocalDateTime = LocalDateTime.now(),
-    val modified: LocalDateTime = LocalDateTime.now(),
+    val created: LocalDateTime? = null,
+    val modified: LocalDateTime? = null,
     val isRemoved: Boolean = false,
     val email: String
 ) {
@@ -13,15 +13,15 @@ class EmailBanned private constructor(
 
     fun isInactive(): Boolean = isRemoved
 
-    fun remove(): EmailBanned = copy(
-        isRemoved = true,
-        modified = LocalDateTime.now()
-    )
+    fun remove(): EmailBanned {
+        if (isRemoved) return this
+        return copy(isRemoved = true)
+    }
 
-    fun restore(): EmailBanned = copy(
-        isRemoved = false,
-        modified = LocalDateTime.now()
-    )
+    fun restore(): EmailBanned {
+        if (!isRemoved) return this
+        return copy(isRemoved = false)
+    }
 
     fun isSameEmail(emailAddress: String): Boolean =
         email.lowercase() == emailAddress.lowercase()
@@ -35,20 +35,20 @@ class EmailBanned private constructor(
 
     private fun copy(
         isRemoved: Boolean = this.isRemoved,
-        modified: LocalDateTime = this.modified
+        email: String = this.email,
     ): EmailBanned = EmailBanned(
         id = this.id,
         created = this.created,
-        modified = modified,
+        modified = this.modified,
         isRemoved = isRemoved,
-        email = this.email
+        email = email,
     )
 
     companion object {
         fun of(
             id: Long? = null,
-            created: LocalDateTime = LocalDateTime.now(),
-            modified: LocalDateTime = LocalDateTime.now(),
+            created: LocalDateTime? = null,
+            modified: LocalDateTime? = null,
             isRemoved: Boolean = false,
             email: String
         ): EmailBanned {

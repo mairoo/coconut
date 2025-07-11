@@ -6,8 +6,8 @@ import java.time.LocalDateTime
 
 class Profile private constructor(
     val id: Long? = null,
-    val created: LocalDateTime = LocalDateTime.now(),
-    val modified: LocalDateTime = LocalDateTime.now(),
+    val created: LocalDateTime? = null,
+    val modified: LocalDateTime? = null,
     val phone: String? = null,
     val address: String,
     val phoneVerified: Boolean = false,
@@ -34,19 +34,19 @@ class Profile private constructor(
     val allowOrder: Boolean = true
 ) {
     fun updatePhone(newPhone: String): Profile =
-        copy(phone = newPhone, modified = LocalDateTime.now())
+        copy(phone = newPhone)
 
     fun updateAddress(newAddress: String): Profile =
-        copy(address = newAddress, modified = LocalDateTime.now())
+        copy(address = newAddress)
 
     fun verifyPhone(): Profile =
-        copy(phoneVerified = true, phoneVerifiedStatus = 1, modified = LocalDateTime.now())
+        copy(phoneVerified = true, phoneVerifiedStatus = 1)
 
     fun verifyDocument(): Profile =
-        copy(documentVerified = true, modified = LocalDateTime.now())
+        copy(documentVerified = true)
 
     fun updateMemo(newMemo: String): Profile =
-        copy(memo = newMemo, modified = LocalDateTime.now())
+        copy(memo = newMemo)
 
     fun addPurchase(orderPrice: BigDecimal, orderListPrice: BigDecimal): Profile {
         val newTotalOrderCount = totalOrderCount + 1
@@ -65,26 +65,25 @@ class Profile private constructor(
             lastPurchased = now,
             firstPurchased = firstPurchased ?: now,
             repurchased = if (totalOrderCount > 0) now else repurchased,
-            modified = now
         )
     }
 
     fun addMileage(amount: BigDecimal): Profile =
-        copy(mileage = mileage + amount, modified = LocalDateTime.now())
+        copy(mileage = mileage + amount)
 
     fun useMileage(amount: BigDecimal): Profile {
         require(mileage >= amount) { "보유 마일리지가 부족합니다" }
-        return copy(mileage = mileage - amount, modified = LocalDateTime.now())
+        return copy(mileage = mileage - amount)
     }
 
     fun enableOrder(): Profile =
-        copy(allowOrder = true, modified = LocalDateTime.now())
+        copy(allowOrder = true)
 
     fun disableOrder(): Profile =
-        copy(allowOrder = false, modified = LocalDateTime.now())
+        copy(allowOrder = false)
 
     fun updateNotPurchasedMonths(notPurchased: Boolean): Profile =
-        copy(notPurchasedMonths = notPurchased, modified = LocalDateTime.now())
+        copy(notPurchasedMonths = notPurchased)
 
     fun hasPhoneVerified(): Boolean = phoneVerified
 
@@ -116,11 +115,10 @@ class Profile private constructor(
         repurchased: LocalDateTime? = this.repurchased,
         mileage: BigDecimal = this.mileage,
         allowOrder: Boolean = this.allowOrder,
-        modified: LocalDateTime = this.modified
     ): Profile = Profile(
         id = this.id,
         created = this.created,
-        modified = modified,
+        modified = this.modified,
         phone = phone,
         address = address,
         phoneVerified = phoneVerified,
@@ -150,8 +148,8 @@ class Profile private constructor(
     companion object {
         fun of(
             id: Long? = null,
-            created: LocalDateTime = LocalDateTime.now(),
-            modified: LocalDateTime = LocalDateTime.now(),
+            created: LocalDateTime? = null,
+            modified: LocalDateTime? = null,
             phone: String? = null,
             address: String,
             phoneVerified: Boolean = false,

@@ -13,7 +13,7 @@ import org.springframework.transaction.event.TransactionalEventListener
 
 @Service
 class LoginEventHandler(
-    private val loginLogRepository: LoginLogRepository
+    private val loginLogRepository: LoginLogRepository,
 ) {
     private val log = KotlinLogging.logger {}
 
@@ -28,6 +28,10 @@ class LoginEventHandler(
             val loginLog = LoginLog.of(
                 ipAddress = event.ipAddress,
                 userId = event.userId,
+                email = event.email,
+                userAgent = event.userAgent,
+                isSuccessful = event.isSuccessful,
+                reason = event.reason,
             )
             loginLogRepository.save(loginLog)
         } catch (e: Exception) {

@@ -11,6 +11,10 @@ fun LoginLogEntity?.toModel(): LoginLog? =
             modified = entity.dateTimeFields.modified,
             ipAddress = entity.ipAddress,
             userId = entity.userId,
+            email = entity.email,
+            userAgent = entity.userAgent,
+            isSuccessful = entity.isSuccessful,
+            reason = entity.reason,
         )
     }
 
@@ -22,6 +26,10 @@ fun LoginLog?.toEntity(): LoginLogEntity? =
         LoginLogEntity.of(
             id = model.id,
             ipAddress = model.ipAddress,
-            userId = model.userId
+            userId = model.userId,
+            email = model.email,
+            userAgent = model.userAgent,
+            isSuccessful = model.isSuccessful,
+            reason = model.reason,
         )
     }

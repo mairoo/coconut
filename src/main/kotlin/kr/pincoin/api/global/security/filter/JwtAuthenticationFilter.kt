@@ -109,7 +109,11 @@ class JwtAuthenticationFilter(
             eventPublisher.publishEvent(
                 LoginEvent(
                     ipAddress = IpUtils.getClientIp(request),
-                    userId = (userDetails as? UserDetailsAdapter)?.user?.id
+                    userId = (userDetails as? UserDetailsAdapter)?.user?.id,
+                    email = username,
+                    userAgent = request.getHeader("User-Agent"),
+                    isSuccessful = true,
+                    reason = "JWT 인증: ${request.requestURI}",
                 )
             )
         } catch (_: UsernameNotFoundException) {
@@ -122,11 +126,14 @@ class JwtAuthenticationFilter(
         request: HttpServletRequest,
         response: HttpServletResponse
     ) {
-        // JWT 로그인 실패 로깅
         eventPublisher.publishEvent(
             LoginEvent(
                 ipAddress = IpUtils.getClientIp(request),
                 userId = null,
+                email = null,
+                userAgent = request.getHeader("User-Agent"),
+                isSuccessful = false,
+                reason = "JWT 인증: 실패",
             )
         )
 

@@ -41,12 +41,15 @@ class AuthService(
         val user = try {
             userRepository.findUser(UserSearchCriteria(email = request.email, isActive = true))
                 ?: throw BusinessException(AuthErrorCode.INVALID_CREDENTIALS)
-        } catch (e: Exception) {
-            // 로그인 실패: 비밀번호 로그인 사용자 찾을 수 없음
+        } catch (_: Exception) {
             eventPublisher.publishEvent(
                 LoginEvent(
                     ipAddress = IpUtils.getClientIp(servletRequest),
                     userId = null,
+                    email = request.email,
+                    userAgent = servletRequest.getHeader("User-Agent"),
+                    isSuccessful = false,
+                    reason = "비밀번호 로그인: 사용자 찾을 수 없음",
                 )
             )
             logger.error { "사용자 없음" }
@@ -54,22 +57,28 @@ class AuthService(
         }
 
         if (!passwordEncoder.matches(request.password, user.password)) {
-            // 로그인 실패: 비밀번호 불일치
             eventPublisher.publishEvent(
                 LoginEvent(
                     ipAddress = IpUtils.getClientIp(servletRequest),
                     userId = null,
+                    email = request.email,
+                    userAgent = servletRequest.getHeader("User-Agent"),
+                    isSuccessful = false,
+                    reason = "비밀번호 로그인: 비밀번호 불일치",
                 )
             )
-            logger.error { "비밀번호 틀림" }
+            logger.error { "비밀번호 불일치" }
             throw BusinessException(AuthErrorCode.INVALID_CREDENTIALS)
         }
 
-        // 로그인 성공
         eventPublisher.publishEvent(
             LoginEvent(
                 ipAddress = IpUtils.getClientIp(servletRequest),
                 userId = user.id,
+                email = request.email,
+                userAgent = servletRequest.getHeader("User-Agent"),
+                isSuccessful = true,
+                reason = "비밀번호 로그인: 성공",
             )
         )
 
@@ -107,11 +116,14 @@ class AuthService(
         try {
             validateRefreshToken(refreshToken, servletRequest)
         } catch (e: JwtAuthenticationException) {
-            // 리프레시 실패: 토큰 검증 실패
             eventPublisher.publishEvent(
                 LoginEvent(
                     ipAddress = IpUtils.getClientIp(servletRequest),
                     userId = null,
+                    email = null,
+                    userAgent = servletRequest.getHeader("User-Agent"),
+                    isSuccessful = false,
+                    reason = "리프레시: 토큰 검증 실패: $refreshToken",
                 )
             )
             throw e
@@ -121,11 +133,14 @@ class AuthService(
             val email = opsForHash<String, String>()
                 .get(refreshToken, RedisKey.EMAIL)
                 ?: run {
-                    // 리프레시 실패: 토큰에서 이메일 조회 불가
                     eventPublisher.publishEvent(
                         LoginEvent(
                             ipAddress = IpUtils.getClientIp(servletRequest),
                             userId = null,
+                            email = null,
+                            userAgent = servletRequest.getHeader("User-Agent"),
+                            isSuccessful = false,
+                            reason = "리프레시: 이메일 검증 실패",
                         )
                     )
                     throw JwtAuthenticationException(AuthErrorCode.INVALID_REFRESH_TOKEN)
@@ -135,22 +150,28 @@ class AuthService(
             val user = try {
                 userRepository.findUser(UserSearchCriteria(email = email, isActive = true))
                     ?: throw BusinessException(AuthErrorCode.INVALID_CREDENTIALS)
-            } catch (e: Exception) {
-                // 리프레시 실패: 리프레시 로그인 사용자 없음
+            } catch (_: Exception) {
                 eventPublisher.publishEvent(
                     LoginEvent(
                         ipAddress = IpUtils.getClientIp(servletRequest),
                         userId = null,
+                        email = email,
+                        userAgent = servletRequest.getHeader("User-Agent"),
+                        isSuccessful = false,
+                        reason = "리프레시: 사용자 없음",
                     )
                 )
                 throw BusinessException(AuthErrorCode.INVALID_CREDENTIALS)
             }
 
-            // 리프레시 성공
             eventPublisher.publishEvent(
                 LoginEvent(
                     ipAddress = IpUtils.getClientIp(servletRequest),
                     userId = user.id,
+                    email = email,
+                    userAgent = servletRequest.getHeader("User-Agent"),
+                    isSuccessful = true,
+                    reason = "리프레시: 성공",
                 )
             )
 
@@ -166,7 +187,11 @@ class AuthService(
                 eventPublisher.publishEvent(
                     LoginEvent(
                         ipAddress = IpUtils.getClientIp(servletRequest),
-                        userId = null,
+                        userId = user.id,
+                        email = email,
+                        userAgent = servletRequest.getHeader("User-Agent"),
+                        isSuccessful = false,
+                        reason = "리프레시: 갱신 오류",
                     )
                 )
                 throw e

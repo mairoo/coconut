@@ -6,10 +6,10 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 @ConfigurationProperties(prefix = "jwt")
 data class JwtProperties(
     val secret: String,
-    val accessTokenExpiresIn: Int,
-    val refreshTokenExpiresIn: Long,
-    val cookieDomains: List<String>,
-    val oauth2RedirectUrl: String
+    val accessTokenExpiresIn: Long = 3600L,
+    val refreshTokenExpiresIn: Long = 86400L,
+    val cookieDomains: List<String> = emptyList(),
+    val oauth2RedirectUrl: String = "",
 ) {
     fun findCookieDomain(requestDomain: String): String {
         // 도메인에서 포트 제거

@@ -16,6 +16,31 @@ class CustomerQuestion private constructor(
     val ownerId: Int? = null,
     val storeId: Long,
 ) {
+    private fun copy(
+        isRemoved: Boolean = this.isRemoved,
+        title: String = this.title,
+        description: String = this.description,
+        keywords: String = this.keywords,
+        content: String = this.content,
+        category: Int = this.category,
+        orderId: Long? = this.orderId,
+        ownerId: Int? = this.ownerId,
+        storeId: Long = this.storeId,
+    ): CustomerQuestion = CustomerQuestion(
+        id = this.id,
+        created = this.created,
+        modified = this.modified,
+        isRemoved = isRemoved,
+        title = title,
+        description = description,
+        keywords = keywords,
+        content = content,
+        category = category,
+        orderId = orderId,
+        ownerId = ownerId,
+        storeId = storeId,
+    )
+
     companion object {
         fun of(
             id: Long? = null,

@@ -15,6 +15,29 @@ class NoticeMessage private constructor(
     val ownerId: Int? = null,
     val storeId: Long,
 ) {
+    private fun copy(
+        isRemoved: Boolean = this.isRemoved,
+        title: String = this.title,
+        description: String = this.description,
+        keywords: String = this.keywords,
+        content: String = this.content,
+        category: Int = this.category,
+        ownerId: Int? = this.ownerId,
+        storeId: Long = this.storeId,
+    ): NoticeMessage = NoticeMessage(
+        id = this.id,
+        created = this.created,
+        modified = this.modified,
+        isRemoved = isRemoved,
+        title = title,
+        description = description,
+        keywords = keywords,
+        content = content,
+        category = category,
+        ownerId = ownerId,
+        storeId = storeId,
+    )
+
     companion object {
         fun of(
             id: Long? = null,

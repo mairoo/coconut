@@ -9,6 +9,17 @@ class CustomerQuestionAnswer private constructor(
     val content: String,
     val questionId: Long,
 ) {
+    private fun copy(
+        content: String = this.content,
+        questionId: Long = this.questionId,
+    ): CustomerQuestionAnswer = CustomerQuestionAnswer(
+        id = this.id,
+        created = this.created,
+        modified = this.modified,
+        content = content,
+        questionId = questionId,
+    )
+
     companion object {
         fun of(
             id: Long? = null,

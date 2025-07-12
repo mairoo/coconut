@@ -16,6 +16,29 @@ class OrderProduct private constructor(
     val quantity: Int = 1,
     val orderId: Long,
 ) {
+    private fun copy(
+        isRemoved: Boolean = this.isRemoved,
+        name: String = this.name,
+        subtitle: String = this.subtitle,
+        code: String = this.code,
+        listPrice: BigDecimal = this.listPrice,
+        sellingPrice: BigDecimal = this.sellingPrice,
+        quantity: Int = this.quantity,
+        orderId: Long = this.orderId,
+    ): OrderProduct = OrderProduct(
+        id = this.id,
+        created = this.created,
+        modified = this.modified,
+        isRemoved = isRemoved,
+        name = name,
+        subtitle = subtitle,
+        code = code,
+        listPrice = listPrice,
+        sellingPrice = sellingPrice,
+        quantity = quantity,
+        orderId = orderId,
+    )
+
     companion object {
         fun of(
             id: Long? = null,

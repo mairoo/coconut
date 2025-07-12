@@ -13,6 +13,25 @@ class OrderProductVoucher private constructor(
     val orderProductId: Long,
     val voucherId: Long? = null,
 ) {
+    private fun copy(
+        isRemoved: Boolean = this.isRemoved,
+        code: String = this.code,
+        revoked: Boolean = this.revoked,
+        remarks: String = this.remarks,
+        orderProductId: Long = this.orderProductId,
+        voucherId: Long? = this.voucherId,
+    ): OrderProductVoucher = OrderProductVoucher(
+        id = this.id,
+        created = this.created,
+        modified = this.modified,
+        isRemoved = isRemoved,
+        code = code,
+        revoked = revoked,
+        remarks = remarks,
+        orderProductId = orderProductId,
+        voucherId = voucherId,
+    )
+
     companion object {
         fun of(
             id: Long? = null,

@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository
 
 @Repository
 class UserQueryRepositoryImpl(
-    private val queryFactory: JPAQueryFactory
+    private val queryFactory: JPAQueryFactory,
 ) : UserQueryRepository {
     private val user = QUserEntity.userEntity
 

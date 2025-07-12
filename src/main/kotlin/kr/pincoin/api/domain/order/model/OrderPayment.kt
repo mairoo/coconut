@@ -14,6 +14,25 @@ class OrderPayment private constructor(
     val orderId: Long,
     val balance: BigDecimal = BigDecimal.ZERO,
 ) {
+    private fun copy(
+        isRemoved: Boolean = this.isRemoved,
+        account: Int = this.account,
+        amount: BigDecimal = this.amount,
+        received: LocalDateTime = this.received,
+        orderId: Long = this.orderId,
+        balance: BigDecimal = this.balance,
+    ): OrderPayment = OrderPayment(
+        id = this.id,
+        created = this.created,
+        modified = this.modified,
+        isRemoved = isRemoved,
+        account = account,
+        amount = amount,
+        received = received,
+        orderId = orderId,
+        balance = balance,
+    )
+
     companion object {
         fun of(
             id: Long? = null,

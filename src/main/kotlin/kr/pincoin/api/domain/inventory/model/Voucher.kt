@@ -12,6 +12,23 @@ class Voucher private constructor(
     val status: Int = 0,
     val productId: Long,
 ) {
+    private fun copy(
+        isRemoved: Boolean = this.isRemoved,
+        code: String = this.code,
+        remarks: String = this.remarks,
+        status: Int = this.status,
+        productId: Long = this.productId,
+    ): Voucher = Voucher(
+        id = this.id,
+        created = this.created,
+        modified = this.modified,
+        isRemoved = isRemoved,
+        code = code,
+        remarks = remarks,
+        status = status,
+        productId = productId,
+    )
+
     companion object {
         fun of(
             id: Long? = null,

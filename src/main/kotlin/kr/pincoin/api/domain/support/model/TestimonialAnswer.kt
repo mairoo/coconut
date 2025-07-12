@@ -9,6 +9,17 @@ class TestimonialAnswer private constructor(
     val content: String,
     val testimonialId: Long,
 ) {
+    private fun copy(
+        content: String = this.content,
+        testimonialId: Long = this.testimonialId,
+    ): TestimonialAnswer = TestimonialAnswer(
+        id = this.id,
+        created = this.created,
+        modified = this.modified,
+        content = content,
+        testimonialId = testimonialId,
+    )
+
     companion object {
         fun of(
             id: Long? = null,

@@ -15,55 +15,6 @@ class User private constructor(
     val isActive: Boolean = true,
     val dateJoined: LocalDateTime = LocalDateTime.now()
 ) {
-    fun updateProfile(
-        newFirstName: String? = null,
-        newLastName: String? = null,
-        newEmail: String? = null
-    ): User =
-        copy(
-            firstName = newFirstName ?: firstName,
-            lastName = newLastName ?: lastName,
-            email = newEmail ?: email
-        )
-
-    fun updatePassword(newPassword: String): User {
-        require(newPassword.isNotBlank()) { "비밀번호는 필수 입력값입니다" }
-        return copy(password = newPassword)
-    }
-
-    fun updateLastLogin(loginTime: LocalDateTime): User =
-        copy(lastLogin = loginTime)
-
-    fun activate(): User =
-        copy(isActive = true)
-
-    fun deactivate(): User =
-        copy(isActive = false)
-
-    fun grantStaffPermission(): User =
-        copy(isStaff = true)
-
-    fun revokeStaffPermission(): User =
-        copy(isStaff = false)
-
-    fun grantSuperuserPermission(): User =
-        copy(isSuperuser = true)
-
-    fun revokeSuperuserPermission(): User =
-        copy(isSuperuser = false)
-
-    fun getFullName(): String =
-        when {
-            firstName.isNotBlank() && lastName.isNotBlank() -> "$firstName $lastName"
-            firstName.isNotBlank() -> firstName
-            lastName.isNotBlank() -> lastName
-            else -> username
-    }
-
-    fun hasStaffPermission(): Boolean = isStaff || isSuperuser
-
-    fun hasSuperuserPermission(): Boolean = isSuperuser
-
     private fun copy(
         password: String = this.password,
         lastLogin: LocalDateTime? = this.lastLogin,

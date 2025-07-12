@@ -23,38 +23,6 @@ class PhoneVerificationLog private constructor(
     val returnMessage: String,
     val ownerId: Int? = null,
 ) {
-    fun isSuccessful(): Boolean = resultCode == "0000"
-
-    fun isFailed(): Boolean = !isSuccessful()
-
-    fun hasOwner(): Boolean = ownerId != null
-
-    fun isVerificationSuccessful(): Boolean =
-        isSuccessful() && reason == "본인확인"
-
-    fun isRegistrationSuccessful(): Boolean =
-        isSuccessful() && reason == "회원가입"
-
-    fun getGenderText(): String = when (gender) {
-        1 -> "남성"
-        2 -> "여성"
-        else -> "미상"
-    }
-
-    fun getDomesticText(): String = when (domestic) {
-        1 -> "내국인"
-        2 -> "외국인"
-        else -> "미상"
-    }
-
-    fun getTelecomText(): String = when (telecom) {
-        "SKT" -> "SK텔레콤"
-        "KTF" -> "KT"
-        "LGT" -> "LG유플러스"
-        "MVNO" -> "알뜰폰"
-        else -> telecom
-    }
-
     companion object {
         fun of(
             id: Long? = null,

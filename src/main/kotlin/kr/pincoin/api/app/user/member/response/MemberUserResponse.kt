@@ -30,9 +30,6 @@ data class MemberUserResponse(
 
     @JsonProperty("lastLogin")
     val lastLogin: LocalDateTime?,
-
-    @JsonProperty("fullName")
-    val fullName: String,
 ) {
     companion object {
         fun from(user: User) = with(user) {
@@ -45,7 +42,6 @@ data class MemberUserResponse(
                 isActive = isActive,
                 dateJoined = dateJoined,
                 lastLogin = lastLogin,
-                fullName = getFullName()
             )
         }
     }

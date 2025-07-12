@@ -9,30 +9,6 @@ class EmailBanned private constructor(
     val isRemoved: Boolean = false,
     val email: String
 ) {
-    fun isActive(): Boolean = !isRemoved
-
-    fun isInactive(): Boolean = isRemoved
-
-    fun remove(): EmailBanned {
-        if (isRemoved) return this
-        return copy(isRemoved = true)
-    }
-
-    fun restore(): EmailBanned {
-        if (!isRemoved) return this
-        return copy(isRemoved = false)
-    }
-
-    fun isSameEmail(emailAddress: String): Boolean =
-        email.lowercase() == emailAddress.lowercase()
-
-    fun getDomain(): String = email.substringAfter("@")
-
-    fun getLocalPart(): String = email.substringBefore("@")
-
-    fun isValidEmailFormat(): Boolean =
-        email.contains("@") && email.contains(".") && email.length > 5
-
     private fun copy(
         isRemoved: Boolean = this.isRemoved,
         email: String = this.email,

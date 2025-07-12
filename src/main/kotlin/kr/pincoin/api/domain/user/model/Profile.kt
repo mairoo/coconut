@@ -33,64 +33,6 @@ class Profile private constructor(
     val mileage: BigDecimal = BigDecimal.ZERO,
     val allowOrder: Boolean = false,
 ) {
-    fun updatePhone(newPhone: String): Profile =
-        copy(phone = newPhone)
-
-    fun updateAddress(newAddress: String): Profile =
-        copy(address = newAddress)
-
-    fun verifyPhone(): Profile =
-        copy(phoneVerified = true, phoneVerifiedStatus = 1)
-
-    fun verifyDocument(): Profile =
-        copy(documentVerified = true)
-
-    fun updateMemo(newMemo: String): Profile =
-        copy(memo = newMemo)
-
-    fun addPurchase(orderPrice: BigDecimal, orderListPrice: BigDecimal): Profile {
-        val newTotalOrderCount = totalOrderCount + 1
-        val newTotalSellingPrice = totalSellingPrice + orderPrice
-        val newTotalListPrice = totalListPrice + orderListPrice
-        val newAveragePrice = newTotalSellingPrice.divide(BigDecimal(newTotalOrderCount))
-        val newMaxPrice = if (orderPrice > maxPrice) orderPrice else maxPrice
-        val now = LocalDateTime.now()
-
-        return copy(
-            totalOrderCount = newTotalOrderCount,
-            totalSellingPrice = newTotalSellingPrice,
-            totalListPrice = newTotalListPrice,
-            averagePrice = newAveragePrice,
-            maxPrice = newMaxPrice,
-            lastPurchased = now,
-            firstPurchased = firstPurchased ?: now,
-            repurchased = if (totalOrderCount > 0) now else repurchased,
-        )
-    }
-
-    fun addMileage(amount: BigDecimal): Profile =
-        copy(mileage = mileage + amount)
-
-    fun useMileage(amount: BigDecimal): Profile {
-        require(mileage >= amount) { "보유 마일리지가 부족합니다" }
-        return copy(mileage = mileage - amount)
-    }
-
-    fun enableOrder(): Profile =
-        copy(allowOrder = true)
-
-    fun disableOrder(): Profile =
-        copy(allowOrder = false)
-
-    fun updateNotPurchasedMonths(notPurchased: Boolean): Profile =
-        copy(notPurchasedMonths = notPurchased)
-
-    fun hasPhoneVerified(): Boolean = phoneVerified
-
-    fun hasDocumentVerified(): Boolean = documentVerified
-
-    fun canOrder(): Boolean = allowOrder
-
     private fun copy(
         userId: Int = this.userId,
         address: String = this.address,

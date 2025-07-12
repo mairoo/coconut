@@ -9,22 +9,6 @@ class PhoneBanned private constructor(
     val isRemoved: Boolean = false,
     val phone: String
 ) {
-    fun isActive(): Boolean = !isRemoved
-
-    fun isInactive(): Boolean = isRemoved
-
-    fun remove(): PhoneBanned {
-        if (isRemoved) return this
-        return copy(isRemoved = true)
-    }
-
-    fun restore(): PhoneBanned {
-        if (!isRemoved) return this
-        return copy(isRemoved = false)
-    }
-
-    fun isSamePhone(phoneNumber: String): Boolean = phone == phoneNumber
-
     private fun copy(
         isRemoved: Boolean = this.isRemoved,
         phone: String = this.phone,

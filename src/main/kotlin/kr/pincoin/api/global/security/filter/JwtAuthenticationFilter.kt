@@ -167,7 +167,8 @@ class JwtAuthenticationFilter(
         private val publicPaths = listOf(
             "/auth/**",
             "/oauth2/**",
-            "/api/**",
+            "/open/**",
+            "/webhooks/**",
             "/healthcheck",
         )
 

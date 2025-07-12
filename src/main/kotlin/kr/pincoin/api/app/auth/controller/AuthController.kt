@@ -31,7 +31,7 @@ class AuthController(
      * @param servletRequest HTTP 요청 객체
      * @return 액세스 토큰이 포함된 API 응답과 리프레시 토큰이 포함된 쿠키가 설정된 ResponseEntity
      */
-    @PostMapping("/sign-in")
+    @PostMapping("/login")
     fun signIn(
         @Valid @RequestBody request: SignInRequest,
         servletRequest: HttpServletRequest,
@@ -68,7 +68,7 @@ class AuthController(
      * @param refreshToken 쿠키에서 추출한 리프레시 토큰 (선택적)
      * @return ResponseEntity 객체와 리프레시 토큰 쿠키를 제거하는 응답
      */
-    @PostMapping("/sign-out")
+    @PostMapping("/logout")
     fun signOut(
         @CookieValue(name = CookieKey.REFRESH_TOKEN_NAME, required = false) refreshToken: String?,
         servletRequest: HttpServletRequest,
@@ -80,7 +80,7 @@ class AuthController(
             .body(ApiResponse.of(Unit))
     }
 
-    @PostMapping("/sign-up")
+    @PostMapping("/register")
     fun createUser(
         @Valid @RequestBody request: MemberUserCreateRequest,
     ): ResponseEntity<ApiResponse<MemberUserResponse>> =

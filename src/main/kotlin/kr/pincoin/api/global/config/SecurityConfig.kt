@@ -65,6 +65,8 @@ class SecurityConfig(
                 .requestMatchers(
                     "/auth/**",
                     "/oauth2/**",
+                    "/open/**",
+                    "/webhooks/**",
                     "/health"
                 ).permitAll()
                 .anyRequest().authenticated()

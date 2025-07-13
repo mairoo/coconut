@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository
 @Repository
 class LoginLogRepositoryImpl(
     private val jpaRepository: LoginLogJpaRepository,
+    private val queryRepository: LoginLogQueryRepository,
 ) : LoginLogRepository {
     override fun save(
         loginLog: LoginLog,
@@ -17,4 +18,9 @@ class LoginLogRepositoryImpl(
             ?.let { jpaRepository.save(it) }
             ?.toModel()
             ?: throw IllegalArgumentException("로그인 로그 저장 실패")
+
+    override fun findById(
+        id: Long,
+    ): LoginLog? =
+        queryRepository.findById(id)?.toModel()
 }

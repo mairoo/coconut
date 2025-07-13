@@ -6,4 +6,8 @@ interface TestimonialAnswerRepository {
     fun save(
         testimonialAnswer: TestimonialAnswer,
     ): TestimonialAnswer
+
+    fun findById(
+        id: Long,
+    ): TestimonialAnswer?
 }

@@ -6,4 +6,8 @@ interface NoticeMessageRepository {
     fun save(
         noticeMessage: NoticeMessage,
     ): NoticeMessage
+
+    fun findById(
+        id: Long,
+    ): NoticeMessage?
 }

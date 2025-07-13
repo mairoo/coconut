@@ -6,4 +6,8 @@ interface FaqMessageRepository {
     fun save(
         faqMessage: FaqMessage,
     ): FaqMessage
+
+    fun findById(
+        id: Long,
+    ): FaqMessage?
 }

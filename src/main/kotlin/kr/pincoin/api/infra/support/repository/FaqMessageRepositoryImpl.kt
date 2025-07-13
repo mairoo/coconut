@@ -18,4 +18,9 @@ class FaqMessageRepositoryImpl(
             ?.let { jpaRepository.save(it) }
             ?.toModel()
             ?: throw IllegalArgumentException("FAQ 저장 실패")
+
+    override fun findById(
+        id: Long,
+    ): FaqMessage? =
+        queryRepository.findById(id)?.toModel()
 }

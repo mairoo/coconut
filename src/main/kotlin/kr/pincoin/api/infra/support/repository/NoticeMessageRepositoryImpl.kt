@@ -18,4 +18,7 @@ class NoticeMessageRepositoryImpl(
             ?.let { jpaRepository.save(it) }
             ?.toModel()
             ?: throw IllegalArgumentException("공지사항 저장 실패")
+
+    override fun findById(id: Long): NoticeMessage? =
+        queryRepository.findById(id)?.toModel()
 }

@@ -6,4 +6,8 @@ interface CustomerQuestionAnswerRepository {
     fun save(
         customerQuestionAnswer: CustomerQuestionAnswer,
     ): CustomerQuestionAnswer
+
+    fun findById(
+        id: Long,
+    ): CustomerQuestionAnswer?
 }

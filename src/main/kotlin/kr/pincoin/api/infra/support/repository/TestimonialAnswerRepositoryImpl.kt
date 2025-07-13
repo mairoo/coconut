@@ -18,4 +18,7 @@ class TestimonialAnswerRepositoryImpl(
             ?.let { jpaRepository.save(it) }
             ?.toModel()
             ?: throw IllegalArgumentException("고객리뷰답변 저장 실패")
+
+    override fun findById(id: Long): TestimonialAnswer? =
+        queryRepository.findById(id)?.toModel()
 }

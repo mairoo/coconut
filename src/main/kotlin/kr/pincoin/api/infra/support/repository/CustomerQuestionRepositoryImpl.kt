@@ -18,4 +18,9 @@ class CustomerQuestionRepositoryImpl(
             ?.let { jpaRepository.save(it) }
             ?.toModel()
             ?: throw IllegalArgumentException("고객문의 저장 실패")
+
+    override fun findById(
+        id: Long,
+    ): CustomerQuestion? =
+        queryRepository.findById(id)?.toModel()
 }

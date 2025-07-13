@@ -18,4 +18,9 @@ class OrderProductVoucherRepositoryImpl(
             ?.let { jpaRepository.save(it) }
             ?.toModel()
             ?: throw IllegalArgumentException("주문발송상품권 저장 실패")
+
+    override fun findById(
+        orderProductVoucherId: Long,
+    ): OrderProductVoucher? =
+        queryRepository.findById(orderProductVoucherId)?.toModel()
 }

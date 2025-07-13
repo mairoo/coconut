@@ -6,4 +6,8 @@ interface OrderProductVoucherRepository {
     fun save(
         orderProductVoucher: OrderProductVoucher,
     ): OrderProductVoucher
+
+    fun findById(
+        orderProductVoucherId: Long,
+    ): OrderProductVoucher?
 }

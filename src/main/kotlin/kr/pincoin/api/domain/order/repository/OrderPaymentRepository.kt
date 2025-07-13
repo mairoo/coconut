@@ -6,4 +6,8 @@ interface OrderPaymentRepository {
     fun save(
         orderPayment: OrderPayment,
     ): OrderPayment
+
+    fun findById(
+        orderPaymentId: Long,
+    ): OrderPayment?
 }

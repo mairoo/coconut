@@ -18,4 +18,9 @@ class OrderRepositoryImpl(
             ?.let { jpaRepository.save(it) }
             ?.toModel()
             ?: throw IllegalArgumentException("주문 저장 실패")
+
+    override fun findById(
+        orderId: Long,
+    ): Order? =
+        queryRepository.findById(orderId)?.toModel()
 }

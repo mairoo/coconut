@@ -6,4 +6,8 @@ interface OrderProductRepository {
     fun save(
         orderProduct: OrderProduct,
     ): OrderProduct
+
+    fun findById(
+        orderProductId: Long,
+    ): OrderProduct?
 }

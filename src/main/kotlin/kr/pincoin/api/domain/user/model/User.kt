@@ -15,6 +15,42 @@ class User private constructor(
     val isActive: Boolean = true,
     val dateJoined: LocalDateTime = LocalDateTime.now()
 ) {
+    fun updatePassword(newPassword: String): User {
+        require(newPassword.isNotBlank()) { "비밀번호는 필수 입력값입니다" }
+        return copy(password = newPassword)
+    }
+
+    fun updateEmail(
+        email: String,
+    ): User =
+        copy(email = email)
+
+    fun updateFullName(
+        firstName: String,
+        lastName: String,
+    ): User = copy(
+        firstName = firstName,
+        lastName = lastName,
+    )
+
+    fun activate(): User {
+        if (isActive) return this
+
+        return copy(
+            isActive = true,
+        )
+    }
+
+    fun inactivate(): User {
+        if (!isActive) return this
+
+        return copy(
+            isActive = false,
+            isSuperuser = false,
+            isStaff = false,
+        )
+    }
+
     private fun copy(
         password: String = this.password,
         lastLogin: LocalDateTime? = this.lastLogin,
@@ -52,7 +88,7 @@ class User private constructor(
             email: String,
             isStaff: Boolean = false,
             isActive: Boolean = true,
-            dateJoined: LocalDateTime = LocalDateTime.now()
+            dateJoined: LocalDateTime = LocalDateTime.now(),
         ): User = User(
             id = id,
             password = password,
@@ -64,7 +100,7 @@ class User private constructor(
             email = email,
             isStaff = isStaff,
             isActive = isActive,
-            dateJoined = dateJoined
+            dateJoined = dateJoined,
         )
     }
 }

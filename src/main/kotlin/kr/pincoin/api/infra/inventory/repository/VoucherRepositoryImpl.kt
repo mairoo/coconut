@@ -18,4 +18,9 @@ class VoucherRepositoryImpl(
             ?.let { jpaRepository.save(it) }
             ?.toModel()
             ?: throw IllegalArgumentException("상품권 저장 실패")
+
+    override fun findById(
+        voucherId: Long,
+    ): Voucher? =
+        queryRepository.findById(voucherId)?.toModel()
 }

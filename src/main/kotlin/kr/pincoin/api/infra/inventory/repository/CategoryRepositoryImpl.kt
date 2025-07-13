@@ -18,4 +18,9 @@ class CategoryRepositoryImpl(
             ?.let { jpaRepository.save(it) }
             ?.toModel()
             ?: throw IllegalArgumentException("카테고리 저장 실패")
+
+    override fun findById(
+        categoryId: Long,
+    ): Category? =
+        queryRepository.findById(categoryId)?.toModel()
 }

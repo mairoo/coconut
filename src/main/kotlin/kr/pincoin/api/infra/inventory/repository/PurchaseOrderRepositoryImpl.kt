@@ -18,4 +18,9 @@ class PurchaseOrderRepositoryImpl(
             ?.let { jpaRepository.save(it) }
             ?.toModel()
             ?: throw IllegalArgumentException("주문발주 저장 실패")
+
+    override fun findById(
+        purchaseOrderId: Long,
+    ): PurchaseOrder? =
+        queryRepository.findById(purchaseOrderId)?.toModel()
 }

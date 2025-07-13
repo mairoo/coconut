@@ -6,4 +6,8 @@ interface PurchaseOrderRepository {
     fun save(
         purchaseOrder: PurchaseOrder,
     ): PurchaseOrder
+
+    fun findById(
+        purchaseOrderId: Long,
+    ): PurchaseOrder?
 }

@@ -6,4 +6,8 @@ interface VoucherRepository {
     fun save(
         voucher: Voucher,
     ): Voucher
+
+    fun findById(
+        voucherId: Long,
+    ): Voucher?
 }

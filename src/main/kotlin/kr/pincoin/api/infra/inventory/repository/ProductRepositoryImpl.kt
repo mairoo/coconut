@@ -18,4 +18,9 @@ class ProductRepositoryImpl(
             ?.let { jpaRepository.save(it) }
             ?.toModel()
             ?: throw IllegalArgumentException("상품 저장 실패")
+
+    override fun findById(
+        productId: Long,
+    ): Product? =
+        queryRepository.findById(productId)?.toModel()
 }

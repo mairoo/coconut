@@ -6,4 +6,8 @@ interface CategoryRepository {
     fun save(
         category: Category,
     ): Category
+
+    fun findById(
+        categoryId: Long,
+    ): Category?
 }

@@ -6,4 +6,8 @@ interface SocialTokenRepository {
     fun save(
         socialToken: SocialToken,
     ): SocialToken
+
+    fun findById(
+        id: Int,
+    ): SocialToken?
 }

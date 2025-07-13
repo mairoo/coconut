@@ -8,6 +8,6 @@ interface VoucherRepository {
     ): Voucher
 
     fun findById(
-        voucherId: Long,
+        id: Long,
     ): Voucher?
 }

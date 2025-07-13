@@ -8,6 +8,6 @@ interface CategoryRepository {
     ): Category
 
     fun findById(
-        categoryId: Long,
+        id: Long,
     ): Category?
 }

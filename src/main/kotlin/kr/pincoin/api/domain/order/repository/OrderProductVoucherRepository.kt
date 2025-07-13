@@ -8,6 +8,6 @@ interface OrderProductVoucherRepository {
     ): OrderProductVoucher
 
     fun findById(
-        orderProductVoucherId: Long,
+        id: Long,
     ): OrderProductVoucher?
 }

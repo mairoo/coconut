@@ -8,6 +8,6 @@ interface PurchaseOrderPaymentRepository {
     ): PurchaseOrderPayment
 
     fun findById(
-        purchaseOrderPaymentId: Long,
+        id: Long,
     ): PurchaseOrderPayment?
 }

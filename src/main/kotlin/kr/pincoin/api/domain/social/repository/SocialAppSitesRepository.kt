@@ -6,4 +6,8 @@ interface SocialAppSitesRepository {
     fun save(
         socialAppSites: SocialAppSites,
     ): SocialAppSites
+
+    fun findById(
+        id: Int,
+    ): SocialAppSites?
 }

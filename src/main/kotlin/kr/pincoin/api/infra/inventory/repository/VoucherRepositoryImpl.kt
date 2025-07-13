@@ -20,7 +20,7 @@ class VoucherRepositoryImpl(
             ?: throw IllegalArgumentException("상품권 저장 실패")
 
     override fun findById(
-        voucherId: Long,
+        id: Long,
     ): Voucher? =
-        queryRepository.findById(voucherId)?.toModel()
+        queryRepository.findById(id)?.toModel()
 }

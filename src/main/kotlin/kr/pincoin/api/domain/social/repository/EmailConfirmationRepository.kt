@@ -6,4 +6,8 @@ interface EmailConfirmationRepository {
     fun save(
         emailConfirmation: EmailConfirmation,
     ): EmailConfirmation
+
+    fun findById(
+        id: Int,
+    ): EmailConfirmation?
 }

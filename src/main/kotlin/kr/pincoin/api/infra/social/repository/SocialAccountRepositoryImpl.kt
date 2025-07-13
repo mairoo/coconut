@@ -18,4 +18,10 @@ class SocialAccountRepositoryImpl(
             ?.let { jpaRepository.save(it) }
             ?.toModel()
             ?: throw IllegalArgumentException("소셜계정 저장 실패")
+
+    override fun findById(
+        id: Int,
+    ): SocialAccount? {
+        return queryRepository.findById(id)?.toModel()
+    }
 }

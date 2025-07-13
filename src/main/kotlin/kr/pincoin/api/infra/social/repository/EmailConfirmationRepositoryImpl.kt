@@ -18,4 +18,10 @@ class EmailConfirmationRepositoryImpl(
             ?.let { jpaRepository.save(it) }
             ?.toModel()
             ?: throw IllegalArgumentException("이메일확인 저장 실패")
+
+    override fun findById(
+        id: Int,
+    ): EmailConfirmation? {
+        return queryRepository.findById(id)?.toModel()
+    }
 }

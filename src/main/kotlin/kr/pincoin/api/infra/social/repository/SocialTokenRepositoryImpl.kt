@@ -18,4 +18,9 @@ class SocialTokenRepositoryImpl(
             ?.let { jpaRepository.save(it) }
             ?.toModel()
             ?: throw IllegalArgumentException("소셜토큰 저장 실패")
+
+    override fun findById(
+        id: Int,
+    ): SocialToken? =
+        queryRepository.findById(id)?.toModel()
 }

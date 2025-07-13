@@ -20,7 +20,7 @@ class OrderProductVoucherRepositoryImpl(
             ?: throw IllegalArgumentException("주문발송상품권 저장 실패")
 
     override fun findById(
-        orderProductVoucherId: Long,
+        id: Long,
     ): OrderProductVoucher? =
-        queryRepository.findById(orderProductVoucherId)?.toModel()
+        queryRepository.findById(id)?.toModel()
 }

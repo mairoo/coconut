@@ -18,4 +18,9 @@ class SocialAppRepositoryImpl(
             ?.let { jpaRepository.save(it) }
             ?.toModel()
             ?: throw IllegalArgumentException("소셜앱 저장 실패")
+
+    override fun findById(
+        id: Int,
+    ): SocialApp? =
+        queryRepository.findById(id)?.toModel()
 }

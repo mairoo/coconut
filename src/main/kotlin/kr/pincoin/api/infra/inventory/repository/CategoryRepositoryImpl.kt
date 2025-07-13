@@ -20,7 +20,7 @@ class CategoryRepositoryImpl(
             ?: throw IllegalArgumentException("카테고리 저장 실패")
 
     override fun findById(
-        categoryId: Long,
+        id: Long,
     ): Category? =
-        queryRepository.findById(categoryId)?.toModel()
+        queryRepository.findById(id)?.toModel()
 }

@@ -20,7 +20,7 @@ class PurchaseOrderPaymentRepositoryImpl(
             ?: throw IllegalArgumentException("주문발주입금 저장 실패")
 
     override fun findById(
-        purchaseOrderPaymentId: Long,
+        id: Long,
     ): PurchaseOrderPayment? =
-        queryRepository.findById(purchaseOrderPaymentId)?.toModel()
+        queryRepository.findById(id)?.toModel()
 }

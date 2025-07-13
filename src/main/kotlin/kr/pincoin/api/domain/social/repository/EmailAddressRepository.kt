@@ -6,4 +6,8 @@ interface EmailAddressRepository {
     fun save(
         emailAddress: EmailAddress,
     ): EmailAddress
+
+    fun findById(
+        id: Int,
+    ): EmailAddress?
 }

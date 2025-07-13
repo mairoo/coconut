@@ -18,4 +18,9 @@ class EmailAddressRepositoryImpl(
             ?.let { jpaRepository.save(it) }
             ?.toModel()
             ?: throw IllegalArgumentException("이메일주소 저장 실패")
+
+    override fun findById(
+        id: Int,
+    ): EmailAddress? =
+        queryRepository.findById(id)?.toModel()
 }

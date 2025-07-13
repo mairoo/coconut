@@ -20,7 +20,7 @@ class ProductRepositoryImpl(
             ?: throw IllegalArgumentException("상품 저장 실패")
 
     override fun findById(
-        productId: Long,
+        id: Long,
     ): Product? =
-        queryRepository.findById(productId)?.toModel()
+        queryRepository.findById(id)?.toModel()
 }

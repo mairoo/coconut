@@ -69,4 +69,12 @@ class AdminUserController(
             .let { AdminUserResponse.from(it) }
             .let { ApiResponse.of(it) }
             .let { ResponseEntity.ok(it) }
+
+    @DeleteMapping("/{userId}")
+    fun removeUser(
+        @PathVariable userId: Int,
+    ): ResponseEntity<ApiResponse<Unit>> =
+        adminUserService.softDeleteUser(userId)
+            .let { ApiResponse.of(data = Unit) }
+            .let { ResponseEntity.ok(it) }
 }

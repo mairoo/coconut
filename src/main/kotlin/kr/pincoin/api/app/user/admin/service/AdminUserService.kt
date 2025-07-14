@@ -52,4 +52,9 @@ class AdminUserService(
         request: AdminUserCreateRequest,
     ): User =
         userService.createUser(request)
+
+    fun softDeleteUser(
+        userId: Int,
+    ): User =
+        userService.softDeleteUser(userId)
 }

@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional
 class UserService(
     private val userRepository: UserRepository,
     private val passwordEncoder: PasswordEncoder,
+    private val userDeletionService: UserDeletionService,
 ) {
     fun findUser(
         userId: Int,
@@ -60,6 +61,11 @@ class UserService(
 
     @Transactional
     fun createUser(request: UserCreateRequest): User {
+        // 삭제된 이메일인지 확인
+        if (userDeletionService.isEmailDeleted(request.email)) {
+            throw BusinessException(UserErrorCode.EMAIL_RECENTLY_DELETED)
+        }
+
         try {
             return userRepository.save(
                 User.of(
@@ -80,6 +86,11 @@ class UserService(
 
     @Transactional
     fun createUser(request: AdminUserCreateRequest): User {
+        // 삭제된 이메일인지 확인
+        if (userDeletionService.isEmailDeleted(request.email)) {
+            throw BusinessException(UserErrorCode.EMAIL_RECENTLY_DELETED)
+        }
+
         try {
             return userRepository.save(
                 User.of(
@@ -96,5 +107,23 @@ class UserService(
         } catch (_: DataIntegrityViolationException) {
             throw BusinessException(UserErrorCode.ALREADY_EXISTS)
         }
+    }
+
+    @Transactional
+    fun softDeleteUser(userId: Int): User {
+        val user = userRepository.findById(userId)
+            ?: throw BusinessException(UserErrorCode.NOT_FOUND)
+
+        if (!user.isActive) {
+            throw BusinessException(UserErrorCode.ALREADY_DELETED)
+        }
+
+        val deletedUser = user.softDelete()
+        val savedUser = userRepository.save(deletedUser)
+
+        // Redis에 삭제된 이메일 정보 저장 (30일 TTL)
+        userDeletionService.markAsDeleted(user)
+
+        return savedUser
     }
 }

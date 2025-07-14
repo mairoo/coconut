@@ -1,6 +1,7 @@
 package kr.pincoin.api.domain.user.model
 
 import java.time.LocalDateTime
+import java.util.*
 
 class User private constructor(
     val id: Int? = null,
@@ -46,6 +47,34 @@ class User private constructor(
 
         return copy(
             isActive = false,
+            isSuperuser = false,
+            isStaff = false,
+        )
+    }
+
+    /**
+     * 소프트 삭제를 수행합니다.
+     * 사용자 정보를 익명화한 후 비활성화합니다.
+     */
+    fun softDelete(): User {
+        if (!isActive) return this
+
+        return anonymize().copy(isActive = false)
+    }
+
+    /**
+     * 사용자 정보를 익명화합니다.
+     * 민감한 정보(username, email, password)를 난수로 암호화하고 권한을 제거합니다.
+     */
+    fun anonymize(): User {
+        val randomSuffix = UUID.randomUUID().toString().replace("-", "").substring(0, 8)
+
+        return copy(
+            username = "anonymous_user_$randomSuffix",
+            email = "anonymous_$randomSuffix@anonymous.com",
+            password = "anonymous_password_$randomSuffix",
+            firstName = "",
+            lastName = "",
             isSuperuser = false,
             isStaff = false,
         )

@@ -26,5 +26,17 @@ enum class UserErrorCode(
     PASSWORD_MISMATCH(
         HttpStatus.BAD_REQUEST,
         "비밀번호 불일치"
-    )
+    ),
+    ALREADY_DELETED(
+        HttpStatus.BAD_REQUEST,
+        "이미 삭제된 사용자입니다",
+    ),
+    EMAIL_RECENTLY_DELETED(
+        HttpStatus.BAD_REQUEST,
+        "최근에 삭제된 이메일 주소입니다. 30일 후에 다시 시도해주세요",
+    ),
+    PHONE_RECENTLY_DELETED(
+        HttpStatus.BAD_REQUEST,
+        "최근에 삭제된 휴대폰 번호입니다. 30일 후에 다시 시도해주세요"
+    ),
 }

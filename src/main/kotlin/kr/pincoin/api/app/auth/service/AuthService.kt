@@ -4,7 +4,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.servlet.http.HttpServletRequest
 import kr.pincoin.api.app.auth.request.SignInRequest
 import kr.pincoin.api.app.auth.response.AccessTokenResponse
-import kr.pincoin.api.app.user.member.request.MemberUserCreateRequest
+import kr.pincoin.api.app.auth.request.UserCreateRequest
 import kr.pincoin.api.domain.coordinator.user.UserResourceCoordinator
 import kr.pincoin.api.domain.user.error.AuthErrorCode
 import kr.pincoin.api.domain.user.event.LoginEvent
@@ -224,7 +224,7 @@ class AuthService(
     }
 
     fun createUser(
-        request: MemberUserCreateRequest,
+        request: UserCreateRequest,
     ): User =
         userResourceCoordinator.createUser(request)
 

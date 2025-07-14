@@ -1,4 +1,4 @@
-package kr.pincoin.api.app.user.member.request
+package kr.pincoin.api.app.auth.request
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.validation.constraints.Email
@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Pattern
 import jakarta.validation.constraints.Size
 
-data class MemberUserCreateRequest(
+data class UserCreateRequest(
     // User 엔티티
     @field:NotBlank(message = "사용자명은 필수 입력값입니다")
     @field:Size(min = 3, max = 30, message = "사용자명은 3자 이상 30자 이하로 입력해주세요")

@@ -169,7 +169,7 @@ class JwtAuthenticationFilter(
             "/oauth2/**",
             "/open/**",
             "/webhooks/**",
-            "/healthcheck",
+            "/health",
         )
 
         // PathPatternParser를 사용하여 패턴 파싱

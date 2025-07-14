@@ -6,7 +6,7 @@ import kr.pincoin.api.app.auth.request.SignInRequest
 import kr.pincoin.api.app.auth.response.AccessTokenResponse
 import kr.pincoin.api.app.auth.response.RequestInfoResponse
 import kr.pincoin.api.app.auth.service.AuthService
-import kr.pincoin.api.app.user.member.request.MemberUserCreateRequest
+import kr.pincoin.api.app.auth.request.UserCreateRequest
 import kr.pincoin.api.app.user.member.response.MemberUserResponse
 import kr.pincoin.api.global.constant.CookieKey
 import kr.pincoin.api.global.properties.JwtProperties
@@ -82,7 +82,7 @@ class AuthController(
 
     @PostMapping("/register")
     fun createUser(
-        @Valid @RequestBody request: MemberUserCreateRequest,
+        @Valid @RequestBody request: UserCreateRequest,
     ): ResponseEntity<ApiResponse<MemberUserResponse>> =
         authService.createUser(request)
             .let { MemberUserResponse.from(it) }

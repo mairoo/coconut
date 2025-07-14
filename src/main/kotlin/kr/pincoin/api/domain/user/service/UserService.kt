@@ -1,7 +1,7 @@
 package kr.pincoin.api.domain.user.service
 
 import kr.pincoin.api.app.user.admin.request.AdminUserCreateRequest
-import kr.pincoin.api.app.user.member.request.MemberUserCreateRequest
+import kr.pincoin.api.app.auth.request.UserCreateRequest
 import kr.pincoin.api.domain.user.error.UserErrorCode
 import kr.pincoin.api.domain.user.model.User
 import kr.pincoin.api.domain.user.repository.UserRepository
@@ -18,7 +18,7 @@ class UserService(
     private val passwordEncoder: PasswordEncoder,
 ) {
     @Transactional
-    fun createUser(request: MemberUserCreateRequest): User {
+    fun createUser(request: UserCreateRequest): User {
         try {
             return userRepository.save(
                 User.of(

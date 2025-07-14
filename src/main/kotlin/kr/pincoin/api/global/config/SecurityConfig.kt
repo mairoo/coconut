@@ -67,7 +67,7 @@ class SecurityConfig(
                     "/oauth2/**",
                     "/open/**",
                     "/webhooks/**",
-                    "/health"
+                    "/health",
                 ).permitAll()
                 .anyRequest().authenticated()
         }

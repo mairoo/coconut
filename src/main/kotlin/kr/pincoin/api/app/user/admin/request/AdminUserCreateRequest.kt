@@ -40,5 +40,5 @@ data class AdminUserCreateRequest(
     val isSuperuser: Boolean = false,
 
     @JsonProperty("isActive")
-    val isActive: Boolean = true
+    val isActive: Boolean = true,
 )

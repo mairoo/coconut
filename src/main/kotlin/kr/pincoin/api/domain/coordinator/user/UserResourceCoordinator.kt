@@ -1,7 +1,7 @@
 package kr.pincoin.api.domain.coordinator.user
 
 import kr.pincoin.api.app.user.admin.request.AdminUserCreateRequest
-import kr.pincoin.api.app.user.member.request.MemberUserCreateRequest
+import kr.pincoin.api.app.auth.request.UserCreateRequest
 import kr.pincoin.api.domain.user.model.User
 import kr.pincoin.api.domain.user.service.ProfileService
 import kr.pincoin.api.domain.user.service.UserService
@@ -16,7 +16,7 @@ class UserResourceCoordinator(
 ) {
     @Transactional
     fun createUser(
-        request: MemberUserCreateRequest,
+        request: UserCreateRequest,
     ): User {
         // 1. User 엔티티 생성
         val user = userService.createUser(request)

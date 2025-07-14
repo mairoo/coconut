@@ -1,4 +1,4 @@
-package kr.pincoin.api.app.user.member.response
+package kr.pincoin.api.app.user.my.response
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
@@ -6,7 +6,7 @@ import kr.pincoin.api.domain.user.model.User
 import java.time.LocalDateTime
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-data class MemberUserResponse(
+data class MyUserResponse(
     @JsonProperty("id")
     val id: Int,
 
@@ -33,7 +33,7 @@ data class MemberUserResponse(
 ) {
     companion object {
         fun from(user: User) = with(user) {
-            MemberUserResponse(
+            MyUserResponse(
                 id = id ?: throw IllegalStateException("사용자 ID는 필수 입력값입니다"),
                 username = username,
                 firstName = firstName,

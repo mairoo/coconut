@@ -1,5 +1,6 @@
 package kr.pincoin.api.domain.inventory.model
 
+import kr.pincoin.api.domain.inventory.enums.VoucherStatus
 import java.time.LocalDateTime
 
 class Voucher private constructor(
@@ -9,14 +10,14 @@ class Voucher private constructor(
     val isRemoved: Boolean = false,
     val code: String,
     val remarks: String = "",
-    val status: Int = 0,
+    val status: VoucherStatus = VoucherStatus.PURCHASED,
     val productId: Long,
 ) {
     private fun copy(
         isRemoved: Boolean = this.isRemoved,
         code: String = this.code,
         remarks: String = this.remarks,
-        status: Int = this.status,
+        status: VoucherStatus = this.status,
         productId: Long = this.productId,
     ): Voucher = Voucher(
         id = this.id,
@@ -37,7 +38,7 @@ class Voucher private constructor(
             isRemoved: Boolean = false,
             code: String,
             remarks: String = "",
-            status: Int = 0,
+            status: VoucherStatus = VoucherStatus.PURCHASED,
             productId: Long,
         ): Voucher = Voucher(
             id = id,

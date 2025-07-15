@@ -1,6 +1,7 @@
 package kr.pincoin.api.app.user.admin.request
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import kr.pincoin.api.infra.user.repository.criteria.UserSearchCriteria
 
 data class AdminUserSearchRequest(
     @JsonProperty("userId")
@@ -24,7 +25,7 @@ data class AdminUserSearchRequest(
     @JsonProperty("isSuperuser")
     val isSuperuser: Boolean? = null,
 ) {
-    fun toSearchCriteria() = kr.pincoin.api.infra.user.repository.criteria.UserSearchCriteria(
+    fun toSearchCriteria() = UserSearchCriteria(
         userId = userId?.toLong(),
         username = username,
         firstName = firstName,

@@ -115,6 +115,22 @@ class UserService(
             .let { userRepository.save(it) }
 
     @Transactional
+    fun updateUserStatus(userId: Int, isActive: Boolean): User {
+        val user = userRepository.findById(userId)
+            ?: throw BusinessException(UserErrorCode.NOT_FOUND)
+
+        // 현재 상태와 동일한 경우 예외 처리
+        if (user.isActive == isActive) {
+            throw BusinessException(UserErrorCode.INVALID_STATUS_CHANGE)
+        }
+
+        val updatedUser = user.updateStatus(isActive)
+        val savedUser = userRepository.save(updatedUser)
+
+        return savedUser
+    }
+
+    @Transactional
     fun softDeleteUser(userId: Int): User {
         val user = userRepository.findById(userId)
             ?: throw BusinessException(UserErrorCode.NOT_FOUND)

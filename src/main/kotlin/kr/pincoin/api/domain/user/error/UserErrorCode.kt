@@ -39,4 +39,8 @@ enum class UserErrorCode(
         HttpStatus.BAD_REQUEST,
         "최근에 삭제된 휴대폰 번호입니다. 30일 후에 다시 시도해주세요"
     ),
+    INVALID_STATUS_CHANGE(
+        HttpStatus.BAD_REQUEST,
+        "동일한 상태로 변경할 수 없습니다",
+    ),
 }

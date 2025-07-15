@@ -53,6 +53,12 @@ class AdminUserService(
     ): User =
         userService.createUser(request)
 
+    fun updateUserStatus(
+        userId: Int,
+        isActive: Boolean,
+    ): User =
+        userService.updateUserStatus(userId, isActive)
+
     fun softDeleteUser(
         userId: Int,
     ): User =

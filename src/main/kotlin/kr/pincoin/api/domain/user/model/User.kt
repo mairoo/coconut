@@ -34,23 +34,10 @@ class User private constructor(
         lastName = lastName,
     )
 
-    fun activate(): User {
-        if (isActive) return this
-
-        return copy(
-            isActive = true,
-        )
-    }
-
-    fun inactivate(): User {
-        if (!isActive) return this
-
-        return copy(
-            isActive = false,
-            isSuperuser = false,
-            isStaff = false,
-        )
-    }
+    fun updateStatus(
+        isActive: Boolean,
+    ): User =
+        copy(isActive = isActive)
 
     /**
      * 소프트 삭제를 수행합니다.

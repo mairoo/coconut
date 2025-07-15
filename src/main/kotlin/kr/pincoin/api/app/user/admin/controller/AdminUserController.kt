@@ -3,6 +3,7 @@ package kr.pincoin.api.app.user.admin.controller
 import jakarta.validation.Valid
 import kr.pincoin.api.app.user.admin.request.AdminUserCreateRequest
 import kr.pincoin.api.app.user.admin.request.AdminUserSearchRequest
+import kr.pincoin.api.app.user.admin.request.AdminUserStatusUpdateRequest
 import kr.pincoin.api.app.user.admin.response.AdminUserProfileResponse
 import kr.pincoin.api.app.user.admin.response.AdminUserResponse
 import kr.pincoin.api.app.user.admin.service.AdminUserService
@@ -66,6 +67,16 @@ class AdminUserController(
         @Valid @RequestBody request: AdminUserCreateRequest,
     ): ResponseEntity<ApiResponse<AdminUserResponse>> =
         adminUserService.createUser(request)
+            .let { AdminUserResponse.from(it) }
+            .let { ApiResponse.of(it) }
+            .let { ResponseEntity.ok(it) }
+
+    @PatchMapping("/{userId}/status")
+    fun updateUserStatus(
+        @PathVariable userId: Int,
+        @Valid @RequestBody request: AdminUserStatusUpdateRequest,
+    ): ResponseEntity<ApiResponse<AdminUserResponse>> =
+        adminUserService.updateUserStatus(userId, request.isActive)
             .let { AdminUserResponse.from(it) }
             .let { ApiResponse.of(it) }
             .let { ResponseEntity.ok(it) }

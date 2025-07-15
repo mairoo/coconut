@@ -13,7 +13,6 @@
 /opt/docker/pincoin/backend/nginx/site.conf
 /opt/docker/pincoin/backend/repo/
 /opt/docker/pincoin/backend/repo/Dockerfile.prod
-/opt/docker/pincoin/backend/repo/Dockerfile.local
 /opt/docker/pincoin/backend/logs/
 ```
 

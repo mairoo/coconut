@@ -4,6 +4,7 @@ import kr.pincoin.api.domain.inventory.model.Voucher
 import kr.pincoin.api.domain.inventory.repository.VoucherRepository
 import kr.pincoin.api.infra.inventory.mapper.toEntity
 import kr.pincoin.api.infra.inventory.mapper.toModel
+import kr.pincoin.api.infra.inventory.repository.criteria.VoucherSearchCriteria
 import org.springframework.stereotype.Repository
 
 @Repository
@@ -23,4 +24,15 @@ class VoucherRepositoryImpl(
         id: Long,
     ): Voucher? =
         queryRepository.findById(id)?.toModel()
+
+    override fun findVoucher(
+        voucherId: Long,
+        criteria: VoucherSearchCriteria
+    ): Voucher? =
+        queryRepository.findVoucher(voucherId, criteria)?.toModel()
+
+    override fun findVoucher(
+        criteria: VoucherSearchCriteria,
+    ): Voucher? =
+        queryRepository.findVoucher(criteria)?.toModel()
 }

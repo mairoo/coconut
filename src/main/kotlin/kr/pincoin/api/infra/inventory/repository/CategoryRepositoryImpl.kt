@@ -4,6 +4,8 @@ import kr.pincoin.api.domain.inventory.model.Category
 import kr.pincoin.api.domain.inventory.repository.CategoryRepository
 import kr.pincoin.api.infra.inventory.mapper.toEntity
 import kr.pincoin.api.infra.inventory.mapper.toModel
+import kr.pincoin.api.infra.inventory.mapper.toModelList
+import kr.pincoin.api.infra.inventory.repository.criteria.CategorySearchCriteria
 import org.springframework.stereotype.Repository
 
 @Repository
@@ -23,4 +25,20 @@ class CategoryRepositoryImpl(
         id: Long,
     ): Category? =
         queryRepository.findById(id)?.toModel()
+
+    override fun findCategory(
+        categoryId: Long,
+        criteria: CategorySearchCriteria,
+    ): Category? =
+        queryRepository.findCategory(categoryId, criteria)?.toModel()
+
+    override fun findCategory(
+        criteria: CategorySearchCriteria,
+    ): Category? =
+        queryRepository.findCategory(criteria)?.toModel()
+
+    override fun findCategories(
+        criteria: CategorySearchCriteria,
+    ): List<Category> =
+        queryRepository.findCategories(criteria).toModelList()
 }

@@ -2,8 +2,30 @@
 
 ## 기본 설정
 
-- AMD EPYC
-- 4 vCPUs 12GB 7.00TB 260GB
+- Vultr.com Cloud Compute / High Performance
+
+| vCPUs   | 메모리  | 대역폭 | 스토리지  | 가격  | 서비스 가능          |
+|---------|------|-----|-------|-----|-----------------|
+| 4 vCPUs | 12GB | 7TB | 260GB | $72 | 1개 서비스 (~4.3GB) |
+| 8 vCPUs | 16GB | 8TB | 350GB | $96 | 2개 서비스 (~8.6GB) |
+
+- AMD EPYC 4vCPUs (다수 도커 컨테이너 실행 시 멀티 스레드 성능이 Intel Xeon 대비 약간 우세)
+- 방화벽 무료 제공
+- Auto Backup (월 $14.4) 미사용: github이 소스 코드 백업 장치 역할
+- DDOS Protection (월 $10) 미사용: cloudflare 웹 방화벽이 80/443 포트 보호 / 방화벽이 22 포트 보호
+- AWS RDS, S3 별도 이용
+
+서비스 1개 예상 메모리 사용량 = ~3.3GB
+
+- Redis: ~200MB
+- Backend-1: ~1GB
+- Backend-2: ~1GB
+- Backend Nginx: ~50MB
+- Frontend-1: ~500MB
+- Frontend-2: ~500MB
+- Frontend Nginx: ~50MB
+
+운영체제 + 도커 = ~1GB or ~2GB
 
 ```
 # 패키지 업데이트
@@ -37,6 +59,7 @@ visudo
 ```
 
 로컬 컴퓨터에서
+
 ```
 # SSH 키 생성 (이미 있다면 생략)
 ssh-keygen -t rsa -b 4096 -C "your_email@example.com"
@@ -108,6 +131,7 @@ sudo chown ubuntu:ubuntu /opt/docker
 ## 호스트 nginx
 
 ### 설치
+
 ```
 sudo apt-get install nginx
 sudo ufw allow "Nginx Full"

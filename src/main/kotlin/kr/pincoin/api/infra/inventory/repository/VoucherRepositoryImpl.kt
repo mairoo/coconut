@@ -5,6 +5,8 @@ import kr.pincoin.api.domain.inventory.repository.VoucherRepository
 import kr.pincoin.api.infra.inventory.mapper.toEntity
 import kr.pincoin.api.infra.inventory.mapper.toModel
 import kr.pincoin.api.infra.inventory.repository.criteria.VoucherSearchCriteria
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
 
 @Repository
@@ -35,4 +37,11 @@ class VoucherRepositoryImpl(
         criteria: VoucherSearchCriteria,
     ): Voucher? =
         queryRepository.findVoucher(criteria)?.toModel()
+
+    override fun findVouchers(
+        criteria: VoucherSearchCriteria,
+        pageable: Pageable,
+    ): Page<Voucher> =
+        queryRepository.findVouchers(criteria, pageable)
+            .map { it.toModel()!! }
 }

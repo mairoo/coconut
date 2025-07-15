@@ -1,8 +1,6 @@
-# 우분투 서버
+# 인프라 옵션 비교
 
-## 기본 설정
-
-- Vultr.com Cloud Compute / High Performance
+## 1. Vultr.com Cloud Compute / High Performance
 
 | vCPUs   | 메모리  | 대역폭 | 스토리지  | 가격  | 서비스 가능 (예상)     | 동접자 수 (예상) |
 |---------|------|-----|-------|-----|-----------------|------------|
@@ -15,7 +13,18 @@
 - DDOS Protection (월 $10) 미사용: cloudflare 웹 방화벽이 80/443 포트 보호 / 방화벽이 22 포트 보호
 - AWS RDS, S3 별도 이용
 
-서비스 1개 예상 메모리 사용량 = ~3.3GB
+## 2. 코로케이션 (HP DL360 GEN9)
+
+| CPU        | 메모리  | 스토리지      | 대역폭                             | 서비스 가능 (예상)    | 동접자 수 (예상) |
+|------------|------|-----------|---------------------------------|----------------|------------|
+| 12코어/24스레드 | 32GB | 500GB SSD | 1000Mbps Dedicated / Max 30Mbps | 7개 서비스 (~28GB) | 1750~2250  |
+
+- Intel Xeon E5-2620V3 2.4GHz × 2EA
+- DDR4 32GB ECC 메모리
+
+## 서비스 구성 (공통)
+
+**서비스 1개 예상 메모리 사용량 = ~3.3GB**
 
 - Redis: ~200MB
 - Backend-1: ~1GB
@@ -25,7 +34,17 @@
 - Frontend-2: ~500MB
 - Frontend Nginx: ~50MB
 
-운영체제 + 도커 = ~1GB or ~2GB
+**운영체제 + 도커 오버헤드 = ~1GB or ~2GB**
+
+## 순간 최대 속도 비교
+
+- **Vultr High Performance**: 0.5~3Gbps 가능, 순간 1Gbps 초과도 허용됨, 월간 트래픽 제한(7~8TB) 있음
+- **AWS EC2**: 0.5~400Gbps 가능, 트래픽 무제한 요금 종량제
+- **KoreaIDC**: 1Gbps Dedicated/ Max 0.03Gbps (Dedicated와 Max는 모순적 표기)
+
+# 우분투 서버
+
+## 기본 설정
 
 ```
 # 패키지 업데이트

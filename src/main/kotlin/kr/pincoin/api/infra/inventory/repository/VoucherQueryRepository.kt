@@ -2,6 +2,8 @@ package kr.pincoin.api.infra.inventory.repository
 
 import kr.pincoin.api.infra.inventory.entity.VoucherEntity
 import kr.pincoin.api.infra.inventory.repository.criteria.VoucherSearchCriteria
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 
 interface VoucherQueryRepository {
     fun findById(
@@ -19,5 +21,6 @@ interface VoucherQueryRepository {
 
     fun findVouchers(
         criteria: VoucherSearchCriteria,
-    ): List<VoucherEntity>
+        pageable: Pageable,
+    ): Page<VoucherEntity>
 }

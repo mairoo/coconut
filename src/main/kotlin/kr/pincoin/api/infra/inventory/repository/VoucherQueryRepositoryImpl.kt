@@ -5,6 +5,9 @@ import com.querydsl.jpa.impl.JPAQueryFactory
 import kr.pincoin.api.infra.inventory.entity.QVoucherEntity
 import kr.pincoin.api.infra.inventory.entity.VoucherEntity
 import kr.pincoin.api.infra.inventory.repository.criteria.VoucherSearchCriteria
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
+import org.springframework.data.support.PageableExecutionUtils
 import org.springframework.stereotype.Repository
 
 @Repository
@@ -43,10 +46,20 @@ class VoucherQueryRepositoryImpl(
 
     override fun findVouchers(
         criteria: VoucherSearchCriteria,
-    ): List<VoucherEntity> =
-        queryFactory
+        pageable: Pageable,
+    ): Page<VoucherEntity> =
+        executeVoucherPageQuery(criteria, pageable)
+
+    private fun executeVoucherPageQuery(
+        criteria: VoucherSearchCriteria,
+        pageable: Pageable
+    ): Page<VoucherEntity> {
+        // 결과 쿼리 실행
+        val results = queryFactory
             .selectFrom(voucher)
             .where(*getCommonWhereConditions(criteria))
+            .offset(pageable.offset)
+            .limit(pageable.pageSize.toLong())
             .orderBy(
                 voucher.productId.asc(),
                 voucher.status.asc(),
@@ -54,6 +67,22 @@ class VoucherQueryRepositoryImpl(
                 voucher.code.asc()
             )
             .fetch()
+
+        // 카운트 쿼리 함수
+        val countQuery = {
+            queryFactory
+                .select(voucher.count())
+                .from(voucher)
+                .where(*getCommonWhereConditions(criteria))
+                .fetchOne() ?: 0L
+        }
+
+        return PageableExecutionUtils.getPage(
+            results,
+            pageable,
+            countQuery
+        )
+    }
 
     private fun getCommonWhereConditions(
         criteria: VoucherSearchCriteria

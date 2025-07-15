@@ -110,6 +110,11 @@ class UserService(
     }
 
     @Transactional
+    fun updatePassword(user: User, newPassword: String): User =
+        user.updatePassword(passwordEncoder.encode(newPassword))
+            .let { userRepository.save(it) }
+
+    @Transactional
     fun softDeleteUser(userId: Int): User {
         val user = userRepository.findById(userId)
             ?: throw BusinessException(UserErrorCode.NOT_FOUND)

@@ -19,7 +19,19 @@ jobs:
           restore-keys: |
             gradle-${{ runner.os }}-
 
+      - name: Create application-prod.yml from secrets
+        run: |
+          mkdir -p src/main/resources
+          cat << 'EOF' > src/main/resources/application-prod.yml
+          ${{ secrets.PINCOIN_APPLICATION_PROD_YML }}
+          EOF
+
       - name: Build Docker image
         run: |
           echo "🔨 Building Docker image with GitHub Dockerfile..."
           docker build -f Dockerfile.prod -t pincoin-backend:latest .
+
+      - name: Verify Docker image
+        run: |
+          echo "✅ Docker image built successfully"
+          docker images pincoin-backend:latest

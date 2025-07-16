@@ -12,9 +12,9 @@ jobs:
     runs-on: [ self-hosted, Production ]
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4 # git pull 효과
 
       - name: Build Docker image
         run: |
           echo "🔨 Building Docker image with GitHub Dockerfile..."
-          docker build -f Dockerfile.github -t pincoin-backend:latest .
+          docker build -f Dockerfile.prod -t pincoin-backend:latest .

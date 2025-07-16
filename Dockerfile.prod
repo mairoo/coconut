@@ -11,13 +11,13 @@ COPY gradle ./gradle
 RUN chmod +x ./gradlew
 
 # 의존성 먼저 다운로드 (캐싱 최적화)
-RUN ./gradlew dependencies --no-daemon --quiet
+# RUN ./gradlew dependencies --no-daemon --quiet
 
 # 소스 코드 복사
 COPY src ./src
 
-# 애플리케이션 빌드
-RUN ./gradlew clean build -x test --no-daemon --quiet
+# 애플리케이션 빌드 (의존성 다운로드 포함)
+RUN ./gradlew clean build -x test --no-daemon --quiet --console=plain
 
 # 실행 스테이지 - JRE 사용으로 이미지 크기 줄임
 FROM eclipse-temurin:21-jre-alpine

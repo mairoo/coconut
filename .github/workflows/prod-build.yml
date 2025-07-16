@@ -35,7 +35,7 @@ jobs:
 
       - name: Build with Gradle
         run: |
-          ./gradlew clean build -x test --parallel --quiet
+          ./gradlew clean build -x test --parallel --quiet --console=plain --build-cache
 
       - name: Execute build script
         uses: appleboy/ssh-action@v1.0.0

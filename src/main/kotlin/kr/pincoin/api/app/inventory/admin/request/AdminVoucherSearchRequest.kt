@@ -1,10 +1,10 @@
-package kr.pincoin.api.app.inventory.open.request
+package kr.pincoin.api.app.inventory.admin.request
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import kr.pincoin.api.domain.inventory.enums.VoucherStatus
 import kr.pincoin.api.infra.inventory.repository.criteria.VoucherSearchCriteria
 
-data class VoucherSearchRequest(
+data class AdminVoucherSearchRequest(
     @JsonProperty("voucherId")
     val voucherId: Long? = null,
 

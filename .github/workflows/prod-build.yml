@@ -11,13 +11,10 @@ jobs:
     if: github.ref == 'refs/heads/main'
     runs-on: [ self-hosted, Production ]
     steps:
-      - name: Execute build script
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: ${{ secrets.PINCOIN_SERVER_HOST }}
-          username: ${{ secrets.PINCOIN_USERNAME }}
-          key: ${{ secrets.PINCOIN_SSH_KEY }}
-          port: ${{ secrets.PINCOIN_SERVER_PORT }}
-          script: |
-            cd /opt/docker/pincoin/backend
-            bash ./build.sh
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          echo "🔨 Building Docker image with GitHub Dockerfile..."
+          docker build -f Dockerfile.github -t pincoin-backend:latest .

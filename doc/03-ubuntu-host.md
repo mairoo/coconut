@@ -183,10 +183,16 @@ sudo apt-get update
 sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
 # 도커 설치 확인
-sudo docker run hello-world
+docker run hello-world
 
 sudo mkdir -p /opt/docker
 sudo chown ubuntu:ubuntu /opt/docker
+
+# ubuntu 계정 docker 그룹에 추가하여 sudo 권한 필요 없이 접근
+sudo usermod -aG docker ubuntu
+
+# 현재 세션에 그룹 변경사항 적용
+newgrp docker
 ```
 
 ## 호스트 nginx

@@ -1,4 +1,4 @@
-name: Test SSH and Environment
+name: Hello world
 
 on:
   workflow_dispatch:
@@ -6,34 +6,6 @@ on:
 jobs:
   test:
     runs-on: [ self-hosted, Production ]
-
     steps:
-      - name: Test SSH Connection and Environment
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.PINCOIN_SERVER_HOST }}
-          username: ${{ secrets.PINCOIN_USERNAME }}
-          key: ${{ secrets.PINCOIN_SSH_KEY }}
-          port: ${{ secrets.PINCOIN_SERVER_PORT }}
-          timeout: 60s
-          script: |
-            echo "=== Connection Test ==="
-            whoami
-            pwd
-            
-            echo "=== System Info ==="
-            uname -a
-            
-            echo "=== Docker Test ==="
-            docker --version
-            docker ps
-            
-            echo "=== Directory Check ==="
-            ls -la /opt/docker/pincoin/backend/
-            
-            echo "=== Script Check ==="
-            ls -la /opt/docker/pincoin/backend/*.sh
-            
-            echo "=== Git Test ==="
-            cd /opt/docker/pincoin/backend/repo
-            git status
+      - name: Test
+        run: echo "Hello World"

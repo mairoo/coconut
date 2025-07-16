@@ -6,9 +6,10 @@
 ./github/workflows/prod-deploy.yml
 ```
 
-# GitHub Secrets 3개 설정
+# GitHub Secrets 4개 설정
 
 - PINCOIN_SERVER_HOST
+- PINCOIN_SERVER_PORT
 - PINCOIN_USERNAME
 - PINCOIN_SSH_KEY
 

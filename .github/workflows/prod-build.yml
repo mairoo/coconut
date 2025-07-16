@@ -1,0 +1,38 @@
+name: Build for production
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    if: github.ref == 'refs/heads/main'
+    runs-on: [ self-hosted, Production ]
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: 'temurin'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build with Gradle
+        run: |
+          ./gradlew clean build -x test --parallel
+
+      - name: Execute build script
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.PINCOIN_SERVER_HOST }}
+          username: ${{ secrets.PINCOIN_USERNAME }}
+          key: ${{ secrets.PINCOIN_SSH_KEY }}
+          port: 22
+          script: |
+            cd /opt/docker/pincoin/backend
+            bash ./build.sh

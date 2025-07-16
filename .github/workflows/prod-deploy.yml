@@ -1,0 +1,19 @@
+name: Deploy for production
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: [ self-hosted, Production ]
+    steps:
+      - name: Deploy
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.PINCOIN_SERVER_HOST }}
+          username: ${{ secrets.PINCOIN_USERNAME }}
+          key: ${{ secrets.PINCOIN_SSH_KEY }}
+          port: 22
+          script: |
+            cd /opt/docker/pincoin/backend
+            bash ./deploy.sh

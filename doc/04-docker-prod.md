@@ -272,7 +272,7 @@ cd ..
 
 # 이미지 빌드 (backend-1 이미지 하나만 빌드)
 echo "🔨 Building backend image..."
-docker compose build --no-cache backend-1
+sudo docker compose build --no-cache backend-1
 ```
 
 ### `/opt/docker/pincoin/backend/deploy.sh`
@@ -307,8 +307,8 @@ restart_service() {
     local service=$1
     echo "🔄 Restarting $service..."
 
-    docker compose stop $service
-    docker compose up -d $service
+    sudo docker compose stop $service
+    sudo docker compose up -d $service
 
     if check_health $service; then
         return 0
@@ -351,7 +351,7 @@ source ./build.sh && source ./deploy.sh && echo "🎉 Full deployment completed!
 ## `/etc/nginx/sites-available/pincoin.kr`
 
 ```
-# HTTP to HTTPS 리다이렉트
+# HTTP to HTTPS 리다이렉트 (백엔드)
 server {
     listen 80;
     listen [::]:80;
@@ -361,7 +361,7 @@ server {
     return 301 https://$server_name$request_uri;
 }
 
-# HTTPS 서버
+# HTTPS 서버 (백엔드)
 server {
     listen 443 ssl http2;
     listen [::]:443 ssl http2;
@@ -417,9 +417,9 @@ server {
 ### 구성
 
 ```shell
- sudo chmod 755 /opt/docker/pincoin/backend/logs/
- sudo chown www-data:root /opt/docker/pincoin/backend/logs/
- sudo chown www-data:root /opt/docker/pincoin/backend/logs/*.log
+sudo chmod 755 /opt/docker/pincoin/backend/logs/
+sudo chown www-data:root /opt/docker/pincoin/backend/logs/
+sudo chown www-data:root /opt/docker/pincoin/backend/logs/*.log
 ```
 
 ### `/etc/logrotate.d/pincoin`

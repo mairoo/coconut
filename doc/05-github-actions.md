@@ -50,6 +50,7 @@ GitHub `coconut` 저장소에서 Settings > Security > Secrets and variables > A
 
 - **PINCOIN_SSH_KEY**: 위에서 복사한 private key 전체 내용
 - **PINCOIN_SERVER_HOST**: 서버 IP 주소
+- **PINCOIN_SERVER_PORT**: SSH 포트
 - **PINCOIN_USERNAME**: `ubuntu`
 
 # Self-hosted runner(내 서버에서 실행) vs. GitHub-hosted runner (GitHub 서버에서 실행)

@@ -59,6 +59,7 @@
     - **위험 분산: 여러 인스턴스에 서비스 분산으로 부분 장애 시에도 일부 서비스는 정상 운영 가능**
 
 **30만원짜리 사놓고 실제로 5개 쓰면 6만원, 40만원짜리 사놓고 실제로 6개 쓰면 6.67만원**
+
 - docker compose 수준 배포 관리 = 개발자 감당 수준
 - docker swarm 또는 kubernetes 도입 수준 배포 관리 = 인프라 관리자 채용 필요
 
@@ -136,6 +137,27 @@ PubkeyAuthentication yes
 
 ```
 sudo service ssh restart
+```
+
+## ssh 포트 변경
+
+```
+sudo vi /etc/ssh/sshd_config
+
+# 포트 변경 (예, 2222)
+# Port 2222
+
+# 포트 방화벽 허용
+sudo ufw allow 2222/tcp
+
+# ssh 재시작
+sudo service ssh restart
+
+# 방화벽 상태 확인
+sudo ufw status
+
+# 터미널 새로 열어서 접속 확인 후 22번 포트 닫기
+sudo ufw delete allow 22/tcp
 ```
 
 ## 도커 시스템

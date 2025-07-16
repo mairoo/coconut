@@ -13,7 +13,7 @@ jobs:
           host: ${{ secrets.PINCOIN_SERVER_HOST }}
           username: ${{ secrets.PINCOIN_USERNAME }}
           key: ${{ secrets.PINCOIN_SSH_KEY }}
-          port: 22
+          port: ${{ secrets.PINCOIN_SERVER_PORT }}
           script: |
             cd /opt/docker/pincoin/backend
             bash ./deploy.sh

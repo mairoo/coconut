@@ -1,10 +1,8 @@
 # 구성
 
-```
-./github/workflows/test.yml
-./github/workflows/prod-build.yml
-./github/workflows/prod-deploy.yml
-```
+- [.github/workflows/test.yml](../.github/workflows/test.yml)
+- [.github/workflows/prod-build.yml](../.github/workflows/prod-build.yml)
+- [.github/workflows/prod-deploy.yml](../.github/workflows/prod-deploy.yml)
 
 # GitHub Secrets 4개 설정
 
@@ -33,9 +31,6 @@ cat ~/.ssh/github_actions_key.pub >> ~/.ssh/authorized_keys
 ```bash
 # 로컬에서 자기 자신에게 SSH 연결 테스트
 ssh -i ~/.ssh/github_actions_key ubuntu@localhost
-
-# 또는 외부 IP로 테스트
-ssh -i ~/.ssh/github_actions_key ubuntu@141.164.54.239
 ```
 
 ## Private Key 내용 복사 준비

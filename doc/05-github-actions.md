@@ -4,63 +4,26 @@
 - [.github/workflows/prod-build.yml](../.github/workflows/prod-build.yml)
 - [.github/workflows/prod-deploy.yml](../.github/workflows/prod-deploy.yml)
 
-# GitHub Secrets 4개 설정
-
-- PINCOIN_SERVER_HOST
-- PINCOIN_SERVER_PORT
-- PINCOIN_USERNAME
-- PINCOIN_SSH_KEY
-
-## SSH 키 생성 및 공개 키 authorized_keys에 추가
-
-```bash
-# SSH 키 생성 (ubuntu 사용자로)
-ssh-keygen -t ed25519 -C "github-actions@pincoin" -f ~/.ssh/github_actions_key
-
-# 패스프레이즈 입력 시 그냥 엔터 두 번 (비워두기)
-Generating public/private ed25519 key pair.
-Enter passphrase (empty for no passphrase):
-Enter same passphrase again:
-
-# 공개키를 authorized_keys에 추가
-cat ~/.ssh/github_actions_key.pub >> ~/.ssh/authorized_keys
-```
-
-## SSH 연결 테스트
-
-```bash
-# 로컬에서 자기 자신에게 SSH 연결 테스트
-ssh -i ~/.ssh/github_actions_key ubuntu@localhost
-```
-
-## Private Key 내용 복사 준비
-
-```bash
-# Private Key 전체 내용 출력 (이 내용을 GitHub Secrets에 등록)
-cat ~/.ssh/github_actions_key
-```
-
-## GitHub Secrets 등록
+# GitHub Secrets 2개 설정
 
 GitHub `coconut` 저장소에서 Settings > Security > Secrets and variables > Actions > Repository secrets
 
-- **PINCOIN_SSH_KEY**: 위에서 복사한 private key 전체 내용
-- **PINCOIN_SERVER_HOST**: 서버 IP 주소
-- **PINCOIN_SERVER_PORT**: SSH 포트
-- **PINCOIN_USERNAME**: `ubuntu`
+- **PINCOIN_APPLICATION_PROD_YML**: application-prod.yml 파일 내용 전체
+- **PREFIX**: `pincoin`
 
-# Self-hosted runner(내 서버에서 실행) vs. GitHub-hosted runner (GitHub 서버에서 실행)
+## Self-hosted runner 사용
 
-Self-hosted runner
+## 장점
 
 - 이미 서버 관리 중: 추가 관리 부담 적음
 - 성능 향상: 3-5배 빠른 배포 가능
 - 비용 절약: GitHub Actions 과금 없음
 - 보안 강화: 내부 네트워크에서 처리
+- SSH 설정 불필요: Runner가 GitHub 서버에 443 포트로 직접 명령 실행
 
-## 설치
+## Self-hosted runner 설치
 
-```
+```bash
 # 1. /opt/runner 디렉토리 생성
 sudo mkdir -p /opt/runner
 
@@ -94,7 +57,7 @@ tar xzf ./actions-runner-linux-x64-2.326.0.tar.gz
 
 ## 서비스 등록
 
-```
+```bash
 # 서비스 설치
 sudo ./svc.sh install
 
@@ -104,5 +67,10 @@ sudo ./svc.sh start
 # 서비스 상태 확인
 sudo ./svc.sh status
 ```
+
+# 사용 방법
+
+1. **빌드**: GitHub Actions에서 "Build for production" 워크플로우 실행
+2. **배포**: GitHub Actions에서 "Deploy for production" 워크플로우 실행
 
 # GitHub Actions 테스트

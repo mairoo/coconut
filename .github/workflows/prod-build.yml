@@ -2,8 +2,6 @@ name: Build for production
 
 on:
   workflow_dispatch:
-  push:
-    branches: [ main ]
 
 jobs:
   build:

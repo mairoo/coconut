@@ -2,9 +2,8 @@ name: Build for production
 
 on:
   workflow_dispatch:
-# 자동 빌드 안 함
-#  push:
-#    branches: [ main ]
+  push:
+    branches: [ main ]
 
 jobs:
   build:

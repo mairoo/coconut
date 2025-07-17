@@ -133,8 +133,8 @@ scrape_configs:
     scrape_interval: 10s
     static_configs:
       - targets:
-          - '172.18.0.6:8080'  # pincoin-backend-1
-          - '172.18.0.7:8080'  # pincoin-backend-2
+          - 'pincoin-backend-1:8080'
+          - 'pincoin-backend-2:8080'
     scrape_timeout: 5s
 
   # Prometheus 자체 메트릭
@@ -299,5 +299,5 @@ curl http://localhost:10012/actuator/prometheus | head -20
 curl http://localhost:10011/actuator/prometheus | grep jvm_memory
 
 # Prometheus가 백엔드에 접근할 수 있는지 테스트
-docker exec pincoin-prometheus curl -s host.docker.internal:10011/actuator/prometheus | head -10
+docker exec pincoin-prometheus wget -qO- http://pincoin-backend-1:8080/actuator/health
 ```

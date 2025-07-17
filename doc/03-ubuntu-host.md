@@ -139,27 +139,6 @@ PubkeyAuthentication yes
 sudo service ssh restart
 ```
 
-## ssh 포트 변경
-
-```
-sudo vi /etc/ssh/sshd_config
-
-# 포트 변경 (예, 2222)
-# Port 2222
-
-# 포트 방화벽 허용
-sudo ufw allow 2222/tcp
-
-# ssh 재시작
-sudo service ssh restart
-
-# 방화벽 상태 확인
-sudo ufw status
-
-# 터미널 새로 열어서 접속 확인 후 22번 포트 닫기
-sudo ufw delete allow 22/tcp
-```
-
 ## 도커 시스템
 
 https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository

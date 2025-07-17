@@ -67,7 +67,7 @@ services:
       - '--storage.tsdb.retention.time=15d'
       - '--web.enable-lifecycle'
     networks:
-      - monitoring-network
+      - app-network
     environment:
       - TZ=Asia/Seoul
     logging:
@@ -92,7 +92,7 @@ services:
       - GF_DEFAULT_LOCALE=ko-KR
       - GF_INSTALL_PLUGINS=grafana-clock-panel
     networks:
-      - monitoring-network
+      - app-network
     depends_on:
       - prometheus
     logging:
@@ -102,15 +102,21 @@ services:
         max-file: "10"
 
 networks:
-  monitoring-network:
-    name: ${PREFIX}-monitoring-network
-    driver: bridge
+  app-network:
+    name: ${PREFIX}-network
+    external: true
 
 volumes:
   prometheus-data:
     name: ${PREFIX}-prometheus-data
   grafana-data:
     name: ${PREFIX}-grafana-data
+```
+
+## 실제 ip 확인
+
+```shell
+docker network inspect pincoin-network
 ```
 
 ## `prometheus/prometheus.yml`
@@ -127,14 +133,14 @@ scrape_configs:
     scrape_interval: 10s
     static_configs:
       - targets:
-          - 'host.docker.internal:10011'  # backend-1
-          - 'host.docker.internal:10012'  # backend-2
+          - '172.18.0.6:8080'  # pincoin-backend-1
+          - '172.18.0.7:8080'  # pincoin-backend-2
     scrape_timeout: 5s
 
   # Prometheus 자체 메트릭
   - job_name: 'prometheus'
     static_configs:
-      - targets: [ 'localhost:9090' ]
+      - targets: ['localhost:9090']
 ```
 
 ## `grafana/provisioning/datasources/prometheus.yml`
@@ -278,4 +284,20 @@ Grafana 접속 후:
 docker compose down
 docker volume rm pincoin-grafana-data
 docker compose up -d
+```
+
+# 검증
+
+## Prometheus 데이터 수집 확인
+
+```shell
+# 백엔드가 메트릭을 제공하는지 확인
+curl http://localhost:10011/actuator/prometheus | head -20
+curl http://localhost:10012/actuator/prometheus | head -20
+
+# jvm 메트릭이 있는지 확인
+curl http://localhost:10011/actuator/prometheus | grep jvm_memory
+
+# Prometheus가 백엔드에 접근할 수 있는지 테스트
+docker exec pincoin-prometheus curl -s host.docker.internal:10011/actuator/prometheus | head -10
 ```

@@ -5,7 +5,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: [ self-hosted, Production ]
+    runs-on: [ self-hosted, backend, Production ]
     steps:
       - name: Deploy with docker-compose
         run: |

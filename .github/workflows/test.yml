@@ -5,7 +5,7 @@ on:
 
 jobs:
   test:
-    runs-on: [ self-hosted, Production ]
+    runs-on: [ self-hosted, backend, Production ]
     steps:
       - name: Test
         run: echo "Hello World"

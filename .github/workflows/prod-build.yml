@@ -6,7 +6,7 @@ on:
 jobs:
   build:
     if: github.ref == 'refs/heads/main'
-    runs-on: [ self-hosted, Production ]
+    runs-on: [ self-hosted, backend, Production ]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

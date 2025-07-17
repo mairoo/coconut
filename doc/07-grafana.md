@@ -151,10 +151,8 @@ apiVersion: 1
 datasources:
   - name: Prometheus
     type: prometheus
-    access: proxy
     url: http://prometheus:9090
     isDefault: true
-    editable: true
 ```
 
 ## `grafana/provisioning/dashboards/dashboard.yml`
@@ -163,13 +161,8 @@ datasources:
 apiVersion: 1
 
 providers:
-  - name: 'default'
-    orgId: 1
-    folder: ''
+  - name: default
     type: file
-    disableDeletion: false
-    updateIntervalSeconds: 10
-    allowUiUpdates: true
     options:
       path: /etc/grafana/provisioning/dashboards
 ```

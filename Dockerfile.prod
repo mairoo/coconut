@@ -11,16 +11,16 @@ COPY gradle ./gradle
 RUN chmod +x ./gradlew
 
 # 의존성 먼저 다운로드 (캐싱 최적화)
-RUN ./gradlew dependencies --no-daemon
+RUN ./gradlew dependencies --no-daemon --quiet
 
 # 소스 코드 복사
 COPY src ./src
 
 # 애플리케이션 빌드
-RUN ./gradlew clean build -x test --no-daemon
+RUN ./gradlew clean build -x test --no-daemon --quiet
 
 # 실행 스테이지
-FROM eclipse-temurin:21-jdk-alpine
+FROM eclipse-temurin:21-jre-alpine
 
 WORKDIR /app
 

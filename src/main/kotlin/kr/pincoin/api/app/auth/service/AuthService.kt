@@ -54,7 +54,7 @@ class AuthService(
     }
 
     /**
-     * 기존 JWT 기반 로그인 로직 (변경 없음)
+     * 기존 JWT 기반 로그인 로직
      */
     private fun loginWithJwt(request: SignInRequest, servletRequest: HttpServletRequest): TokenPair {
         val user = try {
@@ -90,6 +90,7 @@ class AuthService(
             throw BusinessException(AuthErrorCode.INVALID_CREDENTIALS)
         }
 
+        // 로그인 성공 이벤트 발행
         eventPublisher.publishEvent(
             LoginEvent(
                 ipAddress = IpUtils.getClientIp(servletRequest),
@@ -100,6 +101,19 @@ class AuthService(
                 reason = "비밀번호 로그인: 성공",
             )
         )
+
+        // 🆕 로그인 성공 후 Keycloak 동기화 시도 (백그라운드)
+        try {
+            val syncResult = keycloakAuthService.syncUserToKeycloak(user)
+            if (syncResult) {
+                logger.info { "Keycloak 동기화 성공: ${user.email}" }
+            } else {
+                logger.debug { "Keycloak 동기화 스킵 (설정 비활성화): ${user.email}" }
+            }
+        } catch (e: Exception) {
+            // 동기화 실패해도 로그인은 성공으로 처리
+            logger.warn(e) { "Keycloak 동기화 실패하지만 로그인은 성공: ${user.email}" }
+        }
 
         val accessToken = jwtTokenProvider.createAccessToken(user)
 

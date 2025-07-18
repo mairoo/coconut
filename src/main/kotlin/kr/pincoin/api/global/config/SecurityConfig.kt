@@ -33,77 +33,86 @@ class SecurityConfig(
     private val keycloakProperties: KeycloakProperties,
 ) {
     @Bean
-    fun filterChain(http: HttpSecurity): SecurityFilterChain = http
-        .cors { cors ->
-            // CORS(Cross-Origin Resource Sharing) 설정
-            cors.configurationSource(corsConfigurationSource())
-        }
-        .headers { headers ->
-            // 기본 보안 헤더를 비활성화하고 필요한 것만 직접 설정
-            headers.defaultsDisabled()
+    fun filterChain(http: HttpSecurity): SecurityFilterChain {
+        // 순서 중요: 기본 설정 → OAuth2 설정 (조건부) → 권한 설정 → 필터 → 예외 처리 → 빌드
 
-            // HTTPS 보안 정책 설정
-            headers.httpStrictTransportSecurity { hstsConfig ->
-                hstsConfig
-                    .includeSubDomains(true) // 서브도메인에도 HTTPS 적용
-                    .maxAgeInSeconds(31536000) // HSTS 유효기간 1년
-                    .preload(true) // 브라우저의 HSTS 프리로드 목록에 포함
+        // 1. 기본 설정
+        val httpSecurity = http
+            .cors { cors ->
+                // CORS(Cross-Origin Resource Sharing) 설정
+                cors.configurationSource(corsConfigurationSource())
             }
+            .headers { headers ->
+                // 기본 보안 헤더를 비활성화하고 필요한 것만 직접 설정
+                headers.defaultsDisabled()
 
-            // Content-Type 헤더를 브라우저가 임의로 변경하는 것을 방지
-            headers.contentTypeOptions { }
-            // 브라우저 캐시 제어 헤더 설정
-            headers.cacheControl { }
-        }
-        .csrf { it.disable() } // CSRF 보안 비활성화 (REST API이므로 불필요)
-        .formLogin { it.disable() } // 폼 로그인 비활성화
-        .httpBasic { it.disable() } // HTTP Basic 인증 비활성화
-        .rememberMe { it.disable() } // Remember-Me 기능 비활성화
-        .anonymous { it.disable() } // 익명 사용자 기능 비활성화
-        .sessionManagement { session ->
-            // JWT 사용을 위한 세션리스 정책 설정
-            session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-        }
-        .oauth2ResourceServer { oauth2 ->
-            // Keycloak이 활성화된 경우에만 OAuth2 Resource Server 설정
-            if (keycloakProperties.enabled) {
-                oauth2.jwt { jwt ->
-                    jwt.decoder(jwtDecoder())
+                // HTTPS 보안 정책 설정
+                headers.httpStrictTransportSecurity { hstsConfig ->
+                    hstsConfig
+                        .includeSubDomains(true) // 서브도메인에도 HTTPS 적용
+                        .maxAgeInSeconds(31536000) // HSTS 유효기간 1년
+                        .preload(true) // 브라우저의 HSTS 프리로드 목록에 포함
                 }
+
+                // Content-Type 헤더를 브라우저가 임의로 변경하는 것을 방지
+                headers.contentTypeOptions { }
+                // 브라우저 캐시 제어 헤더 설정
+                headers.cacheControl { }
             }
-        }
-        .oauth2Client { oauth2 ->
-            // Keycloak이 활성화된 경우에만 OAuth2 Client 설정
-            if (keycloakProperties.enabled) {
-                // OAuth2 클라이언트 설정은 application.yml에서 처리
-            } else {
-                oauth2.disable()
+            .csrf { it.disable() } // CSRF 보안 비활성화 (REST API이므로 불필요)
+            .formLogin { it.disable() } // 폼 로그인 비활성화
+            .httpBasic { it.disable() } // HTTP Basic 인증 비활성화
+            .rememberMe { it.disable() } // Remember-Me 기능 비활성화
+            .anonymous { it.disable() } // 익명 사용자 기능 비활성화
+            .sessionManagement { session ->
+                // JWT 사용을 위한 세션리스 정책 설정
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             }
+
+        // 2. OAuth2 설정
+        val finalHttpSecurity = if (keycloakProperties.enabled) {
+            httpSecurity
+                .oauth2ResourceServer { oauth2 ->
+                    oauth2.jwt { jwt ->
+                        jwt.decoder(jwtDecoder())
+                    }
+                }
+                .oauth2Client {
+                    // OAuth2 클라이언트 설정은 application.yml에서 처리
+                }
+        } else {
+            httpSecurity
         }
-        .authorizeHttpRequests { auth ->
-            auth
-                .requestMatchers(
-                    "/actuator/health",
-                    "/actuator/prometheus",
-                    "/actuator/info"
-                ).permitAll()
-                .requestMatchers("/actuator/**").denyAll()
-                .requestMatchers(
-                    "/auth/**",
-                    "/oauth2/**",
-                    "/open/**",
-                    "/webhooks/**",
-                    "/health",
-                ).permitAll()
-                .anyRequest().authenticated()
-        }
-        .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
-        .exceptionHandling { exception ->
-            exception
-                .authenticationEntryPoint(authenticationEntryPoint) // 인증 실패 시 처리
-                .accessDeniedHandler(accessDeniedHandler) // 인가 실패 시 처리
-        }
-        .build()
+
+        return finalHttpSecurity
+            // 3. 권한 설정
+            .authorizeHttpRequests { auth ->
+                auth
+                    .requestMatchers(
+                        "/actuator/health",
+                        "/actuator/prometheus",
+                        "/actuator/info"
+                    ).permitAll()
+                    .requestMatchers("/actuator/**").denyAll()
+                    .requestMatchers(
+                        "/auth/**",
+                        "/oauth2/**",
+                        "/open/**",
+                        "/webhooks/**",
+                        "/health",
+                    ).permitAll()
+                    .anyRequest().authenticated()
+            }
+            // 4. 필터 설정
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
+            // 5. 예외 처리
+            .exceptionHandling { exception ->
+                exception
+                    .authenticationEntryPoint(authenticationEntryPoint) // 인증 실패 시 처리
+                    .accessDeniedHandler(accessDeniedHandler) // 인가 실패 시 처리
+            }
+            .build()
+    }
 
     @Bean
     @ConditionalOnProperty(name = ["keycloak.enabled"], havingValue = "true")

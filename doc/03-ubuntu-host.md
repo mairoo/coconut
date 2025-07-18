@@ -174,6 +174,16 @@ sudo usermod -aG docker ubuntu
 newgrp docker
 ```
 
+`.dockerignore`
+
+```dockerignore
+**/build/
+**/.gradle/
+.gradle/
+*.log
+logs/
+```
+
 ## 호스트 nginx
 
 ### 설치

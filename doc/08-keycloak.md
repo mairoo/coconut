@@ -407,6 +407,9 @@ keycloak:
   server-url: ${KEYCLOAK_AUTH_SERVER_URL:http://keycloak:8080}
 ```
 
+# 주요 파일
+- [/api/global/properties/KeycloakProperties.kt](/src/main/kotlin/kr/pincoin/api/global/properties/KeycloakProperties.kt)
+
 # 마이그레이션
 
 ## 절차

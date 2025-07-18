@@ -45,6 +45,8 @@ services:
     container_name: ${PREFIX}-keycloak
     image: quay.io/keycloak/keycloak:23.0.3
     restart: unless-stopped
+    ports:
+      - "10013:8080"
     depends_on:
       - keycloak-postgres
     networks:
@@ -64,7 +66,7 @@ services:
       - KC_HTTP_ENABLED=true
       - KC_HEALTH_ENABLED=true
       - KC_METRICS_ENABLED=true
-    command: start-dev
+    command: start
     volumes:
       - keycloak-data:/opt/keycloak/data
     logging:
@@ -320,15 +322,14 @@ PREFIX=pincoin
 KEYCLOAK_ADMIN=admin
 KEYCLOAK_ADMIN_PASSWORD=secure_admin_password_123
 KEYCLOAK_DB_PASSWORD=secure_db_password_123
-
-KEYCLOAK_ENABLED=false
-KEYCLOAK_REALM=pincoin
-KEYCLOAK_CLIENT_ID=pincoin-backend
-KEYCLOAK_CLIENT_SECRET=your-secret
-KEYCLOAK_AUTH_SERVER_URL=http://keycloak:8080
 ```
 
 ## KEYCLOAK_CLIENT_SECRET 받아서 `.env` 파일 수정
+
+```
+Unable to resolve Configuration with the provided Issuer of "http://keycloak:8080/realms/pincoin",
+errors: [404 Not Found on GET request for "http://keycloak:8080/realms/pincoin/.well-known/openid-configuration": "{"error":"Realm does not exist"}"]
+```
 
 ```bash
 # 토큰 받기
@@ -372,39 +373,39 @@ echo "KEYCLOAK_CLIENT_SECRET=$CLIENT_SECRET"
 
 ## `application.yml`
 
-```
+```yaml
 spring:
   security:
     oauth2:
       resourceserver:
         jwt:
           # Keycloak JWT 검증 설정 (기존 JWT와 병행 사용)
-          issuer-uri: ${KEYCLOAK_AUTH_SERVER_URL:http://keycloak:8080}/realms/${KEYCLOAK_REALM:pincoin}
+          issuer-uri: http://keycloak:8080/realms/pincoin
       client:
         registration:
           keycloak:
-            client-id: ${KEYCLOAK_CLIENT_ID:pincoin-backend}
-            client-secret: ${KEYCLOAK_CLIENT_SECRET:}
+            client-id: pincoin-backend
+            client-secret: your-secret
             scope: openid,profile,email
             authorization-grant-type: authorization_code
             redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
         provider:
           keycloak:
-            issuer-uri: ${KEYCLOAK_AUTH_SERVER_URL:http://keycloak:8080}/realms/${KEYCLOAK_REALM:pincoin}
+            issuer-uri: http://keycloak:8080/realms/pincoin
             user-name-attribute: preferred_username
             
 keycloak:
   # 점진적 마이그레이션을 위한 활성화 플래그
-  enabled: ${KEYCLOAK_ENABLED:false}
+  enabled: true
   # 기존 사용자 매핑 전략
   user-migration:
     strategy: email-based  # email 기준으로 매핑
     auto-create: false     # 자동 생성 비활성화
   # Realm 및 클라이언트 설정
-  realm: ${KEYCLOAK_REALM:pincoin}
-  client-id: ${KEYCLOAK_CLIENT_ID:pincoin-backend}
-  client-secret: ${KEYCLOAK_CLIENT_SECRET:}
-  server-url: ${KEYCLOAK_AUTH_SERVER_URL:http://keycloak:8080}
+  realm: pincoin
+  client-id: pincoin-backend
+  client-secret: your-secret
+  server-url: http://keycloak:8080
 ```
 
 # 주요 파일

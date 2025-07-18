@@ -186,7 +186,7 @@ services:
       - KC_HTTP_ENABLED=true
       - KC_HEALTH_ENABLED=true
       - KC_METRICS_ENABLED=true
-    command: start --optimized
+    command: start
     volumes:
       - keycloak-data:/opt/keycloak/data
     logging:

@@ -408,7 +408,12 @@ keycloak:
 ```
 
 # 주요 파일
+
 - [/api/global/properties/KeycloakProperties.kt](/src/main/kotlin/kr/pincoin/api/global/properties/KeycloakProperties.kt)
+- [/api/global/config/SecurityConfig.kt](/src/main/kotlin/kr/pincoin/api/global/config/SecurityConfig.kt)
+- [/api/global/config/KeycloakWebClientConfig.kt](/src/main/kotlin/kr/pincoin/api/global/config/KeycloakWebClientConfig.kt)
+- [/api/app/auth/service/AuthService.kt](/src/main/kotlin/kr/pincoin/api/app/auth/service/AuthService.kt)
+- [/api/app/auth/service/KeycloakAuthService.kt](/src/main/kotlin/kr/pincoin/api/app/auth/service/KeycloakAuthService.kt)
 
 # 마이그레이션
 

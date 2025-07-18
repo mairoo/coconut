@@ -1,9 +1,11 @@
 package kr.pincoin.api.global.config
 
 import kr.pincoin.api.global.properties.CorsProperties
+import kr.pincoin.api.global.properties.KeycloakProperties
 import kr.pincoin.api.global.security.encoder.DjangoPasswordEncoder
 import kr.pincoin.api.global.security.filter.JwtAuthenticationFilter
 import kr.pincoin.api.global.security.handler.ApiAuthenticationEntryPoint
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
@@ -11,6 +13,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.crypto.password.PasswordEncoder
+import org.springframework.security.oauth2.jwt.JwtDecoder
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.access.AccessDeniedHandler
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
@@ -26,6 +30,7 @@ class SecurityConfig(
     private val authenticationEntryPoint: ApiAuthenticationEntryPoint,
     private val accessDeniedHandler: AccessDeniedHandler,
     private val corsProperties: CorsProperties,
+    private val keycloakProperties: KeycloakProperties,
 ) {
     @Bean
     fun filterChain(http: HttpSecurity): SecurityFilterChain = http
@@ -59,6 +64,22 @@ class SecurityConfig(
             // JWT 사용을 위한 세션리스 정책 설정
             session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
         }
+        .oauth2ResourceServer { oauth2 ->
+            // Keycloak이 활성화된 경우에만 OAuth2 Resource Server 설정
+            if (keycloakProperties.enabled) {
+                oauth2.jwt { jwt ->
+                    jwt.decoder(jwtDecoder())
+                }
+            }
+        }
+        .oauth2Client { oauth2 ->
+            // Keycloak이 활성화된 경우에만 OAuth2 Client 설정
+            if (keycloakProperties.enabled) {
+                // OAuth2 클라이언트 설정은 application.yml에서 처리
+            } else {
+                oauth2.disable()
+            }
+        }
         .authorizeHttpRequests { auth ->
             auth
                 .requestMatchers(
@@ -83,6 +104,14 @@ class SecurityConfig(
                 .accessDeniedHandler(accessDeniedHandler) // 인가 실패 시 처리
         }
         .build()
+
+    @Bean
+    @ConditionalOnProperty(name = ["keycloak.enabled"], havingValue = "true")
+    fun jwtDecoder(): JwtDecoder {
+        val jwkSetUri =
+            "${keycloakProperties.serverUrl}/realms/${keycloakProperties.realm}/protocol/openid-connect/certs"
+        return NimbusJwtDecoder.withJwkSetUri(jwkSetUri).build()
+    }
 
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {

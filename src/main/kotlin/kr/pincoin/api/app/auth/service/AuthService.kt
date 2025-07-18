@@ -3,8 +3,8 @@ package kr.pincoin.api.app.auth.service
 import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.servlet.http.HttpServletRequest
 import kr.pincoin.api.app.auth.request.SignInRequest
-import kr.pincoin.api.app.auth.response.AccessTokenResponse
 import kr.pincoin.api.app.auth.request.UserCreateRequest
+import kr.pincoin.api.app.auth.response.AccessTokenResponse
 import kr.pincoin.api.domain.coordinator.user.UserResourceCoordinator
 import kr.pincoin.api.domain.user.error.AuthErrorCode
 import kr.pincoin.api.domain.user.event.LoginEvent
@@ -34,14 +34,29 @@ class AuthService(
     private val jwtProperties: JwtProperties,
     private val redisTemplate: RedisTemplate<String, String>,
     private val eventPublisher: ApplicationEventPublisher,
+    private val keycloakAuthService: KeycloakAuthService,
 ) {
     private val logger = KotlinLogging.logger {}
 
     /**
      * 사용자 로그인 처리 및 토큰 발급
+     * Keycloak이 활성화된 경우 먼저 Keycloak 인증을 시도하고, 실패하면 기존 JWT 인증으로 폴백
      */
     @Transactional
     fun login(request: SignInRequest, servletRequest: HttpServletRequest): TokenPair {
+        // 1. Keycloak 인증 시도 (활성화된 경우)
+        keycloakAuthService.loginWithKeycloak(request, servletRequest)?.let { tokenPair ->
+            return tokenPair
+        }
+
+        // 2. 기존 JWT 인증 (Keycloak 비활성화 또는 인증 실패시)
+        return loginWithJwt(request, servletRequest)
+    }
+
+    /**
+     * 기존 JWT 기반 로그인 로직 (변경 없음)
+     */
+    private fun loginWithJwt(request: SignInRequest, servletRequest: HttpServletRequest): TokenPair {
         val user = try {
             userRepository.findUser(UserSearchCriteria(email = request.email, isActive = true))
                 ?: throw BusinessException(AuthErrorCode.INVALID_CREDENTIALS)

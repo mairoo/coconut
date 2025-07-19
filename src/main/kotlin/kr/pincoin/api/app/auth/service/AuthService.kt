@@ -15,6 +15,7 @@ import kr.pincoin.api.global.constant.RedisKey
 import kr.pincoin.api.global.exception.BusinessException
 import kr.pincoin.api.global.exception.JwtAuthenticationException
 import kr.pincoin.api.global.properties.JwtProperties
+import kr.pincoin.api.global.properties.KeycloakProperties
 import kr.pincoin.api.global.security.jwt.JwtTokenProvider
 import kr.pincoin.api.global.utils.IpUtils
 import kr.pincoin.api.infra.user.repository.criteria.UserSearchCriteria
@@ -32,6 +33,7 @@ class AuthService(
     private val passwordEncoder: PasswordEncoder,
     private val jwtTokenProvider: JwtTokenProvider,
     private val jwtProperties: JwtProperties,
+    private val keycloakProperties: KeycloakProperties,
     private val redisTemplate: RedisTemplate<String, String>,
     private val eventPublisher: ApplicationEventPublisher,
     private val keycloakAuthService: KeycloakAuthService,
@@ -143,9 +145,25 @@ class AuthService(
 
     /**
      * 리프레시 토큰을 사용하여 새로운 토큰 쌍 발급
+     * Keycloak 활성화 시 Keycloak 리프레시 토큰 우선 처리
      */
     @Transactional
     fun refresh(refreshToken: String, servletRequest: HttpServletRequest): TokenPair {
+        // 🆕 Keycloak이 활성화된 경우 Keycloak 리프레시 토큰으로 처리 시도
+        if (keycloakProperties.enabled) {
+            keycloakAuthService.refreshWithKeycloak(refreshToken, servletRequest)?.let { tokenPair ->
+                return tokenPair
+            }
+        }
+
+        // 기존 JWT 리프레시 토큰 처리 (폴백)
+        return refreshWithJwt(refreshToken, servletRequest)
+    }
+
+    /**
+     * 기존 JWT 리프레시 토큰 처리 로직
+     */
+    private fun refreshWithJwt(refreshToken: String, servletRequest: HttpServletRequest): TokenPair {
         try {
             validateRefreshToken(refreshToken, servletRequest)
         } catch (e: JwtAuthenticationException) {
@@ -241,9 +259,27 @@ class AuthService(
     }
 
     /**
-     * 로그아웃 처리 Redis에서 리프레시 토큰과 관련 정보 삭제
+     * 로그아웃 처리
+     * Keycloak 활성화 시 Keycloak 로그아웃도 함께 처리
      */
     fun logout(refreshToken: String) {
+        // 🆕 Keycloak이 활성화된 경우 Keycloak 로그아웃 시도
+        if (keycloakProperties.enabled) {
+            try {
+                keycloakAuthService.logoutFromKeycloak(refreshToken)
+            } catch (e: Exception) {
+                logger.warn(e) { "Keycloak 로그아웃 실패하지만 계속 진행" }
+            }
+        }
+
+        // 기존 JWT 리프레시 토큰 삭제 (Redis)
+        logoutJwt(refreshToken)
+    }
+
+    /**
+     * 기존 JWT 로그아웃 처리
+     */
+    private fun logoutJwt(refreshToken: String) {
         with(redisTemplate) {
             val email = opsForHash<String, String>().get(refreshToken, RedisKey.EMAIL) ?: return
 

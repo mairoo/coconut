@@ -4,11 +4,13 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.servlet.http.HttpServletRequest
 import kr.pincoin.api.app.auth.request.SignInRequest
 import kr.pincoin.api.app.auth.response.AccessTokenResponse
+import kr.pincoin.api.domain.user.error.AuthErrorCode
 import kr.pincoin.api.domain.user.event.LoginEvent
 import kr.pincoin.api.domain.user.model.User
 import kr.pincoin.api.domain.user.repository.UserRepository
 import kr.pincoin.api.domain.user.vo.TokenPair
 import kr.pincoin.api.global.constant.RedisKey
+import kr.pincoin.api.global.exception.JwtAuthenticationException
 import kr.pincoin.api.global.properties.JwtProperties
 import kr.pincoin.api.global.properties.KeycloakProperties
 import kr.pincoin.api.global.security.jwt.JwtTokenProvider
@@ -25,7 +27,6 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
 import java.time.Duration
-import java.util.concurrent.TimeUnit
 
 @Service
 class KeycloakAuthService(
@@ -39,6 +40,10 @@ class KeycloakAuthService(
 ) {
     private val logger = KotlinLogging.logger {}
 
+    /**
+     * Keycloak 로그인 처리
+     * 성공 시 Keycloak 리프레시 토큰과 내부 액세스 토큰 반환
+     */
     fun loginWithKeycloak(
         request: SignInRequest,
         servletRequest: HttpServletRequest,
@@ -49,11 +54,15 @@ class KeycloakAuthService(
         }
 
         return try {
-            val keycloakToken = authenticateWithKeycloak(request.email, request.password)
+            // 🔄 Keycloak에서 토큰 쌍 받기 (액세스 + 리프레시)
+            val keycloakTokens = authenticateWithKeycloak(request.email, request.password)
                 ?: return null
 
-            // Keycloak 토큰으로 사용자 정보 조회
-            val userInfo = getUserInfoFromKeycloak(keycloakToken)
+            val keycloakAccessToken = keycloakTokens["access_token"] as? String ?: return null
+            val keycloakRefreshToken = keycloakTokens["refresh_token"] as? String
+
+            // Keycloak 액세스 토큰으로 사용자 정보 조회
+            val userInfo = getUserInfoFromKeycloak(keycloakAccessToken)
             val email = userInfo["email"] as? String ?: run {
                 logger.warn { "Keycloak 사용자 정보에서 이메일을 찾을 수 없습니다" }
                 return null
@@ -80,31 +89,22 @@ class KeycloakAuthService(
                 )
             )
 
-            // 내부 JWT 토큰 생성
-            val accessToken = jwtTokenProvider.createAccessToken(user)
+            // 내부 JWT 액세스 토큰 생성 (기존 API 호환성 유지)
+            val internalAccessToken = jwtTokenProvider.createAccessToken(user)
 
-            // 리프레시 토큰 처리
-            if (request.rememberMe) {
-                // 기존 리프레시 토큰 삭제
-                with(redisTemplate) {
-                    opsForValue().get(user.email)?.let { oldRefreshToken ->
-                        delete(oldRefreshToken)
-                    }
-                }
-
-                val refreshToken = jwtTokenProvider.createRefreshToken()
-                saveRefreshTokenInfo(refreshToken, user.email, servletRequest)
-
-                TokenPair(
-                    AccessTokenResponse.of(accessToken, jwtProperties.accessTokenExpiresIn),
-                    refreshToken
-                )
+            // 🆕 Keycloak 리프레시 토큰 저장 (remember me 여부와 관계없이)
+            val finalRefreshToken = if (request.rememberMe && keycloakRefreshToken != null) {
+                // Keycloak 리프레시 토큰을 Redis에 저장하여 추후 갱신에 사용
+                saveKeycloakRefreshToken(keycloakRefreshToken, user.email, servletRequest)
+                keycloakRefreshToken
             } else {
-                TokenPair(
-                    AccessTokenResponse.of(accessToken, jwtProperties.accessTokenExpiresIn),
-                    null
-                )
+                null
             }
+
+            TokenPair(
+                AccessTokenResponse.of(internalAccessToken, jwtProperties.accessTokenExpiresIn),
+                finalRefreshToken
+            )
         } catch (e: WebClientResponseException) {
             logger.debug { "Keycloak 인증 실패 (HTTP ${e.statusCode}): ${request.email}" }
             publishLoginFailureEvent(request.email, servletRequest, "HTTP ${e.statusCode}")
@@ -113,6 +113,107 @@ class KeycloakAuthService(
             logger.error(e) { "Keycloak 인증 중 예상치 못한 오류: ${request.email}" }
             publishLoginFailureEvent(request.email, servletRequest, e.message ?: "알 수 없는 오류")
             null
+        }
+    }
+
+    /**
+     * 🆕 Keycloak 리프레시 토큰으로 새로운 토큰 쌍 발급
+     */
+    fun refreshWithKeycloak(
+        refreshToken: String,
+        servletRequest: HttpServletRequest,
+    ): TokenPair? {
+        if (!keycloakProperties.enabled) {
+            return null
+        }
+
+        return try {
+            // 1. Redis에서 Keycloak 리프레시 토큰 정보 조회
+            val tokenInfo = getKeycloakRefreshTokenInfo(refreshToken) ?: return null
+            val email = tokenInfo["email"] ?: return null
+
+            // 2. Keycloak에서 토큰 갱신
+            val newTokens = refreshKeycloakToken(refreshToken) ?: return null
+            val newKeycloakRefreshToken = newTokens["refresh_token"] as? String ?: refreshToken
+
+            // 3. 사용자 정보 재조회 (최신 정보 반영)
+            val user = userRepository.findUser(UserSearchCriteria(email = email, isActive = true))
+                ?: run {
+                    logger.warn { "리프레시 중 사용자를 찾을 수 없음: $email" }
+                    return null
+                }
+
+            // 4. 새로운 내부 액세스 토큰 생성
+            val newInternalAccessToken = jwtTokenProvider.createAccessToken(user)
+
+            // 5. 새로운 Keycloak 리프레시 토큰 저장
+            if (newKeycloakRefreshToken != refreshToken) {
+                // 기존 토큰 삭제
+                deleteKeycloakRefreshToken(refreshToken)
+                // 새 토큰 저장
+                saveKeycloakRefreshToken(newKeycloakRefreshToken, email, servletRequest)
+            }
+
+            eventPublisher.publishEvent(
+                LoginEvent(
+                    ipAddress = IpUtils.getClientIp(servletRequest),
+                    userId = user.id,
+                    email = email,
+                    userAgent = servletRequest.getHeader("User-Agent"),
+                    isSuccessful = true,
+                    reason = "Keycloak 리프레시: 성공",
+                )
+            )
+
+            TokenPair(
+                AccessTokenResponse.of(newInternalAccessToken, jwtProperties.accessTokenExpiresIn),
+                newKeycloakRefreshToken
+            )
+        } catch (_: WebClientResponseException.Unauthorized) {
+            logger.debug { "Keycloak 리프레시 토큰 만료: $refreshToken" }
+            deleteKeycloakRefreshToken(refreshToken)
+            throw JwtAuthenticationException(AuthErrorCode.INVALID_REFRESH_TOKEN)
+        } catch (e: Exception) {
+            logger.warn(e) { "Keycloak 토큰 갱신 실패: $refreshToken" }
+            null
+        }
+    }
+
+    /**
+     * 🆕 Keycloak 로그아웃 처리
+     */
+    fun logoutFromKeycloak(refreshToken: String) {
+        if (!keycloakProperties.enabled) {
+            return
+        }
+
+        try {
+            // 1. Redis에서 토큰 정보 조회
+            val tokenInfo = getKeycloakRefreshTokenInfo(refreshToken) ?: return
+
+            // 2. Keycloak에서 로그아웃 (토큰 무효화)
+            val formData = LinkedMultiValueMap<String, String>().apply {
+                add("client_id", keycloakProperties.clientId)
+                add("client_secret", keycloakProperties.clientSecret)
+                add("refresh_token", refreshToken)
+            }
+
+            keycloakWebClient
+                .post()
+                .uri("/realms/${keycloakProperties.realm}/protocol/openid-connect/logout")
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .body(BodyInserters.fromFormData(formData))
+                .retrieve()
+                .toBodilessEntity()
+                .timeout(Duration.ofSeconds(5))
+                .block()
+
+            logger.debug { "Keycloak 로그아웃 성공: ${tokenInfo["email"]}" }
+        } catch (e: Exception) {
+            logger.warn(e) { "Keycloak 로그아웃 실패하지만 계속 진행: $refreshToken" }
+        } finally {
+            // Redis에서 토큰 정보 삭제
+            deleteKeycloakRefreshToken(refreshToken)
         }
     }
 
@@ -148,20 +249,101 @@ class KeycloakAuthService(
     }
 
     /**
+     * Keycloak 리프레시 토큰을 Redis에 저장
+     */
+    private fun saveKeycloakRefreshToken(
+        keycloakRefreshToken: String,
+        email: String,
+        servletRequest: HttpServletRequest
+    ) {
+        val clientIp = IpUtils.getClientIp(servletRequest)
+
+        with(redisTemplate) {
+            // Keycloak 리프레시 토큰 정보 저장
+            opsForHash<String, String>().putAll(
+                "${RedisKey.KEYCLOAK_REFRESH_PREFIX}$keycloakRefreshToken",
+                mapOf(
+                    "email" to email,
+                    "ip" to clientIp,
+                    "type" to "keycloak"
+                )
+            )
+
+            // 만료 시간 설정 (Keycloak 기본 리프레시 토큰 수명 사용)
+            expire(
+                "${RedisKey.KEYCLOAK_REFRESH_PREFIX}$keycloakRefreshToken",
+                jwtProperties.refreshTokenExpiresIn,
+                java.util.concurrent.TimeUnit.SECONDS
+            )
+
+            // 이메일로 역방향 조회 가능하도록 저장
+            opsForValue().set(
+                "${RedisKey.KEYCLOAK_EMAIL_PREFIX}:$email",
+                keycloakRefreshToken,
+                jwtProperties.refreshTokenExpiresIn,
+                java.util.concurrent.TimeUnit.SECONDS
+            )
+        }
+    }
+
+    /**
+     * Redis에서 Keycloak 리프레시 토큰 정보 조회
+     */
+    private fun getKeycloakRefreshTokenInfo(refreshToken: String): Map<String, String>? {
+        return try {
+            val tokenInfo = redisTemplate.opsForHash<String, String>()
+                .entries("${RedisKey.KEYCLOAK_REFRESH_PREFIX}$refreshToken")
+
+            if (tokenInfo.isEmpty() || tokenInfo["type"] != "keycloak") {
+                return null
+            }
+
+            tokenInfo
+        } catch (e: Exception) {
+            logger.debug(e) { "Keycloak 리프레시 토큰 정보 조회 실패: $refreshToken" }
+            null
+        }
+    }
+
+    /**
+     * Redis에서 Keycloak 리프레시 토큰 삭제
+     */
+    private fun deleteKeycloakRefreshToken(refreshToken: String) {
+        try {
+            with(redisTemplate) {
+                // 토큰 정보에서 이메일 조회
+                val email = opsForHash<String, String>()
+                    .get("${RedisKey.KEYCLOAK_REFRESH_PREFIX}$refreshToken", "email")
+
+                // 토큰 정보 삭제
+                delete("${RedisKey.KEYCLOAK_REFRESH_PREFIX}$refreshToken")
+
+                // 이메일 역방향 조회 키 삭제
+                email?.let {
+                    delete("${RedisKey.KEYCLOAK_EMAIL_PREFIX}:$it")
+                }
+            }
+        } catch (e: Exception) {
+            logger.debug(e) { "Keycloak 리프레시 토큰 삭제 실패: $refreshToken" }
+        }
+    }
+
+    /**
      * Keycloak에서 사용자 인증을 시도합니다.
      * Resource Owner Password Credentials Grant 사용
+     * 액세스 토큰과 리프레시 토큰 모두 반환
      */
     private fun authenticateWithKeycloak(
         email: String,
         password: String,
-    ): String? {
+    ): Map<String, Any>? {
         val formData = LinkedMultiValueMap<String, String>().apply {
             add("grant_type", "password")
             add("client_id", keycloakProperties.clientId)
             add("client_secret", keycloakProperties.clientSecret)
             add("username", email)
             add("password", password)
-            add("scope", "openid profile email")
+            add("scope", "openid profile email offline_access") // 🆕 offline_access 추가로 리프레시 토큰 요청
         }
 
         return try {
@@ -190,9 +372,51 @@ class KeycloakAuthService(
                     Mono.empty()
                 }
                 .block()
-                ?.get("access_token") as? String
         } catch (e: Exception) {
             logger.debug { "Keycloak 인증 중 예외 발생: ${e.message}" }
+            null
+        }
+    }
+
+    /**
+     * Keycloak 리프레시 토큰으로 새로운 토큰 쌍 요청
+     */
+    private fun refreshKeycloakToken(refreshToken: String): Map<String, Any>? {
+        val formData = LinkedMultiValueMap<String, String>().apply {
+            add("grant_type", "refresh_token")
+            add("client_id", keycloakProperties.clientId)
+            add("client_secret", keycloakProperties.clientSecret)
+            add("refresh_token", refreshToken)
+        }
+
+        return try {
+            keycloakWebClient
+                .post()
+                .uri("/realms/${keycloakProperties.realm}/protocol/openid-connect/token")
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .body(BodyInserters.fromFormData(formData))
+                .retrieve()
+                .bodyToMono<Map<String, Any>>()
+                .timeout(Duration.ofSeconds(5))
+                .onErrorResume { error ->
+                    when (error) {
+                        is WebClientResponseException.Unauthorized -> {
+                            logger.debug { "Keycloak 리프레시 토큰 만료 또는 무효" }
+                        }
+
+                        is WebClientResponseException -> {
+                            logger.warn { "Keycloak 토큰 갱신 실패 (HTTP ${error.statusCode}): ${error.responseBodyAsString}" }
+                        }
+
+                        else -> {
+                            logger.warn { "Keycloak 토큰 갱신 요청 실패: ${error.message}" }
+                        }
+                    }
+                    Mono.empty()
+                }
+                .block()
+        } catch (e: Exception) {
+            logger.debug(e) { "Keycloak 토큰 갱신 중 예외 발생" }
             null
         }
     }
@@ -361,7 +585,7 @@ class KeycloakAuthService(
                 logger.info { "Keycloak 사용자 생성 완료 (비밀번호 재설정 필요): ${user.email}" }
             }
             true
-        } catch (e: WebClientResponseException.Conflict) {
+        } catch (_: WebClientResponseException.Conflict) {
             logger.debug { "사용자가 이미 존재함: ${user.email}" }
             true
         } catch (e: Exception) {
@@ -388,33 +612,5 @@ class KeycloakAuthService(
                 reason = "Keycloak 로그인: 실패 - $reason",
             )
         )
-    }
-
-    /**
-     * Redis에 리프레시 토큰 관련 정보를 저장합니다.
-     */
-    private fun saveRefreshTokenInfo(
-        refreshToken: String,
-        email: String,
-        request: HttpServletRequest
-    ) {
-        val clientIp = IpUtils.getClientIp(request)
-
-        with(redisTemplate) {
-            opsForHash<String, String>()
-                .putAll(
-                    refreshToken,
-                    mapOf(RedisKey.EMAIL to email, RedisKey.IP_ADDRESS to clientIp)
-                )
-
-            expire(refreshToken, jwtProperties.refreshTokenExpiresIn, TimeUnit.SECONDS)
-
-            opsForValue().set(
-                email,
-                refreshToken,
-                jwtProperties.refreshTokenExpiresIn,
-                TimeUnit.SECONDS
-            )
-        }
     }
 }

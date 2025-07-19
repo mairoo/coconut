@@ -59,6 +59,8 @@ services:
       - KC_DB_URL=jdbc:postgresql://keycloak-postgres:5432/keycloak
       - KC_DB_USERNAME=keycloak
       - KC_DB_PASSWORD=${KEYCLOAK_DB_PASSWORD:-keycloak123}
+      # - KC_HOSTNAME=keycloak
+      # - KC_HOSTNAME_PORT=8080
       - KC_HOSTNAME_STRICT=false
       - KC_HOSTNAME_STRICT_HTTPS=false
       - KC_HTTP_ENABLED=true
@@ -372,7 +374,9 @@ Login Settings
 
 ## `application.yml`
 
-### 개발
+- http://keycloak:8080: 도커 내부 HTTP 격리된 네트워크
+    - 개발: 외부 노출 10013 포트로 웹 콘솔 도커 접근
+    - 운영: Cloudflare WAF → 호스트 Nginx (HTTPS) → 도커 내부
 
 ```yaml
 spring:
@@ -381,7 +385,7 @@ spring:
       resourceserver:
         jwt:
           # Keycloak JWT 검증 설정 (기존 JWT와 병행 사용)
-          issuer-uri: http://keycloak:8080/realms/pincoin  # 내부 통신용 (JWT 검증)
+          issuer-uri: http://keycloak:8080/realms/pincoin
       client:
         registration:
           keycloak:
@@ -392,7 +396,7 @@ spring:
             redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
         provider:
           keycloak:
-            issuer-uri: http://keycloak:8080/realms/pincoin  # 내부 통신용
+            issuer-uri: http://keycloak:8080/realms/pincoin
             user-name-attribute: preferred_username
 
 keycloak:
@@ -406,44 +410,7 @@ keycloak:
   realm: pincoin
   client-id: pincoin-backend
   client-secret: your-secret
-  server-url: http://keycloak:10013 # 프록시 없이 접속할 포트
-```
-
-### 운영
-
-```yaml
-spring:
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          # Keycloak JWT 검증 설정 (기존 JWT와 병행 사용)
-          issuer-uri: http://keycloak:8080/realms/pincoin  # 내부 통신은 HTTP
-    client:
-      registration:
-        keycloak:
-          client-id: pincoin-backend
-          client-secret: your-secret
-          scope: openid,profile,email
-          authorization-grant-type: authorization_code
-          redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
-      provider:
-        keycloak:
-          issuer-uri: http://keycloak:8080/realms/pincoin # 내부 통신용
-          user-name-attribute: preferred_username
-
-keycloak:
-  # 점진적 마이그레이션을 위한 활성화 플래그
-  enabled: true
-  # 기존 사용자 매핑 전략
-  user-migration:
-    strategy: email-based  # email 기준으로 매핑
-    auto-create: false     # 자동 생성 비활성화
-  # Realm 및 클라이언트 설정
-  realm: pincoin
-  client-id: pincoin-backend
-  client-secret: your-secret
-  server-url: http://keycloak:8080 # 호스트 Nginx 프록시를 통한 접속
+  server-url: http://keycloak:8080
 ```
 
 # 주요 파일

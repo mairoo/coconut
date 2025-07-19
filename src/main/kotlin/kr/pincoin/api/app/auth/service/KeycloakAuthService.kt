@@ -125,17 +125,17 @@ class KeycloakAuthService(
         }
 
         return try {
-            // 1. 관리자 토큰 획득
-            val adminToken = getAdminToken() ?: return false
+            // 1. 서비스 계정 토큰 획득
+            val serviceToken = getServiceAccountToken() ?: return false
 
             // 2. 사용자가 이미 존재하는지 확인
-            if (checkUserExists(adminToken, user.email)) {
+            if (checkUserExists(serviceToken, user.email)) {
                 logger.debug { "사용자가 이미 Keycloak에 존재함: ${user.email}" }
                 return true
             }
 
             // 3. 새 사용자 생성 (실제 비밀번호와 함께)
-            val created = createKeycloakUser(adminToken, user, plainPassword)
+            val created = createKeycloakUser(serviceToken, user, plainPassword)
             if (created) {
                 logger.info { "Keycloak에 사용자 생성 완료: ${user.email}" }
             }
@@ -147,6 +147,10 @@ class KeycloakAuthService(
         }
     }
 
+    /**
+     * Keycloak에서 사용자 인증을 시도합니다.
+     * Resource Owner Password Credentials Grant 사용
+     */
     private fun authenticateWithKeycloak(
         email: String,
         password: String,
@@ -157,7 +161,7 @@ class KeycloakAuthService(
             add("client_secret", keycloakProperties.clientSecret)
             add("username", email)
             add("password", password)
-            add("scope", "openid profile email") // 명시적 scope 추가!
+            add("scope", "openid profile email")
         }
 
         return try {
@@ -174,9 +178,11 @@ class KeycloakAuthService(
                         is WebClientResponseException.Unauthorized -> {
                             logger.debug { "Keycloak 인증 실패: 잘못된 자격증명" }
                         }
+
                         is WebClientResponseException -> {
                             logger.warn { "Keycloak 인증 실패 (HTTP ${error.statusCode}): ${error.responseBodyAsString}" }
                         }
+
                         else -> {
                             logger.warn { "Keycloak 인증 요청 실패: ${error.message}" }
                         }
@@ -191,6 +197,9 @@ class KeycloakAuthService(
         }
     }
 
+    /**
+     * Keycloak에서 사용자 정보를 조회합니다.
+     */
     private fun getUserInfoFromKeycloak(accessToken: String): Map<String, Any> {
         return keycloakWebClient
             .get()
@@ -208,6 +217,9 @@ class KeycloakAuthService(
             .block() ?: throw RuntimeException("사용자 정보 조회 결과가 null입니다")
     }
 
+    /**
+     * Keycloak 사용자 정보로부터 새 User 엔티티를 생성합니다.
+     */
     private fun createUserFromKeycloak(userInfo: Map<String, Any>): User {
         val email = userInfo["email"] as? String
             ?: throw IllegalArgumentException("이메일 정보가 없습니다")
@@ -229,11 +241,14 @@ class KeycloakAuthService(
         ).let { userRepository.save(it) }
     }
 
-    private fun getAdminToken(): String? {
+    /**
+     * 서비스 계정 토큰을 획득합니다.
+     */
+    private fun getServiceAccountToken(): String? {
         val formData = LinkedMultiValueMap<String, String>().apply {
             add("grant_type", "client_credentials")
-            add("client_id", keycloakProperties.adminClientId)
-            add("client_secret", keycloakProperties.adminClientSecret)
+            add("client_id", keycloakProperties.clientId)
+            add("client_secret", keycloakProperties.clientSecret)
         }
 
         return try {
@@ -248,13 +263,15 @@ class KeycloakAuthService(
                 .onErrorResume { error ->
                     when (error) {
                         is WebClientResponseException.Unauthorized -> {
-                            logger.warn { "관리자 토큰 획득 실패: realm-management 클라이언트 인증 실패" }
+                            logger.warn { "서비스 계정 토큰 획득 실패: 클라이언트 인증 실패" }
                         }
+
                         is WebClientResponseException -> {
-                            logger.warn { "관리자 토큰 획득 실패 (HTTP ${error.statusCode}): ${error.responseBodyAsString}" }
+                            logger.warn { "서비스 계정 토큰 획득 실패 (HTTP ${error.statusCode}): ${error.responseBodyAsString}" }
                         }
+
                         else -> {
-                            logger.warn { "관리자 토큰 요청 실패: ${error.message}" }
+                            logger.warn { "서비스 계정 토큰 요청 실패: ${error.message}" }
                         }
                     }
                     Mono.empty()
@@ -262,18 +279,21 @@ class KeycloakAuthService(
                 .block()
                 ?.get("access_token") as? String
         } catch (e: Exception) {
-            logger.warn(e) { "Keycloak 관리자 토큰 획득 실패" }
+            logger.warn(e) { "Keycloak 서비스 계정 토큰 획득 실패" }
             null
         }
     }
 
-    private fun checkUserExists(adminToken: String, email: String): Boolean {
+    /**
+     * Keycloak에서 사용자가 이미 존재하는지 확인합니다.
+     */
+    private fun checkUserExists(serviceToken: String, email: String): Boolean {
         return try {
             val response = keycloakWebClient
                 .get()
                 .uri("/admin/realms/${keycloakProperties.realm}/users?email={email}", email)
                 .headers { headers ->
-                    headers.setBearerAuth(adminToken)
+                    headers.setBearerAuth(serviceToken)
                 }
                 .retrieve()
                 .bodyToMono<List<Map<String, Any>>>()
@@ -287,7 +307,10 @@ class KeycloakAuthService(
         }
     }
 
-    private fun createKeycloakUser(adminToken: String, user: User, plainPassword: String? = null): Boolean {
+    /**
+     * Keycloak에 새 사용자를 생성합니다.
+     */
+    private fun createKeycloakUser(serviceToken: String, user: User, plainPassword: String? = null): Boolean {
         val userData = if (plainPassword != null) {
             // 실제 비밀번호가 있는 경우 (로그인 성공 시)
             mapOf(
@@ -323,7 +346,7 @@ class KeycloakAuthService(
                 .post()
                 .uri("/admin/realms/${keycloakProperties.realm}/users")
                 .headers { headers ->
-                    headers.setBearerAuth(adminToken)
+                    headers.setBearerAuth(serviceToken)
                 }
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(BodyInserters.fromValue(userData))
@@ -347,6 +370,9 @@ class KeycloakAuthService(
         }
     }
 
+    /**
+     * 로그인 실패 이벤트를 발행합니다.
+     */
     private fun publishLoginFailureEvent(
         email: String,
         servletRequest: HttpServletRequest,
@@ -364,6 +390,9 @@ class KeycloakAuthService(
         )
     }
 
+    /**
+     * Redis에 리프레시 토큰 관련 정보를 저장합니다.
+     */
     private fun saveRefreshTokenInfo(
         refreshToken: String,
         email: String,

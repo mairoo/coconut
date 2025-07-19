@@ -328,45 +328,37 @@ Unable to resolve Configuration with the provided Issuer of "http://keycloak:808
 errors: [404 Not Found on GET request for "http://keycloak:8080/realms/pincoin/.well-known/openid-configuration": "{"error":"Realm does not exist"}"]
 ```
 
-```bash
-# 토큰 받기
-ACCESS_TOKEN=$(curl -s -X POST http://localhost:10013/realms/master/protocol/openid-connect/token \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "username=admin" \
-  -d "password=secure_admin_password_123" \
-  -d "grant_type=password" \
-  -d "client_id=admin-cli" | jq -r '.access_token')
+## 주요 객체 생성
 
-echo "토큰: $ACCESS_TOKEN"
-
-# pincoin Realm 생성
-curl -X POST http://localhost:10013/admin/realms \
-  -H "Authorization: Bearer $ACCESS_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"realm": "pincoin", "enabled": true}'
-
-# Client 생성
-curl -X POST http://localhost:10013/admin/realms/pincoin/clients \
-  -H "Authorization: Bearer $ACCESS_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "clientId": "pincoin-backend",
-    "enabled": true,
-    "clientAuthenticatorType": "client-secret",
-    "redirectUris": ["http://localhost:8080/login/oauth2/code/keycloak"],
-    "webOrigins": ["*"],
-    "standardFlowEnabled": true,
-    "directAccessGrantsEnabled": true,
-    "serviceAccountsEnabled": true,
-    "publicClient": false
-  }'
-
-# Client Secret 조회
-CLIENT_UUID=$(curl -s -X GET "http://localhost:10013/admin/realms/pincoin/clients?clientId=pincoin-backend" -H "Authorization: Bearer $ACCESS_TOKEN" | jq -r '.[0].id')
-CLIENT_SECRET=$(curl -s -X GET "http://localhost:10013/admin/realms/pincoin/clients/$CLIENT_UUID/client-secret" -H "Authorization: Bearer $ACCESS_TOKEN" | jq -r '.value')
-
-echo "KEYCLOAK_CLIENT_SECRET=$CLIENT_SECRET"
-```
+1. Realm 생성: Realms → Create Realm → (Realm name: `pincoin`)
+2. `pincoin-backend` Client 생성: Clients → Create Client →
+    1. General Settings:
+        - **Client type: OpenID Connect**
+        - **Client ID: pincoin-backend**
+        - Name: (없음)
+        - Description: (없음)
+        - Always display in UI: OFF (체크 해제)
+    2. Capability Config:
+        - **Client authentication: ON** (중요! 켜야 함)
+        - Authorization: OFF (체크 해제)
+        - **Standard flow: ON** (Authorization Code Flow)
+        - **Direct access grants: ON** (Resource Owner Password Credentials)
+        - Implicit flow: OFF (체크 해제)
+        - **Service accounts roles: ON** (서비스 계정 활성화)
+        - OAuth 2.0 Device Authorization Grant: OFF (체크 해제)
+        - OIDC CIBA Grant: OFF (체크 해제)
+    3. Login Settings
+        - Root URL: (없음)
+        - Home URL: (없음)
+        - Valid redirect URIs: http://localhost:8080/*
+        - Valid post logout redirect URIs: (없음)
+        - Web origins: (없음)
+3. `pincoin-backend` 클라이언트 설정 완료 후 Client Secret 복사
+4. `pincoin-backend` 클라이언트 설정 Service accounts roles 선택
+    - Assign role 버튼 누르고 `Filter by realm roles` 드롭다운에서 `Filter by clients` 선택하여 다음 추가 할당
+        - `realm-management`: `manage-users`
+        - `realm-management`: `view-users`
+        - `realm-management`: `query-users`
 
 ## `application.yml`
 
@@ -497,51 +489,3 @@ docker compose up -d keycloak-postgres keycloak
     - broker - Identity Provider 브로커 기능용
     - master-realm - Master realm 관리용
     - security-admin-console - 관리자 콘솔 웹 UI용
-
-주요 객체 생성
-
-1. Realm 생성: Realms → Create Realm → (Realm name: `pincoin`)
-2. `pincoin-backend` Client 생성: Clients → Create Client →
-    1. General Settings:
-        - **Client type: OpenID Connect**
-        - **Client ID: pincoin-backend**
-        - Name: (없음)
-        - Description: (없음)
-        - Always display in UI: OFF (체크 해제)
-    2. Capability Config:
-        - **Client authentication: ON** (중요! 켜야 함)
-        - Authorization: OFF (체크 해제)
-        - **Standard flow: ON** (Authorization Code Flow)
-        - **Direct access grants: ON** (Resource Owner Password Credentials)
-        - Implicit flow: OFF (체크 해제)
-        - **Service accounts roles: OFF** (서비스 계정 비활성화)
-        - OAuth 2.0 Device Authorization Grant: OFF (체크 해제)
-        - OIDC CIBA Grant: OFF (체크 해제)
-    3. Login Settings
-        - Root URL: (없음)
-        - Home URL: (없음)
-        - Valid redirect URIs: http://localhost:8080/*
-        - Valid post logout redirect URIs: (없음)
-        - Web origins: (없음)
-3. `pincoin-backend` 클라이언트 설정 완료 후 Client Secret 복사
-4. `pincoin-admin` Client 생성: Clients → Create Client →
-    1. General Settings:
-        - **Client type: OpenID Connect**
-        - **Client ID: pincoin-admin**
-        - Name: (없음)
-        - Description: (없음)
-        - Always display in UI: OFF (체크 해제)
-    2. Capability Config:
-        - **Client authentication: ON** (중요! 켜야 함)
-        - Authorization: OFF (체크 해제)
-        - **Standard flow: OFF** (Authorization Code Flow)
-        - **Direct access grants: OFF** (Resource Owner Password Credentials)
-        - Implicit flow: OFF (체크 해제)
-        - **Service accounts roles: ON** (서비스 계정 활성화)
-        - OAuth 2.0 Device Authorization Grant: OFF (체크 해제)
-        - OIDC CIBA Grant: OFF (체크 해제)
-5. `pincoin-admin` 클라이언트 설정 완료 후 Client Secret 복사
-6. `pincoin-admin` 클라이언트 설정 Service accounts roles에서 추가
-    - `realm-management`: `manage-users`
-    - `realm-management`: `view-users`
-    - `realm-management`: `query-users`

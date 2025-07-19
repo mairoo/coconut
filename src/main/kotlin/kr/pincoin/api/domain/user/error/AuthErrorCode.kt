@@ -65,4 +65,16 @@ enum class AuthErrorCode(
         HttpStatus.INTERNAL_SERVER_ERROR,
         "알 수 없는 오류",
     ),
+    KEYCLOAK_SERVICE_ERROR(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        "Keycloak 서버오류",
+    ),
+    KEYCLOAK_USER_CREATE_FAILED(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        "Keycloak 사용자 생성 실패"
+    ),
+    USER_CREATE_FAILED(
+        HttpStatus.CONFLICT,
+        "사용자 생성 실패",
+    ),
 }

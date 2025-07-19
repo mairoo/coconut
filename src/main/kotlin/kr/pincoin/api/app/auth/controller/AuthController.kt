@@ -5,7 +5,7 @@ import jakarta.validation.Valid
 import kr.pincoin.api.app.auth.request.SignInRequest
 import kr.pincoin.api.app.auth.request.UserCreateRequest
 import kr.pincoin.api.app.auth.response.AccessTokenResponse
-import kr.pincoin.api.app.auth.service.AuthService
+import kr.pincoin.api.app.auth.service.JwtKeycloakAuthServiceImpl
 import kr.pincoin.api.app.user.my.response.MyUserResponse
 import kr.pincoin.api.global.constant.CookieKey
 import kr.pincoin.api.global.properties.JwtProperties
@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/auth")
 class AuthController(
     private val jwtProperties: JwtProperties,
-    private val authService: AuthService,
+    private val authService: JwtKeycloakAuthServiceImpl,
 ) {
     /**
      * 사용자 로그인을 처리하고 액세스 토큰과 리프레시 토큰을 발급합니다.

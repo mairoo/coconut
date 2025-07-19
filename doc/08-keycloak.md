@@ -360,6 +360,16 @@ errors: [404 Not Found on GET request for "http://keycloak:8080/realms/pincoin/.
         - `realm-management`: `view-users`
         - `realm-management`: `query-users`
 
+운영에서
+
+Login Settings
+
+    - Root URL: (없음 - 여러 도메인 사용)
+    - Home URL: (없음 - 여러 도메인 사용)
+    - Valid redirect URIs: https://api.pincoin.kr/*, https://www.pincoin.kr/*, https://card.pincoin.kr/*
+    - Valid post logout redirect URIs: https://www.pincoin.kr/, https://card.pincoin.kr/, https://www.pincoin.kr/login, https://card.pincoin.kr/login
+    - Web origins: https://api.pincoin.kr, https://www.pincoin.kr, https://card.pincoin.kr
+
 ## `application.yml`
 
 ### 개발

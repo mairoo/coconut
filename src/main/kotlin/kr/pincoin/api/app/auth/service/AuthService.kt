@@ -288,10 +288,29 @@ class AuthService(
         }
     }
 
-    fun createUser(
-        request: UserCreateRequest,
-    ): User =
-        userResourceCoordinator.createUser(request)
+    /**
+     * 사용자 생성 및 Keycloak 동기화
+     */
+    @Transactional
+    fun createUser(request: UserCreateRequest): User {
+        // 1. 기존 방식으로 사용자 생성
+        val user = userResourceCoordinator.createUser(request)
+
+        // 2. 🆕 Keycloak에 사용자 동기화 (백그라운드)
+        try {
+            val syncResult = keycloakAuthService.syncUserToKeycloak(user, request.password)
+            if (syncResult) {
+                logger.info { "신규 사용자 Keycloak 동기화 성공: ${user.email}" }
+            } else {
+                logger.debug { "Keycloak 동기화 스킵 (설정 비활성화): ${user.email}" }
+            }
+        } catch (e: Exception) {
+            // 동기화 실패해도 회원가입은 성공으로 처리
+            logger.warn(e) { "신규 사용자 Keycloak 동기화 실패하지만 회원가입은 성공: ${user.email}" }
+        }
+
+        return user
+    }
 
     /**
      * Redis에 리프레시 토큰 관련 정보 저장

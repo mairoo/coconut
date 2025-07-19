@@ -472,3 +472,76 @@ Phase 3: 완전 전환
 
 - 모든 사용자 Keycloak으로 마이그레이션
 - 기존 JWT 설정 제거
+
+# 리셋
+
+```bash
+# 1. 컨테이너 중지 및 제거
+docker compose down
+
+# 2. Keycloak 관련 볼륨 제거 (데이터베이스 포함)
+docker volume ls | grep keycloak
+docker volume rm [볼륨명]
+
+# 3. 컨테이너 재시작
+docker compose up -d keycloak-postgres keycloak
+```
+
+깡통 상태인지 확인하는 법
+
+- Admin Console에 로그인 후 Master realm만 존재 (나머지 기타 realm 없어야 함)
+- Clients 메뉴에 기본 클라이언트들 6개만 존재
+    - account - 사용자 계정 관리 페이지용
+    - account-console - 새로운 계정 콘솔 UI용
+    - admin-cli - 관리 CLI 도구용 (curl로 토큰 받을 때 사용하던 것)
+    - broker - Identity Provider 브로커 기능용
+    - master-realm - Master realm 관리용
+    - security-admin-console - 관리자 콘솔 웹 UI용
+
+주요 객체 생성
+
+1. Realm 생성: Realms → Create Realm → (Realm name: `pincoin`)
+2. `pincoin-backend` Client 생성: Clients → Create Client →
+    1. General Settings:
+        - **Client type: OpenID Connect**
+        - **Client ID: pincoin-backend**
+        - Name: (없음)
+        - Description: (없음)
+        - Always display in UI: OFF (체크 해제)
+    2. Capability Config:
+        - **Client authentication: ON** (중요! 켜야 함)
+        - Authorization: OFF (체크 해제)
+        - **Standard flow: ON** (Authorization Code Flow)
+        - **Direct access grants: ON** (Resource Owner Password Credentials)
+        - Implicit flow: OFF (체크 해제)
+        - **Service accounts roles: OFF** (서비스 계정 비활성화)
+        - OAuth 2.0 Device Authorization Grant: OFF (체크 해제)
+        - OIDC CIBA Grant: OFF (체크 해제)
+    3. Login Settings
+        - Root URL: (없음)
+        - Home URL: (없음)
+        - Valid redirect URIs: http://localhost:8080/*
+        - Valid post logout redirect URIs: (없음)
+        - Web origins: (없음)
+3. `pincoin-backend` 클라이언트 설정 완료 후 Client Secret 복사
+4. `pincoin-admin` Client 생성: Clients → Create Client →
+    1. General Settings:
+        - **Client type: OpenID Connect**
+        - **Client ID: pincoin-admin**
+        - Name: (없음)
+        - Description: (없음)
+        - Always display in UI: OFF (체크 해제)
+    2. Capability Config:
+        - **Client authentication: ON** (중요! 켜야 함)
+        - Authorization: OFF (체크 해제)
+        - **Standard flow: OFF** (Authorization Code Flow)
+        - **Direct access grants: OFF** (Resource Owner Password Credentials)
+        - Implicit flow: OFF (체크 해제)
+        - **Service accounts roles: ON** (서비스 계정 활성화)
+        - OAuth 2.0 Device Authorization Grant: OFF (체크 해제)
+        - OIDC CIBA Grant: OFF (체크 해제)
+5. `pincoin-admin` 클라이언트 설정 완료 후 Client Secret 복사
+6. `pincoin-admin` 클라이언트 설정 Service accounts roles에서 추가
+    - `realm-management`: `manage-users`
+    - `realm-management`: `view-users`
+    - `realm-management`: `query-users`

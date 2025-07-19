@@ -104,7 +104,7 @@ class AuthService(
 
         // 🆕 로그인 성공 후 Keycloak 동기화 시도 (백그라운드)
         try {
-            val syncResult = keycloakAuthService.syncUserToKeycloak(user)
+            val syncResult = keycloakAuthService.syncUserToKeycloak(user, request.password)
             if (syncResult) {
                 logger.info { "Keycloak 동기화 성공: ${user.email}" }
             } else {

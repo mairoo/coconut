@@ -119,7 +119,7 @@ class KeycloakAuthService(
     /**
      * 기존 사용자 로그인 성공 시 Keycloak에 동기화
      */
-    fun syncUserToKeycloak(user: User): Boolean {
+    fun syncUserToKeycloak(user: User, plainPassword: String? = null): Boolean {
         if (!keycloakProperties.enabled || !keycloakProperties.userMigration.autoCreate) {
             return false
         }
@@ -134,8 +134,8 @@ class KeycloakAuthService(
                 return true
             }
 
-            // 3. 새 사용자 생성
-            val created = createKeycloakUser(adminToken, user)
+            // 3. 새 사용자 생성 (실제 비밀번호와 함께)
+            val created = createKeycloakUser(adminToken, user, plainPassword)
             if (created) {
                 logger.info { "Keycloak에 사용자 생성 완료: ${user.email}" }
             }
@@ -157,6 +157,7 @@ class KeycloakAuthService(
             add("client_secret", keycloakProperties.clientSecret)
             add("username", email)
             add("password", password)
+            add("scope", "openid profile email") // 명시적 scope 추가!
         }
 
         return try {
@@ -231,8 +232,8 @@ class KeycloakAuthService(
     private fun getAdminToken(): String? {
         val formData = LinkedMultiValueMap<String, String>().apply {
             add("grant_type", "client_credentials")
-            add("client_id", keycloakProperties.clientId)
-            add("client_secret", keycloakProperties.clientSecret)
+            add("client_id", keycloakProperties.adminClientId)
+            add("client_secret", keycloakProperties.adminClientSecret)
         }
 
         return try {
@@ -244,6 +245,20 @@ class KeycloakAuthService(
                 .retrieve()
                 .bodyToMono<Map<String, Any>>()
                 .timeout(Duration.ofSeconds(5))
+                .onErrorResume { error ->
+                    when (error) {
+                        is WebClientResponseException.Unauthorized -> {
+                            logger.warn { "관리자 토큰 획득 실패: realm-management 클라이언트 인증 실패" }
+                        }
+                        is WebClientResponseException -> {
+                            logger.warn { "관리자 토큰 획득 실패 (HTTP ${error.statusCode}): ${error.responseBodyAsString}" }
+                        }
+                        else -> {
+                            logger.warn { "관리자 토큰 요청 실패: ${error.message}" }
+                        }
+                    }
+                    Mono.empty()
+                }
                 .block()
                 ?.get("access_token") as? String
         } catch (e: Exception) {
@@ -272,22 +287,36 @@ class KeycloakAuthService(
         }
     }
 
-    private fun createKeycloakUser(adminToken: String, user: User): Boolean {
-        val userData = mapOf(
-            "username" to user.email,
-            "email" to user.email,
-            "firstName" to user.firstName,
-            "lastName" to user.lastName,
-            "enabled" to true,
-            "emailVerified" to true,
-            "credentials" to listOf(
-                mapOf(
-                    "type" to "password",
-                    "value" to "temporary123!", // 임시 비밀번호
-                    "temporary" to true // 첫 로그인 시 변경 강제
+    private fun createKeycloakUser(adminToken: String, user: User, plainPassword: String? = null): Boolean {
+        val userData = if (plainPassword != null) {
+            // 실제 비밀번호가 있는 경우 (로그인 성공 시)
+            mapOf(
+                "username" to user.email,
+                "email" to user.email,
+                "firstName" to user.firstName,
+                "lastName" to user.lastName,
+                "enabled" to true,
+                "emailVerified" to true,
+                "credentials" to listOf(
+                    mapOf(
+                        "type" to "password",
+                        "value" to plainPassword, // 사용자가 입력한 실제 비밀번호
+                        "temporary" to false // 임시 비밀번호가 아님
+                    )
                 )
             )
-        )
+        } else {
+            // 비밀번호 없이 생성하는 경우
+            mapOf(
+                "username" to user.email,
+                "email" to user.email,
+                "firstName" to user.firstName,
+                "lastName" to user.lastName,
+                "enabled" to true,
+                "emailVerified" to true,
+                "requiredActions" to listOf("UPDATE_PASSWORD") // 비밀번호 업데이트 요구
+            )
+        }
 
         return try {
             keycloakWebClient
@@ -303,10 +332,15 @@ class KeycloakAuthService(
                 .timeout(Duration.ofSeconds(5))
                 .block()
 
+            if (plainPassword != null) {
+                logger.info { "Keycloak 사용자 생성 완료 (실제 비밀번호 포함): ${user.email}" }
+            } else {
+                logger.info { "Keycloak 사용자 생성 완료 (비밀번호 재설정 필요): ${user.email}" }
+            }
             true
         } catch (e: WebClientResponseException.Conflict) {
             logger.debug { "사용자가 이미 존재함: ${user.email}" }
-            true // 이미 존재하면 성공으로 간주
+            true
         } catch (e: Exception) {
             logger.warn(e) { "Keycloak 사용자 생성 실패: ${user.email}" }
             false

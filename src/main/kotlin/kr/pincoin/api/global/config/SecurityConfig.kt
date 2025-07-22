@@ -1,6 +1,19 @@
-# 초기 `SecurityConfig.kt`
+package kr.pincoin.api.global.config
 
-```kotlin
+import kr.pincoin.api.global.properties.CorsProperties
+import kr.pincoin.api.global.security.handler.ApiAccessDeniedHandler
+import kr.pincoin.api.global.security.handler.ApiAuthenticationEntryPoint
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
+import org.springframework.security.config.annotation.web.builders.HttpSecurity
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
+import org.springframework.security.config.http.SessionCreationPolicy
+import org.springframework.security.web.SecurityFilterChain
+import org.springframework.web.cors.CorsConfiguration
+import org.springframework.web.cors.CorsConfigurationSource
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -92,17 +105,3 @@ class SecurityConfig(
         }
     }
 }
-```
-
-## 주요 의존성
-
-- `global.properties.CorsProperties`
-- `global.responses.cursor.CursorResponse`
-- `global.responses.error.ErrorResponse`
-- `global.responses.page.PageResponse`
-- `global.responses.success.ApiResponse`
-- `global.error.ErrorCode`
-- `global.error.CommonErrorCode`
-- `global.security.error.AuthErrorCode`
-- `global.security.handler.ApiAuthenticationEntryPoint`
-- `global.security.handler.ApiAccessDeniedHandler`

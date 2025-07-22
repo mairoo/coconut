@@ -58,6 +58,13 @@ keycloak:
   cookie-domains: # 도메인에 프로토콜 및 포트번호 미포함, 서브도메인으로 지정하면 다른 서브도메인에서 접근 불가
     - localhost
 
+web-config:
+  cors:
+    allowed-origins: http://localhost:3000,http://localhost:8080
+    allowed-methods: GET,POST,PUT,PATCH,DELETE,OPTIONS
+    allowed-headers: '*'
+    max-age: 3600
+
 logging:
   level:
     root: INFO # 운영 WARN

@@ -13,9 +13,9 @@ import java.time.LocalDateTime
 class DateTimeFields {
     @CreatedDate
     @Column(name = "created", updatable = false)
-    var createdAt: LocalDateTime = LocalDateTime.now()
+    var created: LocalDateTime = LocalDateTime.now()
 
     @LastModifiedDate
     @Column(name = "modified")
-    var modifiedAt: LocalDateTime = LocalDateTime.now()
+    var modified: LocalDateTime = LocalDateTime.now()
 }

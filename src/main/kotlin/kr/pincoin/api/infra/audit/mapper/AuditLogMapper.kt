@@ -7,8 +7,8 @@ fun AuditLogEntity?.toModel(): AuditLog? =
     this?.let { entity ->
         AuditLog.of(
             id = entity.id,
-            created = entity.dateTimeFields.createdAt,
-            modified = entity.dateTimeFields.modifiedAt,
+            created = entity.dateTimeFields.created,
+            modified = entity.dateTimeFields.modified,
             createdBy = entity.auditorFields.createdBy,
             modifiedBy = entity.auditorFields.modifiedBy,
             entityType = entity.entityType,

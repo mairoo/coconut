@@ -3,10 +3,10 @@
 ## 디렉토리 구성
 
 ```
-~/Projects/zerocan/backend/
-~/Projects/zerocan/backend/repo
-~/Projects/zerocan/backend/.env
-~/Projects/zerocan/backend/docker-compose.yml
+~/Projects/pincoin/backend/
+~/Projects/pincoin/backend/repo
+~/Projects/pincoin/backend/.env
+~/Projects/pincoin/backend/docker-compose.yml
 ```
 
 ## `.env`

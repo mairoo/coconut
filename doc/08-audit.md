@@ -39,7 +39,7 @@ class UserEntity private constructor(
     @Embedded
     val removalFields: RemovalFields = RemovalFields(),
 ) : Auditable { // (4)
-    
+
     // (5)
     @Transient
     override var originState: Map<String, String?> =
@@ -80,19 +80,19 @@ class UserEntity private constructor(
 ```kotlin
 @Component
 class UserAuditorAware : AuditorAware<Long> {
-  override fun getCurrentAuditor(
-  ): Optional<Long> =
-    SecurityContextHolder
-      .getContext()
-      .authentication
-      ?.takeIf { it.isAuthenticated }
-      ?.principal
-      ?.let { principal ->
-        when (principal) {
-          is UserDetailsAdapter -> Optional.of(principal.user.id ?: -1L)
-          else -> Optional.empty()
-        }
-      } ?: Optional.empty()
+    override fun getCurrentAuditor(
+    ): Optional<Long> =
+        SecurityContextHolder
+            .getContext()
+            .authentication
+            ?.takeIf { it.isAuthenticated }
+            ?.principal
+            ?.let { principal ->
+                when (principal) {
+                    is UserDetailsAdapter -> Optional.of(principal.user.id ?: -1L)
+                    else -> Optional.empty()
+                }
+            } ?: Optional.empty()
 }
 ```
 
@@ -136,6 +136,7 @@ class UserAuditorAware : AuditorAware<Long> {
 1. `Auditable` 인터페이스 구현
 2. `@EntityListeners(AuditEntityListener::class)` 애노테이션 추가
 3. 엔티티 상태 정보를 제공하는 메서드 구현:
+
 - `getState()`: 현재 상태 반환
 - `getEntityType()`: 엔티티 유형 반환
 - `getEntityId()`: 엔티티 ID 반환
@@ -231,7 +232,15 @@ class AuditLogEventHandler(
 
 ```kotlin
 @Configuration
-@EnableJpaAuditing(auditorAwareRef = "userAuditorAware") // created, modified 필드 자동 관리
+@EnableJpaAuditing // created, modified 필드 자동 관리
+class JpaConfig
+```
+
+Keycloak 및 스프링 시큐리티 설정 완료 후 `UserAuditorAware` 사용자 감사 설정
+
+```kotlin
+@Configuration
+@EnableJpaAuditing(auditorAwareRef = "userAuditorAware")
 class JpaConfig
 ```
 

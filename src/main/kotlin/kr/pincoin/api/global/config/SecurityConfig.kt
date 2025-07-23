@@ -1,6 +1,7 @@
 package kr.pincoin.api.global.config
 
 import kr.pincoin.api.global.properties.CorsProperties
+import kr.pincoin.api.global.security.encoder.DjangoPasswordEncoder
 import kr.pincoin.api.global.security.handler.ApiAccessDeniedHandler
 import kr.pincoin.api.global.security.handler.ApiAuthenticationEntryPoint
 import org.springframework.context.annotation.Bean
@@ -104,4 +105,9 @@ class SecurityConfig(
             registerCorsConfiguration("/**", configuration)
         }
     }
+
+    @Bean
+    fun djangoPasswordEncoder(
+    ): DjangoPasswordEncoder =
+        DjangoPasswordEncoder()
 }

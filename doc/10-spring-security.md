@@ -91,6 +91,12 @@ class SecurityConfig(
             registerCorsConfiguration("/**", configuration)
         }
     }
+
+    // 명시적 비밀번호 암호화
+    @Bean
+    fun djangoPasswordEncoder(
+    ): DjangoPasswordEncoder =
+        DjangoPasswordEncoder()
 }
 ```
 

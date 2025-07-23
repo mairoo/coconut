@@ -14,7 +14,8 @@ class User private constructor(
     val email: String,
     val isStaff: Boolean = false,
     val isActive: Boolean = true,
-    val dateJoined: LocalDateTime = LocalDateTime.now()
+    val dateJoined: LocalDateTime = LocalDateTime.now(),
+    val keycloakId: UUID? = null,
 ) {
     fun updatePassword(newPassword: String): User {
         require(newPassword.isNotBlank()) { "비밀번호는 필수 입력값입니다" }
@@ -38,6 +39,15 @@ class User private constructor(
         isActive: Boolean,
     ): User =
         copy(isActive = isActive)
+
+
+    fun linkKeycloak(keycloakId: UUID): User {
+        return copy(keycloakId = keycloakId)
+    }
+
+    fun unlinkKeycloak(): User {
+        return copy(keycloakId = null)
+    }
 
     /**
      * 소프트 삭제를 수행합니다.
@@ -77,7 +87,8 @@ class User private constructor(
         email: String = this.email,
         isStaff: Boolean = this.isStaff,
         isActive: Boolean = this.isActive,
-        dateJoined: LocalDateTime = this.dateJoined
+        dateJoined: LocalDateTime = this.dateJoined,
+        keycloakId: UUID? = this.keycloakId,
     ): User = User(
         id = this.id,
         password = password,
@@ -89,7 +100,8 @@ class User private constructor(
         email = email,
         isStaff = isStaff,
         isActive = isActive,
-        dateJoined = dateJoined
+        dateJoined = dateJoined,
+        keycloakId = keycloakId,
     )
 
     companion object {
@@ -105,6 +117,7 @@ class User private constructor(
             isStaff: Boolean = false,
             isActive: Boolean = true,
             dateJoined: LocalDateTime = LocalDateTime.now(),
+            keycloakId: UUID? = null,
         ): User = User(
             id = id,
             password = password,
@@ -117,6 +130,7 @@ class User private constructor(
             isStaff = isStaff,
             isActive = isActive,
             dateJoined = dateJoined,
+            keycloakId = keycloakId,
         )
     }
 }

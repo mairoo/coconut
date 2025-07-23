@@ -2,6 +2,7 @@ package kr.pincoin.api.infra.user.entity
 
 import jakarta.persistence.*
 import java.time.LocalDateTime
+import java.util.*
 
 @Entity
 @Table(name = "auth_user")
@@ -40,6 +41,9 @@ class UserEntity private constructor(
 
     @Column(name = "date_joined")
     val dateJoined: LocalDateTime,
+
+    @Column(name = "keycloak_id")
+    val keycloakId: UUID? = null
 ) {
     companion object {
         fun of(
@@ -53,7 +57,8 @@ class UserEntity private constructor(
             email: String,
             isStaff: Boolean = false,
             isActive: Boolean = true,
-            dateJoined: LocalDateTime = LocalDateTime.now()
+            dateJoined: LocalDateTime = LocalDateTime.now(),
+            keycloakId: UUID? = null,
         ) = UserEntity(
             id = id,
             password = password,
@@ -65,7 +70,8 @@ class UserEntity private constructor(
             email = email,
             isStaff = isStaff,
             isActive = isActive,
-            dateJoined = dateJoined
+            dateJoined = dateJoined,
+            keycloakId = keycloakId,
         )
     }
 }

@@ -16,7 +16,8 @@ fun UserEntity?.toModel(): User? =
             email = entity.email,
             isStaff = entity.isStaff,
             isActive = entity.isActive,
-            dateJoined = entity.dateJoined
+            dateJoined = entity.dateJoined,
+            keycloakId = entity.keycloakId,
         )
     }
 
@@ -36,6 +37,7 @@ fun User?.toEntity(): UserEntity? =
             email = model.email,
             isStaff = model.isStaff,
             isActive = model.isActive,
-            dateJoined = model.dateJoined
+            dateJoined = model.dateJoined,
+            keycloakId = model.keycloakId,
         )
     }

@@ -1,14 +1,5 @@
 # 도커 설정
 
-## 디렉토리 구성
-
-```
-~/Projects/pincoin/backend/
-~/Projects/pincoin/backend/repo
-~/Projects/pincoin/backend/.env
-~/Projects/pincoin/backend/docker-compose.yml
-```
-
 ## `.env`
 
 ```properties

@@ -6,6 +6,8 @@ import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import kr.pincoin.api.external.s3.api.response.S3ApiResponse
+import kr.pincoin.api.external.s3.api.response.S3ConfigDiagnosisResponse
+import kr.pincoin.api.external.s3.api.response.S3ConfigIssue
 import kr.pincoin.api.external.s3.properties.S3Properties
 import org.springframework.stereotype.Service
 import software.amazon.awssdk.core.sync.RequestBody
@@ -127,7 +129,7 @@ class S3HealthCheckService(
                     duration = duration
                 )
             }
-        } catch (e: NoSuchBucketException) {
+        } catch (_: NoSuchBucketException) {
             logger.error { "버킷이 존재하지 않음: ${s3Properties.bucketName}" }
             S3CheckResult(
                 checkName = "버킷 접근 권한",
@@ -151,19 +153,24 @@ class S3HealthCheckService(
                             "Access Key: ${s3Properties.accessKey.take(8)}..., " +
                             "지역: ${s3Properties.region}"
                 }
+
                 errorMessage?.contains("does not exist") == true -> {
                     "버킷이 존재하지 않거나 다른 지역에 있을 수 있습니다. " +
                             "버킷명: ${s3Properties.bucketName}, 지역: ${s3Properties.region}"
                 }
+
                 errorMessage?.contains("Access Denied") == true -> {
                     "버킷 접근 권한이 없습니다. IAM 정책을 확인하세요."
                 }
+
                 errorMessage?.contains("InvalidAccessKeyId") == true -> {
                     "Access Key ID가 유효하지 않습니다. AWS 콘솔에서 확인하세요."
                 }
+
                 errorMessage?.contains("SignatureDoesNotMatch") == true -> {
                     "Secret Key가 올바르지 않습니다. AWS 콘솔에서 확인하세요."
                 }
+
                 else -> "버킷 접근 실패: $errorMessage (상태코드: $statusCode, 오류코드: $errorCode)"
             }
 
@@ -178,7 +185,7 @@ class S3HealthCheckService(
                     else -> "S3_ERROR"
                 }
             )
-        } catch (e: TimeoutCancellationException) {
+        } catch (_: TimeoutCancellationException) {
             logger.error { "버킷 접근 시간 초과" }
             S3CheckResult(
                 checkName = "버킷 접근 권한",
@@ -209,10 +216,12 @@ class S3HealthCheckService(
                     .bucket(s3Properties.bucketName)
                     .key("health-check/$testFileName")
                     .contentType("text/plain")
-                    .metadata(mapOf(
-                        "health-check" to "true",
-                        "timestamp" to LocalDateTime.now().toString()
-                    ))
+                    .metadata(
+                        mapOf(
+                            "health-check" to "true",
+                            "timestamp" to LocalDateTime.now().toString()
+                        )
+                    )
                     .build()
 
                 val requestBody = RequestBody.fromString(testContent)
@@ -238,7 +247,7 @@ class S3HealthCheckService(
                     else -> "UPLOAD_ERROR"
                 }
             )
-        } catch (e: TimeoutCancellationException) {
+        } catch (_: TimeoutCancellationException) {
             S3CheckResult(
                 checkName = "파일 업로드 권한",
                 success = false,
@@ -289,7 +298,7 @@ class S3HealthCheckService(
                     }
                 }
             }
-        } catch (e: NoSuchKeyException) {
+        } catch (_: NoSuchKeyException) {
             S3CheckResult(
                 checkName = "파일 읽기 권한",
                 success = false,
@@ -303,7 +312,7 @@ class S3HealthCheckService(
                 message = "파일 읽기 실패: ${e.awsErrorDetails()?.errorMessage() ?: e.message}",
                 errorCode = "READ_ERROR"
             )
-        } catch (e: TimeoutCancellationException) {
+        } catch (_: TimeoutCancellationException) {
             S3CheckResult(
                 checkName = "파일 읽기 권한",
                 success = false,
@@ -351,7 +360,7 @@ class S3HealthCheckService(
                 message = "파일 삭제 실패: ${e.awsErrorDetails()?.errorMessage() ?: e.message}",
                 errorCode = "DELETE_ERROR"
             )
-        } catch (e: TimeoutCancellationException) {
+        } catch (_: TimeoutCancellationException) {
             S3CheckResult(
                 checkName = "파일 삭제 권한",
                 success = false,
@@ -387,7 +396,8 @@ class S3HealthCheckService(
                 val duration = System.currentTimeMillis() - startTime
 
                 if (bucketRegion == s3Properties.region ||
-                    (bucketRegion == "us-east-1" && s3Properties.region == "us-east-1")) {
+                    (bucketRegion == "us-east-1" && s3Properties.region == "us-east-1")
+                ) {
                     S3CheckResult(
                         checkName = "버킷 설정",
                         success = true,
@@ -410,7 +420,7 @@ class S3HealthCheckService(
                 message = "버킷 설정 확인 실패: ${e.awsErrorDetails()?.errorMessage() ?: e.message}",
                 errorCode = "CONFIG_ERROR"
             )
-        } catch (e: TimeoutCancellationException) {
+        } catch (_: TimeoutCancellationException) {
             S3CheckResult(
                 checkName = "버킷 설정",
                 success = false,
@@ -441,7 +451,7 @@ class S3HealthCheckService(
                     s3Client.headBucket(headBucketRequest)
                     S3ApiResponse.Success(true)
                 }
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 S3ApiResponse.Success(false)  // 에러 상세정보 없이 단순히 false 반환
             }
         }
@@ -601,18 +611,3 @@ class S3HealthCheckService(
         return validRegions.contains(region)
     }
 }
-
-data class S3ConfigDiagnosisResponse(
-    val overallStatus: String, // HEALTHY, ISSUES_FOUND
-    val severity: String, // CRITICAL, HIGH, MEDIUM, LOW, NONE
-    val issues: List<S3ConfigIssue>,
-    val recommendations: List<String>,
-    val configSummary: Map<String, Any>
-)
-
-data class S3ConfigIssue(
-    val category: String, // CREDENTIALS, BUCKET, REGION, ENDPOINT, TIMEOUT
-    val severity: String, // CRITICAL, HIGH, MEDIUM, LOW
-    val issue: String,
-    val suggestion: String
-)

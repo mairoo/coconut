@@ -2,6 +2,8 @@ package kr.pincoin.api.external.s3.controller
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kr.pincoin.api.external.s3.api.response.S3ApiResponse
+import kr.pincoin.api.external.s3.api.response.S3ConfigDiagnosisResponse
+import kr.pincoin.api.external.s3.api.response.S3ConfigIssue
 import kr.pincoin.api.external.s3.service.S3HealthCheckResponse
 import kr.pincoin.api.external.s3.service.S3HealthCheckService
 import org.springframework.http.ResponseEntity
@@ -111,10 +113,17 @@ class S3HealthCheckController(
         val configInfo = mapOf(
             "region" to "ap-northeast-2", // s3Properties.region 대신 하드코딩
             "bucketName" to "configured", // 실제 버킷명은 보안상 숨김
-            "hasCustomEndpoint" to (true), // s3Properties.endpoint != null 대신
+            "hasCustomEndpoint" to true, // s3Properties.endpoint != null 대신
             "timeout" to 30000, // s3Properties.timeout 대신
             "maxFileSize" to "10MB", // "${s3Properties.maxFileSize / 1024 / 1024}MB" 대신
-            "allowedExtensions" to listOf("jpg", "jpeg", "png", "pdf", "doc", "docx"), // s3Properties.allowedExtensions 대신
+            "allowedExtensions" to listOf(
+                "jpg",
+                "jpeg",
+                "png",
+                "pdf",
+                "doc",
+                "docx"
+            ), // s3Properties.allowedExtensions 대신
             "timestamp" to java.time.LocalDateTime.now().toString()
         )
 
@@ -126,7 +135,7 @@ class S3HealthCheckController(
      * 설정 오류를 분석하고 해결 방안을 제시합니다.
      */
     @GetMapping("/diagnose")
-    suspend fun diagnoseConfiguration(): ResponseEntity<kr.pincoin.api.external.s3.service.S3ConfigDiagnosisResponse> {
+    suspend fun diagnoseConfiguration(): ResponseEntity<S3ConfigDiagnosisResponse> {
         logger.info { "S3 설정 진단 요청" }
 
         return when (val result = s3HealthCheckService.diagnoseConfiguration()) {
@@ -148,11 +157,11 @@ class S3HealthCheckController(
                 logger.error { "S3 설정 진단 실패: ${result.errorMessage}" }
                 ResponseEntity.status(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(
-                        kr.pincoin.api.external.s3.service.S3ConfigDiagnosisResponse(
+                        S3ConfigDiagnosisResponse(
                             overallStatus = "ERROR",
                             severity = "CRITICAL",
                             issues = listOf(
-                                kr.pincoin.api.external.s3.service.S3ConfigIssue(
+                                S3ConfigIssue(
                                     category = "SYSTEM",
                                     severity = "CRITICAL",
                                     issue = "진단 시스템 오류",

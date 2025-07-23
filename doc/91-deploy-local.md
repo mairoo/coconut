@@ -86,3 +86,19 @@ KEYCLOAK_ADMIN_PASSWORD=Test12#$
 <             client-secret: your-client-secret
 <   client-secret: your-client-secret
 ```
+
+## 도커 실행
+
+```
+# Redis 실행
+docker compose up -d redis 
+
+# Keycloak 실행
+docker compose up -d keycloak-postgres keycloak 
+
+# 백엔드 빌드
+docker compose build --no-cache backend 
+
+# 백엔드 실행
+docker compose up -d backend 
+```

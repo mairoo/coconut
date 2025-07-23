@@ -88,11 +88,10 @@ dependencies {
     // AWS SDK BOM
     implementation(platform("software.amazon.awssdk:bom:${Versions.AWS_SDK_VERSION}"))
 
-    // AWS S3 관련 의존성 (버전 명시 불필요, BOM에서 관리)
     implementation("software.amazon.awssdk:s3")
     implementation("software.amazon.awssdk:auth")
     implementation("software.amazon.awssdk:regions")
-    implementation("software.amazon.awssdk:apache-client")
+    implementation("software.amazon.awssdk:netty-nio-client")
 
     // Netty DNS resolver for Mac
     Platform.nettyClassifier?.let {

@@ -14,7 +14,6 @@ KEYCLOAK_DB=postgres
 KEYCLOAK_POSTGRES_DATABASE=keycloak
 KEYCLOAK_POSTGRES_USER=keycloak
 KEYCLOAK_POSTGRES_PASSWORD=secure_db_password_123
-
 KEYCLOAK_ADMIN=admin
 KEYCLOAK_ADMIN_PASSWORD=secure_admin_password_123
 ```
@@ -198,4 +197,15 @@ keycloak:
   timeout: 5000
   cookie-domains: # 도메인에 프로토콜 및 포트번호 미포함, 서브도메인으로 지정하면 다른 서브도메인에서 접근 불가
     - localhost
+```
+
+# Keycloak postgres DB 완전 초기화
+
+```bash
+docker compose down keycloak keycloak-postgres
+
+docker volume rm pincoin-keycloak-postgres-data
+docker volume rm pincoin-keycloak-data
+
+docker compose up -d keycloak-postgres keycloak
 ```

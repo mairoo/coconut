@@ -207,5 +207,78 @@ docker compose down keycloak keycloak-postgres
 docker volume rm pincoin-keycloak-postgres-data
 docker volume rm pincoin-keycloak-data
 
-docker compose up -d keycloak-postgres keycloak
+docker exec -it pincoin-keycloak /opt/keycloak/bin/kc.sh bootstrap-admin user
+
+Enter username [temp-admin]:temp-admin
+Enter password:
+Enter password again:
+
+docker compose restart keycloak
+docker compose logs -f keycloak
 ```
+
+# Keycloak 영구 Admin 계정 생성 및 임시 계정 삭제
+
+## 1. 영구 Admin 계정 생성
+
+### 웹 콘솔에서 작업:
+1. **http://localhost:8081** 접속 후 temp-admin으로 로그인
+2. 좌측 상단의 **Master** realm이 선택되어 있는지 확인
+3. 좌측 메뉴에서 **Users** 클릭
+4. **Create new user** 버튼 클릭
+
+### 사용자 기본 정보 입력:
+```
+Username: admin
+Email: admin@example.com (선택사항)
+First name: Admin (선택사항)  
+Last name: User (선택사항)
+Email verified: ON (체크)
+Enabled: ON (체크)
+```
+
+5. **Create** 버튼 클릭
+
+## 2. 비밀번호 설정
+
+### 생성된 사용자의 Credentials 탭에서:
+1. **admin** 사용자를 클릭하여 상세 페이지로 이동
+2. **Credentials** 탭 클릭
+3. **Set password** 클릭
+4. 비밀번호 설정:
+   ```
+   Password: Test12#$
+   Password confirmation: Test12#$
+   Temporary: OFF (체크 해제) ← 중요!
+   ```
+5. **Set password** 버튼 클릭
+
+## 3. Admin 권한 부여
+
+### Role mappings 설정:
+1. 같은 사용자 페이지에서 **Role mappings** 탭 클릭
+2. **Assign role** 버튼 클릭
+3. **Filter by clients** 체크박스 체크
+4. **master-realm » admin** 역할 하나만 할당하면 모든 관리 권한이 포함됩니다
+5. **Assign** 버튼 클릭
+
+## 4. 임시 계정 삭제
+
+### temp-admin 사용자 삭제:
+1. **Users** 목록으로 돌아가기
+2. **temp-admin** 사용자 찾기
+3. 해당 사용자 행의 **Actions** → **Delete** 클릭
+4. 삭제 확인
+
+## 5. 새 계정으로 로그인 테스트
+
+1. 로그아웃 (우측 상단 사용자명 클릭 → Sign out)
+2. 새로 만든 계정으로 로그인:
+   ```
+   Username: admin
+   Password: Test12#$
+   ```
+
+## 완료!
+
+이제 영구적인 admin 계정이 생성되었고, 임시 계정은 삭제되었습니다.

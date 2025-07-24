@@ -5,8 +5,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
-import kr.pincoin.api.external.s3.api.response.*
+import kr.pincoin.api.external.s3.error.S3ErrorCode
 import kr.pincoin.api.external.s3.properties.S3Properties
+import kr.pincoin.api.global.exception.BusinessException
 import org.springframework.stereotype.Service
 import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.services.s3.S3Client
@@ -26,69 +27,41 @@ class S3HealthCheckService(
     /**
      * S3 연결 및 기본 권한 테스트
      */
-    suspend fun performHealthCheck(): S3ApiResponse<S3HealthCheckResponse> =
+    suspend fun performHealthCheck(): Unit =
         withContext(Dispatchers.IO) {
-            val checks = mutableListOf<S3CheckResult>()
-
             try {
+                logger.info { "S3 헬스체크 시작" }
+
                 // 1. 버킷 존재 여부 및 접근 권한 확인
-                checks.add(checkBucketAccess())
+                checkBucketAccess()
 
                 // 2. 파일 업로드 권한 확인
-                checks.add(checkUploadPermission())
+                checkUploadPermission()
 
                 // 3. 파일 읽기 권한 확인
-                checks.add(checkReadPermission())
+                checkReadPermission()
 
                 // 4. 파일 삭제 권한 확인
-                checks.add(checkDeletePermission())
+                checkDeletePermission()
 
                 // 5. 버킷 정책 및 설정 확인
-                checks.add(checkBucketConfiguration())
+                checkBucketConfiguration()
 
-                val successCount = checks.count { it.success }
-                val status = when {
-                    successCount == checks.size -> "SUCCESS"
-                    successCount > 0 -> "PARTIAL_FAILURE"
-                    else -> "FAILURE"
-                }
+                logger.info { "S3 헬스체크 성공" }
 
-                S3ApiResponse.Success(
-                    S3HealthCheckResponse(
-                        status = status,
-                        bucketName = s3Properties.bucketName,
-                        region = s3Properties.region,
-                        endpoint = s3Properties.endpoint,
-                        checks = checks
-                    )
-                )
+            } catch (e: BusinessException) {
+                throw e
             } catch (e: Exception) {
-                checks.add(
-                    S3CheckResult(
-                        checkName = "전체 헬스체크",
-                        success = false,
-                        message = "헬스체크 중 예상치 못한 오류 발생: ${e.message}",
-                        errorCode = "SYSTEM_ERROR"
-                    )
-                )
-
-                S3ApiResponse.Success(
-                    S3HealthCheckResponse(
-                        status = "FAILURE",
-                        bucketName = s3Properties.bucketName,
-                        region = s3Properties.region,
-                        endpoint = s3Properties.endpoint,
-                        checks = checks
-                    )
-                )
+                logger.error(e) { "헬스체크 중 예상치 못한 오류 발생" }
+                throw BusinessException(S3ErrorCode.SYSTEM_ERROR)
             }
         }
 
     /**
      * 버킷 존재 여부 및 접근 권한 확인
      */
-    private suspend fun checkBucketAccess(): S3CheckResult {
-        return try {
+    private suspend fun checkBucketAccess() {
+        try {
             withTimeout(s3Properties.timeout) {
                 val startTime = System.currentTimeMillis()
 
@@ -102,94 +75,42 @@ class S3HealthCheckService(
 
                 val duration = System.currentTimeMillis() - startTime
                 logger.info { "버킷 접근 성공 - 소요 시간: ${duration}ms" }
-
-                S3CheckResult(
-                    checkName = "버킷 접근 권한",
-                    success = true,
-                    message = "버킷에 성공적으로 접근했습니다",
-                    duration = duration
-                )
             }
         } catch (_: NoSuchBucketException) {
             logger.error { "버킷이 존재하지 않음: ${s3Properties.bucketName}" }
-            S3CheckResult(
-                checkName = "버킷 접근 권한",
-                success = false,
-                message = "버킷이 존재하지 않습니다: ${s3Properties.bucketName}",
-                errorCode = "BUCKET_NOT_FOUND"
-            )
+            throw BusinessException(S3ErrorCode.BUCKET_NOT_FOUND)
         } catch (e: S3Exception) {
             val errorMessage = e.awsErrorDetails()?.errorMessage() ?: e.message
             val errorCode = e.awsErrorDetails()?.errorCode()
             val statusCode = e.statusCode()
 
             logger.error {
-                "S3 오류 발생 - 상태코드: $statusCode, 오류코드: $errorCode, 메시지: $errorMessage"
-            }
-            logger.error { "AWS 요청 ID: ${e.requestId()}" }
-
-            val detailedMessage = when {
-                errorMessage?.contains("authorization header is malformed") == true -> {
-                    "인증 헤더 형식 오류 - Credentials 확인 필요. " +
-                            "Access Key: ${s3Properties.accessKey.take(8)}..., " +
-                            "지역: ${s3Properties.region}"
-                }
-
-                errorMessage?.contains("does not exist") == true -> {
-                    "버킷이 존재하지 않거나 다른 지역에 있을 수 있습니다. " +
-                            "버킷명: ${s3Properties.bucketName}, 지역: ${s3Properties.region}"
-                }
-
-                errorMessage?.contains("Access Denied") == true -> {
-                    "버킷 접근 권한이 없습니다. IAM 정책을 확인하세요."
-                }
-
-                errorMessage?.contains("InvalidAccessKeyId") == true -> {
-                    "Access Key ID가 유효하지 않습니다. AWS 콘솔에서 확인하세요."
-                }
-
-                errorMessage?.contains("SignatureDoesNotMatch") == true -> {
-                    "Secret Key가 올바르지 않습니다. AWS 콘솔에서 확인하세요."
-                }
-
-                else -> "버킷 접근 실패: $errorMessage (상태코드: $statusCode, 오류코드: $errorCode)"
+                "S3 오류 발생 - 상태코드: $statusCode, 오류코드: $errorCode, 메시지: $errorMessage, " +
+                        "Access Key: ${s3Properties.accessKey.take(8)}..., 지역: ${s3Properties.region}, " +
+                        "버킷명: ${s3Properties.bucketName}, AWS 요청 ID: ${e.requestId()}"
             }
 
-            S3CheckResult(
-                checkName = "버킷 접근 권한",
-                success = false,
-                message = detailedMessage,
-                errorCode = when (statusCode) {
-                    400 -> "BAD_REQUEST"
-                    403 -> "ACCESS_DENIED"
-                    404 -> "BUCKET_NOT_FOUND"
-                    else -> "S3_ERROR"
-                }
-            )
+            val businessErrorCode = when (statusCode) {
+                400 -> S3ErrorCode.CONNECTION_FAILED
+                403 -> S3ErrorCode.ACCESS_DENIED
+                404 -> S3ErrorCode.BUCKET_NOT_FOUND
+                else -> S3ErrorCode.CONNECTION_FAILED
+            }
+            throw BusinessException(businessErrorCode)
         } catch (_: TimeoutCancellationException) {
             logger.error { "버킷 접근 시간 초과" }
-            S3CheckResult(
-                checkName = "버킷 접근 권한",
-                success = false,
-                message = "버킷 접근 시간 초과",
-                errorCode = "TIMEOUT"
-            )
+            throw BusinessException(S3ErrorCode.TIMEOUT)
         } catch (e: Exception) {
-            logger.error(e) { "예상치 못한 오류 발생" }
-            S3CheckResult(
-                checkName = "버킷 접근 권한",
-                success = false,
-                message = "예상치 못한 오류: ${e.message}",
-                errorCode = "SYSTEM_ERROR"
-            )
+            logger.error(e) { "버킷 접근 중 예상치 못한 오류 발생" }
+            throw BusinessException(S3ErrorCode.SYSTEM_ERROR)
         }
     }
 
     /**
      * 파일 업로드 권한 확인
      */
-    private suspend fun checkUploadPermission(): S3CheckResult {
-        return try {
+    private suspend fun checkUploadPermission() {
+        try {
             withTimeout(s3Properties.timeout) {
                 val startTime = System.currentTimeMillis()
 
@@ -209,47 +130,30 @@ class S3HealthCheckService(
                 s3Client.putObject(putObjectRequest, requestBody)
 
                 val duration = System.currentTimeMillis() - startTime
-
-                S3CheckResult(
-                    checkName = "파일 업로드 권한",
-                    success = true,
-                    message = "테스트 파일 업로드 성공",
-                    duration = duration
-                )
+                logger.info { "파일 업로드 권한 테스트 성공 - 소요 시간: ${duration}ms" }
             }
         } catch (e: S3Exception) {
-            S3CheckResult(
-                checkName = "파일 업로드 권한",
-                success = false,
-                message = "파일 업로드 실패: ${e.awsErrorDetails()?.errorMessage() ?: e.message}",
-                errorCode = when (e.statusCode()) {
-                    403 -> "ACCESS_DENIED"
-                    413 -> "FILE_TOO_LARGE"
-                    else -> "UPLOAD_ERROR"
-                }
-            )
+            logger.error { "파일 업로드 실패 - 상태코드: ${e.statusCode()}, 메시지: ${e.awsErrorDetails()?.errorMessage() ?: e.message}" }
+            val businessErrorCode = when (e.statusCode()) {
+                403 -> S3ErrorCode.ACCESS_DENIED
+                413 -> S3ErrorCode.FILE_UPLOAD_FAILED
+                else -> S3ErrorCode.FILE_UPLOAD_FAILED
+            }
+            throw BusinessException(businessErrorCode)
         } catch (_: TimeoutCancellationException) {
-            S3CheckResult(
-                checkName = "파일 업로드 권한",
-                success = false,
-                message = "파일 업로드 시간 초과",
-                errorCode = "TIMEOUT"
-            )
+            logger.error { "파일 업로드 시간 초과" }
+            throw BusinessException(S3ErrorCode.TIMEOUT)
         } catch (e: Exception) {
-            S3CheckResult(
-                checkName = "파일 업로드 권한",
-                success = false,
-                message = "예상치 못한 오류: ${e.message}",
-                errorCode = "SYSTEM_ERROR"
-            )
+            logger.error(e) { "파일 업로드 중 예상치 못한 오류 발생" }
+            throw BusinessException(S3ErrorCode.SYSTEM_ERROR)
         }
     }
 
     /**
      * 파일 읽기 권한 확인
      */
-    private suspend fun checkReadPermission(): S3CheckResult {
-        return try {
+    private suspend fun checkReadPermission() {
+        try {
             withTimeout(s3Properties.timeout) {
                 val startTime = System.currentTimeMillis()
 
@@ -263,58 +167,35 @@ class S3HealthCheckService(
                     val duration = System.currentTimeMillis() - startTime
 
                     if (content == testContent) {
-                        S3CheckResult(
-                            checkName = "파일 읽기 권한",
-                            success = true,
-                            message = "테스트 파일 읽기 성공",
-                            duration = duration
-                        )
+                        logger.info { "파일 읽기 권한 테스트 성공 - 소요 시간: ${duration}ms" }
                     } else {
-                        S3CheckResult(
-                            checkName = "파일 읽기 권한",
-                            success = false,
-                            message = "파일 내용이 일치하지 않습니다",
-                            errorCode = "CONTENT_MISMATCH"
-                        )
+                        logger.error { "파일 내용 불일치 - 예상: $testContent, 실제: $content" }
+                        throw BusinessException(S3ErrorCode.FILE_READ_FAILED)
                     }
                 }
             }
         } catch (_: NoSuchKeyException) {
-            S3CheckResult(
-                checkName = "파일 읽기 권한",
-                success = false,
-                message = "테스트 파일을 찾을 수 없습니다 (업로드가 실패했을 수 있습니다)",
-                errorCode = "FILE_NOT_FOUND"
-            )
+            logger.error { "테스트 파일을 찾을 수 없음 (업로드가 실패했을 수 있음)" }
+            throw BusinessException(S3ErrorCode.FILE_NOT_FOUND)
         } catch (e: S3Exception) {
-            S3CheckResult(
-                checkName = "파일 읽기 권한",
-                success = false,
-                message = "파일 읽기 실패: ${e.awsErrorDetails()?.errorMessage() ?: e.message}",
-                errorCode = "READ_ERROR"
-            )
+            logger.error { "파일 읽기 실패 - 상태코드: ${e.statusCode()}, 메시지: ${e.awsErrorDetails()?.errorMessage() ?: e.message}" }
+            throw BusinessException(S3ErrorCode.FILE_READ_FAILED)
         } catch (_: TimeoutCancellationException) {
-            S3CheckResult(
-                checkName = "파일 읽기 권한",
-                success = false,
-                message = "파일 읽기 시간 초과",
-                errorCode = "TIMEOUT"
-            )
+            logger.error { "파일 읽기 시간 초과" }
+            throw BusinessException(S3ErrorCode.TIMEOUT)
+        } catch (e: BusinessException) {
+            throw e
         } catch (e: Exception) {
-            S3CheckResult(
-                checkName = "파일 읽기 권한",
-                success = false,
-                message = "예상치 못한 오류: ${e.message}",
-                errorCode = "SYSTEM_ERROR"
-            )
+            logger.error(e) { "파일 읽기 중 예상치 못한 오류 발생" }
+            throw BusinessException(S3ErrorCode.SYSTEM_ERROR)
         }
     }
 
     /**
      * 파일 삭제 권한 확인
      */
-    private suspend fun checkDeletePermission(): S3CheckResult {
-        return try {
+    private suspend fun checkDeletePermission() {
+        try {
             withTimeout(s3Properties.timeout) {
                 val startTime = System.currentTimeMillis()
 
@@ -326,43 +207,25 @@ class S3HealthCheckService(
                 s3Client.deleteObject(deleteObjectRequest)
 
                 val duration = System.currentTimeMillis() - startTime
-
-                S3CheckResult(
-                    checkName = "파일 삭제 권한",
-                    success = true,
-                    message = "테스트 파일 삭제 성공",
-                    duration = duration
-                )
+                logger.info { "파일 삭제 권한 테스트 성공 - 소요 시간: ${duration}ms" }
             }
         } catch (e: S3Exception) {
-            S3CheckResult(
-                checkName = "파일 삭제 권한",
-                success = false,
-                message = "파일 삭제 실패: ${e.awsErrorDetails()?.errorMessage() ?: e.message}",
-                errorCode = "DELETE_ERROR"
-            )
+            logger.error { "파일 삭제 실패 - 상태코드: ${e.statusCode()}, 메시지: ${e.awsErrorDetails()?.errorMessage() ?: e.message}" }
+            throw BusinessException(S3ErrorCode.FILE_DELETE_FAILED)
         } catch (_: TimeoutCancellationException) {
-            S3CheckResult(
-                checkName = "파일 삭제 권한",
-                success = false,
-                message = "파일 삭제 시간 초과",
-                errorCode = "TIMEOUT"
-            )
+            logger.error { "파일 삭제 시간 초과" }
+            throw BusinessException(S3ErrorCode.TIMEOUT)
         } catch (e: Exception) {
-            S3CheckResult(
-                checkName = "파일 삭제 권한",
-                success = false,
-                message = "예상치 못한 오류: ${e.message}",
-                errorCode = "SYSTEM_ERROR"
-            )
+            logger.error(e) { "파일 삭제 중 예상치 못한 오류 발생" }
+            throw BusinessException(S3ErrorCode.SYSTEM_ERROR)
         }
     }
 
     /**
      * 버킷 설정 확인
      */
-    private suspend fun checkBucketConfiguration(): S3CheckResult {
-        return try {
+    private suspend fun checkBucketConfiguration() {
+        try {
             withTimeout(s3Properties.timeout) {
                 val startTime = System.currentTimeMillis()
 
@@ -379,49 +242,30 @@ class S3HealthCheckService(
                 if (bucketRegion == s3Properties.region ||
                     (bucketRegion == "us-east-1" && s3Properties.region == "us-east-1")
                 ) {
-                    S3CheckResult(
-                        checkName = "버킷 설정",
-                        success = true,
-                        message = "버킷 지역 설정이 올바릅니다 (${bucketRegion})",
-                        duration = duration
-                    )
+                    logger.info { "버킷 설정 확인 성공 - 지역: $bucketRegion, 소요 시간: ${duration}ms" }
                 } else {
-                    S3CheckResult(
-                        checkName = "버킷 설정",
-                        success = false,
-                        message = "버킷 지역 불일치: 설정=${s3Properties.region}, 실제=${bucketRegion}",
-                        errorCode = "REGION_MISMATCH"
-                    )
+                    logger.error { "버킷 지역 불일치 - 설정: ${s3Properties.region}, 실제: $bucketRegion" }
+                    throw BusinessException(S3ErrorCode.CONNECTION_FAILED)
                 }
             }
         } catch (e: S3Exception) {
-            S3CheckResult(
-                checkName = "버킷 설정",
-                success = false,
-                message = "버킷 설정 확인 실패: ${e.awsErrorDetails()?.errorMessage() ?: e.message}",
-                errorCode = "CONFIG_ERROR"
-            )
+            logger.error { "버킷 설정 확인 실패 - 상태코드: ${e.statusCode()}, 메시지: ${e.awsErrorDetails()?.errorMessage() ?: e.message}" }
+            throw BusinessException(S3ErrorCode.CONNECTION_FAILED)
         } catch (_: TimeoutCancellationException) {
-            S3CheckResult(
-                checkName = "버킷 설정",
-                success = false,
-                message = "버킷 설정 확인 시간 초과",
-                errorCode = "TIMEOUT"
-            )
+            logger.error { "버킷 설정 확인 시간 초과" }
+            throw BusinessException(S3ErrorCode.TIMEOUT)
+        } catch (e: BusinessException) {
+            throw e
         } catch (e: Exception) {
-            S3CheckResult(
-                checkName = "버킷 설정",
-                success = false,
-                message = "예상치 못한 오류: ${e.message}",
-                errorCode = "SYSTEM_ERROR"
-            )
+            logger.error(e) { "버킷 설정 확인 중 예상치 못한 오류 발생" }
+            throw BusinessException(S3ErrorCode.SYSTEM_ERROR)
         }
     }
 
     /**
      * 간단한 연결 테스트 (빠른 확인용)
      */
-    suspend fun quickHealthCheck(): S3ApiResponse<Boolean> =
+    suspend fun quickHealthCheck(): Unit =
         withContext(Dispatchers.IO) {
             try {
                 withTimeout(5000) { // 5초 타임아웃
@@ -430,146 +274,81 @@ class S3HealthCheckService(
                         .build()
 
                     s3Client.headBucket(headBucketRequest)
-                    S3ApiResponse.Success(true)
+                    logger.info { "Quick 헬스체크 성공" }
                 }
-            } catch (_: Exception) {
-                S3ApiResponse.Success(false)  // 에러 상세정보 없이 단순히 false 반환
+            } catch (_: TimeoutCancellationException) {
+                logger.error { "Quick 헬스체크 시간 초과" }
+                throw BusinessException(S3ErrorCode.TIMEOUT)
+            } catch (e: Exception) {
+                logger.error(e) { "Quick 헬스체크 실패" }
+                throw BusinessException(S3ErrorCode.CONNECTION_FAILED)
             }
         }
 
     /**
      * S3 설정 진단
      */
-    suspend fun diagnoseConfiguration(): S3ApiResponse<S3ConfigDiagnosisResponse> =
+    suspend fun diagnoseConfiguration(): Unit =
         withContext(Dispatchers.IO) {
-            val issues = mutableListOf<S3ConfigIssue>()
-            val recommendations = mutableListOf<String>()
-
             try {
+                logger.info { "S3 설정 진단 시작" }
+
                 // 1. Credentials 형식 검증
                 if (s3Properties.accessKey.isBlank() || s3Properties.accessKey == "dummy-access-key") {
-                    issues.add(
-                        S3ConfigIssue(
-                            category = "CREDENTIALS",
-                            severity = "CRITICAL",
-                            issue = "Access Key가 설정되지 않았거나 기본값입니다",
-                            suggestion = "올바른 AWS Access Key를 설정하세요"
-                        )
-                    )
+                    logger.error { "CRITICAL - Access Key가 설정되지 않았거나 기본값입니다. 올바른 AWS Access Key를 설정하세요" }
+                    throw BusinessException(S3ErrorCode.ACCESS_DENIED)
                 }
 
                 if (s3Properties.secretKey.isBlank() || s3Properties.secretKey == "dummy-secret-key") {
-                    issues.add(
-                        S3ConfigIssue(
-                            category = "CREDENTIALS",
-                            severity = "CRITICAL",
-                            issue = "Secret Key가 설정되지 않았거나 기본값입니다",
-                            suggestion = "올바른 AWS Secret Key를 설정하세요"
-                        )
-                    )
+                    logger.error { "CRITICAL - Secret Key가 설정되지 않았거나 기본값입니다. 올바른 AWS Secret Key를 설정하세요" }
+                    throw BusinessException(S3ErrorCode.ACCESS_DENIED)
                 }
 
                 // 2. 버킷명 검증
                 if (s3Properties.bucketName.isBlank() || s3Properties.bucketName == "dummy-bucket") {
-                    issues.add(
-                        S3ConfigIssue(
-                            category = "BUCKET",
-                            severity = "CRITICAL",
-                            issue = "버킷명이 설정되지 않았거나 기본값입니다",
-                            suggestion = "실제 S3 버킷명을 설정하세요"
-                        )
-                    )
+                    logger.error { "CRITICAL - 버킷명이 설정되지 않았거나 기본값입니다. 실제 S3 버킷명을 설정하세요" }
+                    throw BusinessException(S3ErrorCode.BUCKET_NOT_FOUND)
                 } else if (!isValidBucketName(s3Properties.bucketName)) {
-                    issues.add(
-                        S3ConfigIssue(
-                            category = "BUCKET",
-                            severity = "HIGH",
-                            issue = "버킷명 형식이 올바르지 않습니다",
-                            suggestion = "S3 버킷 명명 규칙을 따르세요 (소문자, 숫자, 하이픈만 사용)"
-                        )
-                    )
+                    logger.error { "HIGH - 버킷명 형식이 올바르지 않습니다. S3 버킷 명명 규칙을 따르세요 (소문자, 숫자, 하이픈만 사용)" }
+                    throw BusinessException(S3ErrorCode.BUCKET_NOT_FOUND)
                 }
 
                 // 3. 지역 설정 검증
                 if (!isValidRegion(s3Properties.region)) {
-                    issues.add(
-                        S3ConfigIssue(
-                            category = "REGION",
-                            severity = "HIGH",
-                            issue = "올바르지 않은 AWS 지역입니다",
-                            suggestion = "유효한 AWS 지역 코드를 사용하세요 (예: ap-northeast-2)"
-                        )
-                    )
+                    logger.error { "HIGH - 올바르지 않은 AWS 지역입니다. 유효한 AWS 지역 코드를 사용하세요 (예: ap-northeast-2)" }
+                    throw BusinessException(S3ErrorCode.CONNECTION_FAILED)
                 }
 
                 // 4. 엔드포인트 설정 검증
                 s3Properties.endpoint?.let { endpoint ->
                     if (!endpoint.startsWith("http://") && !endpoint.startsWith("https://")) {
-                        issues.add(
-                            S3ConfigIssue(
-                                category = "ENDPOINT",
-                                severity = "MEDIUM",
-                                issue = "엔드포인트 URL 형식이 올바르지 않습니다",
-                                suggestion = "http:// 또는 https://로 시작하는 완전한 URL을 사용하세요"
-                            )
-                        )
+                        logger.error { "MEDIUM - 엔드포인트 URL 형식이 올바르지 않습니다. http:// 또는 https://로 시작하는 완전한 URL을 사용하세요" }
+                        throw BusinessException(S3ErrorCode.CONNECTION_FAILED)
                     }
                 }
 
                 // 5. 타임아웃 설정 검증
                 if (s3Properties.timeout < 1000 || s3Properties.timeout > 300000) {
-                    issues.add(
-                        S3ConfigIssue(
-                            category = "TIMEOUT",
-                            severity = "LOW",
-                            issue = "타임아웃 설정이 권장 범위를 벗어났습니다",
-                            suggestion = "1초(1000ms)에서 5분(300000ms) 사이의 값을 사용하세요"
-                        )
-                    )
+                    logger.warn { "LOW - 타임아웃 설정이 권장 범위를 벗어났습니다. 1초(1000ms)에서 5분(300000ms) 사이의 값을 사용하세요" }
                 }
 
-                // 권장사항 생성
-                if (issues.any { it.category == "CREDENTIALS" }) {
-                    recommendations.add("AWS IAM에서 새로운 Access Key를 생성하고 적절한 S3 권한을 부여하세요")
+                // 설정 요약 로그
+                logger.info {
+                    "S3 설정 진단 성공 - " +
+                            "버킷: ${s3Properties.bucketName}, " +
+                            "지역: ${s3Properties.region}, " +
+                            "엔드포인트: ${s3Properties.endpoint ?: "AWS Default"}, " +
+                            "타임아웃: ${s3Properties.timeout}ms, " +
+                            "Access Key: ${s3Properties.accessKey.take(4)}****"
                 }
 
-                if (issues.any { it.category == "BUCKET" }) {
-                    recommendations.add("AWS S3 콘솔에서 버킷이 존재하는지 확인하고, 정확한 버킷명을 사용하세요")
-                }
+                logger.info { "S3 설정 진단 완료" }
 
-                if (s3Properties.endpoint != null) {
-                    recommendations.add("커스텀 엔드포인트를 사용 중입니다. LocalStack이나 다른 S3 호환 서비스인지 확인하세요")
-                }
-
-                val severity = when {
-                    issues.any { it.severity == "CRITICAL" } -> "CRITICAL"
-                    issues.any { it.severity == "HIGH" } -> "HIGH"
-                    issues.any { it.severity == "MEDIUM" } -> "MEDIUM"
-                    issues.any { it.severity == "LOW" } -> "LOW"
-                    else -> "NONE"
-                }
-
-                S3ApiResponse.Success(
-                    S3ConfigDiagnosisResponse(
-                        overallStatus = if (issues.isEmpty()) "HEALTHY" else "ISSUES_FOUND",
-                        severity = severity,
-                        issues = issues,
-                        recommendations = recommendations,
-                        configSummary = mapOf(
-                            "bucketName" to s3Properties.bucketName,
-                            "region" to s3Properties.region,
-                            "hasCustomEndpoint" to (s3Properties.endpoint != null),
-                            "endpoint" to (s3Properties.endpoint ?: "AWS Default"),
-                            "timeout" to "${s3Properties.timeout}ms",
-                            "accessKeyPrefix" to "${s3Properties.accessKey.take(4)}****"
-                        )
-                    )
-                )
+            } catch (e: BusinessException) {
+                throw e
             } catch (e: Exception) {
-                S3ApiResponse.Error(
-                    errorCode = "DIAGNOSIS_ERROR",
-                    errorMessage = "설정 진단 중 오류 발생: ${e.message}"
-                )
+                logger.error(e) { "설정 진단 중 오류 발생" }
+                throw BusinessException(S3ErrorCode.SYSTEM_ERROR)
             }
         }
 

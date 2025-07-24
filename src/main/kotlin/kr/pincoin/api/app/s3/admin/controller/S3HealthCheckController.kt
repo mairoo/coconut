@@ -1,4 +1,4 @@
-package kr.pincoin.api.external.s3.controller
+package kr.pincoin.api.app.s3.admin.controller
 
 import kr.pincoin.api.external.s3.service.S3HealthCheckService
 import kr.pincoin.api.global.response.success.ApiResponse
@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.time.LocalDateTime
 
 @RestController
 @RequestMapping("/open/s3/healthcheck")
@@ -23,7 +24,7 @@ class S3HealthCheckController(
                 mapOf(
                     "status" to "UP",
                     "healthy" to true,
-                    "timestamp" to java.time.LocalDateTime.now().toString(),
+                    "timestamp" to LocalDateTime.now().toString(),
                     "service" to "s3"
                 ) as Map<String, Any>
             }
@@ -42,7 +43,7 @@ class S3HealthCheckController(
                 mapOf(
                     "status" to "UP",
                     "healthy" to true,
-                    "timestamp" to java.time.LocalDateTime.now().toString(),
+                    "timestamp" to LocalDateTime.now().toString(),
                     "service" to "s3",
                     "checks" to listOf(
                         "bucket_access",

@@ -1,4 +1,4 @@
-package kr.pincoin.api.external.s3.controller
+package kr.pincoin.api.app.s3.admin.controller
 
 import kr.pincoin.api.external.s3.api.response.S3FileInfoResponse
 import kr.pincoin.api.external.s3.service.S3FileService

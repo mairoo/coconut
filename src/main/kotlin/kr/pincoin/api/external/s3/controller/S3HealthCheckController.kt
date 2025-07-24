@@ -4,7 +4,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kr.pincoin.api.external.s3.api.response.S3ApiResponse
 import kr.pincoin.api.external.s3.api.response.S3ConfigDiagnosisResponse
 import kr.pincoin.api.external.s3.api.response.S3ConfigIssue
-import kr.pincoin.api.external.s3.service.S3HealthCheckResponse
+import kr.pincoin.api.external.s3.api.response.S3HealthCheckResponse
 import kr.pincoin.api.external.s3.service.S3HealthCheckService
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/open/v1/s3/health")
+@RequestMapping("/open/s3/health")
 class S3HealthCheckController(
     private val s3HealthCheckService: S3HealthCheckService,
 ) {

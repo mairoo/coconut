@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/open/v1/files")
+@RequestMapping("/open/s3/files")
 class S3FileController(
     private val s3FileService: S3FileService,
 ) {

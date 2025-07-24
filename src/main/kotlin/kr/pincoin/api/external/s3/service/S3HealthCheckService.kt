@@ -5,9 +5,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
-import kr.pincoin.api.external.s3.api.response.S3ApiResponse
-import kr.pincoin.api.external.s3.api.response.S3ConfigDiagnosisResponse
-import kr.pincoin.api.external.s3.api.response.S3ConfigIssue
+import kr.pincoin.api.external.s3.api.response.*
 import kr.pincoin.api.external.s3.properties.S3Properties
 import org.springframework.stereotype.Service
 import software.amazon.awssdk.core.sync.RequestBody
@@ -15,23 +13,6 @@ import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.model.*
 import java.time.LocalDateTime
 import java.util.*
-
-data class S3HealthCheckResponse(
-    val status: String, // SUCCESS, PARTIAL_FAILURE, FAILURE
-    val timestamp: LocalDateTime = LocalDateTime.now(),
-    val bucketName: String,
-    val region: String,
-    val endpoint: String?,
-    val checks: List<S3CheckResult>
-)
-
-data class S3CheckResult(
-    val checkName: String,
-    val success: Boolean,
-    val message: String,
-    val duration: Long? = null,
-    val errorCode: String? = null
-)
 
 @Service
 class S3HealthCheckService(

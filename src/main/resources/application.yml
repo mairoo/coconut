@@ -78,6 +78,12 @@ management:
       application: ${spring.application.name:api}
       environment: prod # 개발환경은 local
 
+aws.s3:
+  region: ap-northeast-2 # 아시아 태평양 서울
+  bucket-name: dummy-bucket
+  access-key: dummy-access-key
+  secret-key: dummy-secret-key
+
 logging:
   level:
     root: INFO # 운영 WARN

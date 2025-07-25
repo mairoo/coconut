@@ -14,8 +14,6 @@ KEYCLOAK_DB=postgres
 KEYCLOAK_POSTGRES_DATABASE=keycloak
 KEYCLOAK_POSTGRES_USER=keycloak
 KEYCLOAK_POSTGRES_PASSWORD=secure_db_password_123
-KEYCLOAK_ADMIN=admin
-KEYCLOAK_ADMIN_PASSWORD=secure_admin_password_123
 ```
 
 ## `docker-compose.yml`
@@ -45,7 +43,7 @@ services:
 
   keycloak:
     container_name: ${PREFIX}-keycloak
-    image: quay.io/keycloak/keycloak:23.0.3
+    image: quay.io/keycloak/keycloak:26.3.1
     restart: unless-stopped
     ports:
       - "8081:8080"
@@ -55,8 +53,6 @@ services:
       - app-network
     environment:
       - TZ=Asia/Seoul
-      - KEYCLOAK_ADMIN=${KEYCLOAK_ADMIN}
-      - KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD}
       - KC_DB=${KEYCLOAK_DB}
       - KC_DB_URL=jdbc:postgresql://keycloak-postgres:5432/${KEYCLOAK_POSTGRES_DATABASE}
       - KC_DB_USERNAME=${KEYCLOAK_POSTGRES_USER}
@@ -96,32 +92,84 @@ backend 도커 설정에 추가 사항: 의존성 추가, KEYCLOAK 접속 주소
       - KEYCLOAK_AUTH_SERVER_URL=http://keycloak:8080 # (2) 추가
 ```
 
-## 도커 실행
+# 초기 설정
+
+
+
+## `temp-admin` 생성
 
 ```shell
-# 도커 실행
-docker compose up -d
+# 도커 컨테이너 시작
+docker compose up -d keycloak-postgres keycloak
 
-# 도커 실행 프로세스 확인
-docker compose ps
+# temp-admin 생성
+docker exec -it pincoin-keycloak /opt/keycloak/bin/kc.sh bootstrap-admin user
 
-# 도커 로그 확인
-docker compose logs -f keycloak
-
-# psql 클라이언트로 직접 접근
-docker compose exec keycloak-postgres psql -U keycloak -d keycloak
-
-# postgres 유저로 접근
-docker compose exec keycloak-postgres psql -U postgres
+# 도커 컨테이너 재시작
+docker compose restart keycloak
 ```
 
-# 웹 콘솔 설정
+## Keycloak 영구 Admin 계정 생성 및 임시 계정 삭제
 
-## 접속
+### 영구 Admin 계정 생성
 
-- http://localhost:8081
-- 아이디: KEYCLOAK_ADMIN 설정 값 (예, admin)
-- 비밀번호: KEYCLOAK_ADMIN_PASSWORD 설정 값 (예, secure_admin_password_123)
+#### 웹 콘솔에서 작업:
+1. **http://localhost:8081** 접속 후 temp-admin으로 로그인
+2. 좌측 상단의 **Master** realm이 선택되어 있는지 확인
+3. 좌측 메뉴에서 **Users** 클릭
+4. **Create new user** 버튼 클릭
+
+#### 사용자 기본 정보 입력:
+```
+Username: admin
+Email: admin@example.com (선택사항)
+First name: Admin (선택사항)  
+Last name: User (선택사항)
+Email verified: ON (체크)
+Enabled: ON (체크)
+```
+
+5. **Create** 버튼 클릭
+
+### 비밀번호 설정
+
+#### 생성된 사용자의 Credentials 탭에서:
+1. **admin** 사용자를 클릭하여 상세 페이지로 이동
+2. **Credentials** 탭 클릭
+3. **Set password** 클릭
+4. 비밀번호 설정:
+   ```
+   Password: Test12#$
+   Password confirmation: Test12#$
+   Temporary: OFF (체크 해제) ← 중요!
+   ```
+5. **Set password** 버튼 클릭
+
+### Admin 권한 부여
+
+#### Role mappings 설정:
+1. 같은 사용자 페이지에서 **Role mappings** 탭 클릭
+2. **Assign role** 버튼 클릭
+3. **Filter by clients** 체크박스 체크
+4. **master-realm » admin** 역할 하나만 할당하면 모든 관리 권한이 포함됩니다
+5. **Assign** 버튼 클릭
+
+### 임시 계정 삭제
+
+#### temp-admin 사용자 삭제:
+1. **Users** 목록으로 돌아가기
+2. **temp-admin** 사용자 찾기
+3. 해당 사용자 행의 **Actions** → **Delete** 클릭
+4. 삭제 확인
+
+## 새 계정으로 로그인 테스트
+
+1. 로그아웃 (우측 상단 사용자명 클릭 → Sign out)
+2. 새로 만든 계정으로 로그인:
+   ```
+   Username: admin
+   Password: Test12#$
+   ```
 
 ## realm 생성
 
@@ -137,7 +185,7 @@ docker compose exec keycloak-postgres psql -U postgres
         - Description: (없음)
         - Always display in UI: OFF
     2. Capability Config:
-        - **Client authentication: ON**  (중요!)
+        - **Client authentication: ON** (중요!)
         - Authorization: OFF
         - **Standard flow: ON**
         - **Direct access grants: ON**
@@ -206,79 +254,23 @@ docker compose down keycloak keycloak-postgres
 
 docker volume rm pincoin-keycloak-postgres-data
 docker volume rm pincoin-keycloak-data
+```
 
-docker exec -it pincoin-keycloak /opt/keycloak/bin/kc.sh bootstrap-admin user
+# 도커 관리 명령어
 
-Enter username [temp-admin]:temp-admin
-Enter password:
-Enter password again:
+```shell
+# 도커 실행
+docker compose up -d
 
-docker compose restart keycloak
+# 도커 실행 프로세스 확인
+docker compose ps
+
+# 도커 로그 확인
 docker compose logs -f keycloak
+
+# psql 클라이언트로 직접 접근
+docker compose exec keycloak-postgres psql -U keycloak -d keycloak
+
+# postgres 유저로 접근
+docker compose exec keycloak-postgres psql -U postgres
 ```
-
-# Keycloak 영구 Admin 계정 생성 및 임시 계정 삭제
-
-## 1. 영구 Admin 계정 생성
-
-### 웹 콘솔에서 작업:
-1. **http://localhost:8081** 접속 후 temp-admin으로 로그인
-2. 좌측 상단의 **Master** realm이 선택되어 있는지 확인
-3. 좌측 메뉴에서 **Users** 클릭
-4. **Create new user** 버튼 클릭
-
-### 사용자 기본 정보 입력:
-```
-Username: admin
-Email: admin@example.com (선택사항)
-First name: Admin (선택사항)  
-Last name: User (선택사항)
-Email verified: ON (체크)
-Enabled: ON (체크)
-```
-
-5. **Create** 버튼 클릭
-
-## 2. 비밀번호 설정
-
-### 생성된 사용자의 Credentials 탭에서:
-1. **admin** 사용자를 클릭하여 상세 페이지로 이동
-2. **Credentials** 탭 클릭
-3. **Set password** 클릭
-4. 비밀번호 설정:
-   ```
-   Password: Test12#$
-   Password confirmation: Test12#$
-   Temporary: OFF (체크 해제) ← 중요!
-   ```
-5. **Set password** 버튼 클릭
-
-## 3. Admin 권한 부여
-
-### Role mappings 설정:
-1. 같은 사용자 페이지에서 **Role mappings** 탭 클릭
-2. **Assign role** 버튼 클릭
-3. **Filter by clients** 체크박스 체크
-4. **master-realm » admin** 역할 하나만 할당하면 모든 관리 권한이 포함됩니다
-5. **Assign** 버튼 클릭
-
-## 4. 임시 계정 삭제
-
-### temp-admin 사용자 삭제:
-1. **Users** 목록으로 돌아가기
-2. **temp-admin** 사용자 찾기
-3. 해당 사용자 행의 **Actions** → **Delete** 클릭
-4. 삭제 확인
-
-## 5. 새 계정으로 로그인 테스트
-
-1. 로그아웃 (우측 상단 사용자명 클릭 → Sign out)
-2. 새로 만든 계정으로 로그인:
-   ```
-   Username: admin
-   Password: Test12#$
-   ```
-
-## 완료!
-
-이제 영구적인 admin 계정이 생성되었고, 임시 계정은 삭제되었습니다.

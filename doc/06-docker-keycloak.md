@@ -98,7 +98,7 @@ Enter password again: [비밀번호]
 docker compose restart keycloak
 ```
 
-## Keycloak 영구 `admin` 계정 생성 및 `temp-admin` 삭제
+## Keycloak 영구 `admin` 계정 생성
 
 1. **http://localhost:8081** 접속 후 `temp-admin`으로 로그인
 2. 좌측 상단의 **Master** realm이 선택되어 있는지 확인
@@ -121,7 +121,7 @@ docker compose restart keycloak
 
 `Realm roles` 선택 후 `Assign role`에서 `admin` 체크 후 `Assgin`
 
-## 새 계정으로 로그인 테스트
+## `admin` 계정 로그인 후 `temp-admin` 계정 삭제
 
 1. 로그아웃 (우측 상단 사용자명 클릭 → Sign out)
 2. 새로 만든 계정으로 로그인:
@@ -156,6 +156,8 @@ docker compose restart keycloak
 - Password: Mailgun 발급 비밀번호 (또는 gmail 앱 비밀번호 16자리)
 
 올바른 정보 입력 시 Test connection 누르면 관리자 이메일 주소로 테스트 이메일이 발송
+
+참고: Mailgun 사용 시 오른쪽 상단 Account Settings > IP Access Management 메뉴에서 반드시 이메일 발송 IP 허용을 해야 인증 오류가 발생하지 않는다.
 
 ## master realm, pincoin realm 이벤트 로깅 저장 설정
 

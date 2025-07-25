@@ -2,97 +2,63 @@
 
 ```mermaid
 sequenceDiagram
-    participant FE as Frontend<br/>(Next.js)
-    participant BE as Backend<br/>(Spring/Kotlin)
-    participant KC as Keycloak<br/>Server
-    participant Redis as Redis<br/>Cache
-    participant Email as Email<br/>Service
-    participant User as User
+    participant User as 사용자
+    participant FE as Frontend
+    participant BE as Backend
+    participant Redis as Redis
+    participant Email as Email Service
+    participant KC as Keycloak
+    participant DB as Database
 
-    Note over FE,User: 회원 가입 시 이메일 인증 (토큰 기반 + Redis TTL)
+    Note over User,DB: 회원가입 이메일 인증 프로세스 (AES 암호화 + Redis TTL)
 
     rect rgb(240, 248, 255)
-    Note over FE,KC: 1. 회원 가입 (이메일만 받음)
-    User->>FE: 가입 폼 작성 (이메일, 이름만)
-    FE->>BE: POST /api/auth/register<br/>{email, name}
-    
-    BE->>KC: POST /auth/admin/realms/{realm}/users<br/>{email, name, enabled: false, emailVerified: false}
-    KC-->>BE: 201 Created {userId}
-    
-    BE->>Redis: SET pending_signup:{userId}<br/>{email, name, createdAt}<br/>TTL: 24시간
-    Redis-->>BE: OK
-    
-    BE->>Email: Send verification email<br/>{userId, verificationToken}
-    Email->>User: 📧 "이메일 인증을 완료해주세요" 링크
-    
-    BE-->>FE: {success: true, message: "인증 이메일을 발송했습니다"}
-    FE->>User: "이메일을 확인해주세요" 안내
+    Note over User,Redis: 1단계: 회원가입 정보 임시 저장
+    User->>FE: 회원가입 폼 작성
+    Note right of User: email, username,<br/>firstname, lastname, password
+    FE->>BE: POST /auth/register
+    BE->>BE: AES 암호화 (password)
+    BE->>Redis: 임시 저장 (TTL 24h)
+    Note right of Redis: 암호화된 비밀번호<br/>+ 회원정보
+    BE->>Email: 인증 이메일 발송
+    Email->>User: 이메일 인증 링크
+    BE-->>FE: 성공 응답
+    FE->>User: 이메일 확인 안내
     end
 
     rect rgb(255, 248, 240)
-    Note over User,KC: 2. 이메일 인증 링크 클릭
-    User->>KC: Click verification link<br/>GET /auth/realms/{realm}/login-actions/action-token?key={token}
-    KC->>KC: Verify email token<br/>Update emailVerified: true
-    KC-->>User: Redirect to password setup page<br/>with setupToken
+    Note over User,Redis: 2단계: 이메일 인증
+    User->>BE: 인증 링크 클릭
+    BE->>BE: 토큰 검증
+    BE->>Redis: 회원정보 조회
+    Redis-->>BE: 암호화된 회원정보
     end
 
     rect rgb(248, 255, 248)
-    Note over User,BE: 3. 비밀번호 설정
-    User->>FE: Access password setup page<br/>?token={setupToken}
-    FE->>BE: GET /api/auth/verify-setup-token<br/>{setupToken}
-    BE->>BE: Validate setupToken<br/>Extract userId
-    BE-->>FE: {valid: true, email: "user@example.com"}
-    
-    FE->>User: 비밀번호 설정 폼 표시
-    User->>FE: 비밀번고 입력 및 확인
-    FE->>BE: POST /api/auth/complete-signup<br/>{setupToken, password, confirmPassword}
+    Note over BE,DB: 3단계: 계정 생성
+    BE->>BE: AES 복호화 (password)
+    BE->>KC: Keycloak 사용자 생성
+    KC-->>BE: keycloak_id 반환
+    BE->>DB: User 테이블 저장
+    Note right of DB: keycloak_id 포함
+    BE->>Redis: 임시 데이터 삭제
+    BE-->>User: 가입 완료 안내
     end
 
     rect rgb(255, 240, 255)
-    Note over BE,Redis: 4. 계정 활성화
-    BE->>BE: Validate setupToken & password
-    BE->>Redis: GET pending_signup:{userId}
-    Redis-->>BE: {email, name, createdAt}
-    
-    BE->>KC: PUT /auth/admin/realms/{realm}/users/{userId}<br/>{enabled: true, credentials: [{password}]}
-    KC-->>BE: 200 OK
-    
-    BE->>Redis: DEL pending_signup:{userId}
-    Redis-->>BE: OK
-    
-    BE-->>FE: {success: true, message: "가입이 완료되었습니다"}
-    FE->>User: "가입 완료! 로그인해주세요"
+    Note over Redis,KC: 4단계: TTL 만료 시 자동 정리
+    Redis->>Redis: 24시간 후 자동 삭제
+    Note right of Redis: 암호화된 데이터<br/>자동 만료
     end
 
     rect rgb(255, 255, 240)
-    Note over Redis,KC: 5. TTL 만료 시 자동 정리 (24시간 후)
-    Redis->>Redis: TTL 만료 이벤트<br/>pending_signup:{userId}
-    Redis->>BE: @RedisKeyExpired Event
-    BE->>KC: DELETE /auth/admin/realms/{realm}/users/{userId}
-    KC-->>BE: 204 No Content
-    BE->>BE: Log cleanup: "User {userId} auto-deleted"
-    end
-
-    rect rgb(240, 255, 240)
-    Note over FE,User: 6. 사용자 경험 개선 (선택사항)
-    alt 인증 대기 중 상태 확인
-        FE->>BE: GET /api/auth/signup-status/{email}
-        BE->>Redis: EXISTS pending_signup:*<br/>WHERE email = {email}
-        Redis-->>BE: {exists: true, expiresIn: "23h 45m"}
-        BE-->>FE: {status: "pending", expiresIn: "23h 45m"}
-        FE->>User: "인증 대기 중 (23시간 45분 남음)"
-    else 이메일 재발송
-        User->>FE: "인증 이메일 재발송" 버튼
-        FE->>BE: POST /api/auth/resend-verification<br/>{email}
-        BE->>BE: Rate limiting check (5분에 1회)
-        BE->>Email: Resend verification email
-        BE-->>FE: {success: true}
+    Note over BE,KC: 5단계: 예외 처리 (보상 트랜잭션)
+    alt Keycloak 성공, DB 실패
+        BE->>KC: 사용자 삭제
+        BE->>Redis: 임시 데이터 삭제
+        BE-->>User: 오류 메시지
     end
     end
-
-    Note over FE: Frontend 책임<br/>• 가입 폼 (이메일, 이름만)<br/>• 비밀번호 설정 페이지<br/>• 인증 상태 안내<br/>• 재발송 기능
-    Note over BE: Backend 책임<br/>• Keycloak 계정 생성<br/>• Redis TTL 관리<br/>• 토큰 검증<br/>• 자동 정리 로직
-    Note over KC: Keycloak 책임<br/>• 이메일 발송<br/>• 토큰 검증<br/>• 계정 상태 관리<br/>• 비밀번호 설정
 ```
 
 # 기존 회원 이메일 변경 인증

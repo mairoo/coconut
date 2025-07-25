@@ -89,7 +89,7 @@ volumes:
 docker compose up -d keycloak-postgres keycloak
 
 # temp-admin 생성
- docker exec -it pincoin-keycloak /opt/keycloak/bin/kc.sh bootstrap-admin user
+docker exec -it pincoin-keycloak /opt/keycloak/bin/kc.sh bootstrap-admin user
 Enter username [temp-admin]:temp-admin
 Enter password: [비밀번호]
 Enter password again: [비밀번호]
@@ -135,6 +135,13 @@ docker compose restart keycloak
 
 - Realm 생성: Realms → Create Realm → (Realm name: `pincoin`)
 
+## master realm, pincoin realm 이벤트 로깅 저장 설정
+
+- Event Listeners: jboss-logging + email
+- User Events: Save events 체크, Expiration 90 days, 모든 이벤트 유지
+- Admin Events: Save events 체크, Expiration 90 days, Include representation(관리자가 변경한 데이터의 상세 내용까지 함께 저장) 체크 안 함, 모든 이벤트
+  유지
+
 ## client 생성
 
 - Client 생성: Clients → Create Client →
@@ -167,12 +174,6 @@ docker compose restart keycloak
         - `realm-management`: `query-users`
 
 - `pincoin-backend` 클라이언트 설정 완료 후 `Credentials` 탭에서 Client Secret 복사
-
-## master realm, pincoin realm 이벤트 로깅 저장 설정
-
-- Event Listeners: jboss-logging + email
-- User Events: Save events 체크, Expiration 90 days, 모든 이벤트 유지
-- Admin Events: Save events 체크, Expiration 90 days, Include representation(관리자가 변경한 데이터의 상세 내용까지 함께 저장) 체크 안 함, 모든 이벤트 유지
 
 # 스프링부트 설정
 
@@ -236,12 +237,9 @@ docker volume rm pincoin-keycloak-postgres-data
 docker volume rm pincoin-keycloak-data
 ```
 
-# 도커 관리 명령어
+# 기타 도커 관리 명령어
 
 ```shell
-# 도커 실행
-docker compose up -d
-
 # 도커 실행 프로세스 확인
 docker compose ps
 

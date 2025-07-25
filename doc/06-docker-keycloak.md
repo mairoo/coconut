@@ -131,18 +131,42 @@ docker compose restart keycloak
    ```
 3. Keycloak 임시 계정 `temp-admin` 삭제
 
-## realm 생성
+## pincoin realm 생성
 
 - Realm 생성: Realms → Create Realm → (Realm name: `pincoin`)
 
+## pincoin realm 이메일 설정
+
+템플릿
+
+- From: help@example.com
+- From display name: 고객센터
+- Reply to: no-reply@example.com
+- Reply to display name: 발신전용
+- Envelope from: no-reply@example.com
+
+연결 및 인증
+
+- Host: smtp.mailgun.org (또는 smtp.gmail.com)
+- Port: 587
+- Encryption: Enable SSL (체크 안 함), Enable StartTLS (체크)
+- Authentication: Enabled (체크)
+- Username: postmaster@mg.example.com (또는 gmail 주소)
+- Authentication Type: Password
+- Password: Mailgun 발급 비밀번호 (또는 gmail 앱 비밀번호 16자리)
+
+올바른 정보 입력 시 Test connection 누르면 관리자 이메일 주소로 테스트 이메일이 발송
+
 ## master realm, pincoin realm 이벤트 로깅 저장 설정
+
+**각 realm별로 동일하게 설정**
 
 - Event Listeners: jboss-logging + email
 - User Events: Save events 체크, Expiration 90 days, 모든 이벤트 유지
 - Admin Events: Save events 체크, Expiration 90 days, Include representation(관리자가 변경한 데이터의 상세 내용까지 함께 저장) 체크 안 함, 모든 이벤트
   유지
 
-## client 생성
+## pincoin realm에서 pincoin-backend client 생성
 
 - Client 생성: Clients → Create Client →
     1. General Settings:
@@ -175,27 +199,6 @@ docker compose restart keycloak
 
 - `pincoin-backend` 클라이언트 설정 완료 후 `Credentials` 탭에서 Client Secret 복사
 
-## realm 이메일 설정
-
-템플릿
-
-- From: help@example.com
-- From display name: 고객센터
-- Reply to: no-reply@example.com
-- Reply to display name: 발신전용
-- Envelope from: no-reply@example.com
-
-연결 및 인증
-
-- Host: smtp.mailgun.org (또는 smtp.gmail.com)
-- Port: 587
-- Encryption: Enable SSL (체크 안 함), Enable StartTLS (체크)
-- Authentication: Enabled (체크)
-- Username: postmaster@mg.example.com (또는 gmail 주소)
-- Authentication Type: Password
-- Password: Mailgun 발급 비밀번호 (또는 gmail 앱 비밀번호 16자리)
-
-올바른 정보 입력 시 Test connection 누르면 관리자 이메일 주소로 테스트 이메일이 발송
 
 # 스프링부트 설정
 
@@ -231,7 +234,7 @@ spring:
         registration:
           keycloak:
             client-id: pincoin-backend
-            client-secret: your-secret
+            client-secret: your-client-secret # TODO: Credentials 탭에서 복사한 실제 값으로 교체
             scope: openid,profile,email
             authorization-grant-type: authorization_code
             redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
@@ -243,7 +246,7 @@ spring:
 keycloak:
   realm: pincoin
   client-id: pincoin-backend
-  client-secret: your-client-secret
+  client-secret: your-client-secret # TODO: Credentials 탭에서 복사한 실제 값으로 교체
   server-url: http://keycloak:8080
   timeout: 5000
   cookie-domains: # 도메인에 프로토콜 및 포트번호 미포함, 서브도메인으로 지정하면 다른 서브도메인에서 접근 불가

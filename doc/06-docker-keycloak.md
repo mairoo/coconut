@@ -175,6 +175,28 @@ docker compose restart keycloak
 
 - `pincoin-backend` 클라이언트 설정 완료 후 `Credentials` 탭에서 Client Secret 복사
 
+## realm 이메일 설정
+
+템플릿
+
+- From: help@example.com
+- From display name: 고객센터
+- Reply to: no-reply@example.com
+- Reply to display name: 발신전용
+- Envelope from: no-reply@example.com
+
+연결 및 인증
+
+- Host: smtp.mailgun.org (또는 smtp.gmail.com)
+- Port: 587
+- Encryption: Enable SSL (체크 안 함), Enable StartTLS (체크)
+- Authentication: Enabled (체크)
+- Username: postmaster@mg.example.com (또는 gmail 주소)
+- Authentication Type: Password
+- Password: Mailgun 발급 비밀번호 (또는 gmail 앱 비밀번호 16자리)
+
+올바른 정보 입력 시 Test connection 누르면 관리자 이메일 주소로 테스트 이메일이 발송
+
 # 스프링부트 설정
 
 ## `docker-compose.yml`

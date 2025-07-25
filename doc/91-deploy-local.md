@@ -17,8 +17,6 @@ KEYCLOAK_DB=postgres
 KEYCLOAK_POSTGRES_DATABASE=keycloak
 KEYCLOAK_POSTGRES_USER=keycloak
 KEYCLOAK_POSTGRES_PASSWORD=Test12#$
-KEYCLOAK_ADMIN=admin
-KEYCLOAK_ADMIN_PASSWORD=Test12#$
 ```
 
 ## `docker-compose.yml` 복사
@@ -37,8 +35,8 @@ KEYCLOAK_ADMIN_PASSWORD=Test12#$
 ### 접속
 
 - http://localhost:8081
-- 아이디: KEYCLOAK_ADMIN 설정 값 (예, admin)
-- 비밀번호: KEYCLOAK_ADMIN_PASSWORD 설정 값 (예, secure_admin_password_123)
+- 아이디: temp_admin
+- 비밀번호: Test12#$
 
 ### realm 생성
 

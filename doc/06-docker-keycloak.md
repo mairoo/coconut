@@ -3,7 +3,7 @@
 - Keycloak: 인증 서버
 - 백엔드: 권한 관리 (Group, Role 매핑)
 
-# 설치
+# Keycloak 설치
 
 ## `.env`
 
@@ -80,87 +80,46 @@ volumes:
     name: ${PREFIX}-keycloak-data
 ```
 
-backend 도커 설정에 추가 사항: 의존성 추가, KEYCLOAK 접속 주소 설정
-
-```yaml
-    depends_on:
-      - redis
-      - keycloak # (1) 추가
-    environment:
-      - TZ=Asia/Seoul
-      - SPRING_PROFILES_ACTIVE=local
-      - KEYCLOAK_AUTH_SERVER_URL=http://keycloak:8080 # (2) 추가
-```
-
 # 초기 설정
 
-
-
-## `temp-admin` 생성
+## 임시 계정 `temp-admin` 생성
 
 ```shell
 # 도커 컨테이너 시작
 docker compose up -d keycloak-postgres keycloak
 
 # temp-admin 생성
-docker exec -it pincoin-keycloak /opt/keycloak/bin/kc.sh bootstrap-admin user
+ docker exec -it pincoin-keycloak /opt/keycloak/bin/kc.sh bootstrap-admin user
+Enter username [temp-admin]:temp-admin
+Enter password: [비밀번호]
+Enter password again: [비밀번호]
 
 # 도커 컨테이너 재시작
 docker compose restart keycloak
 ```
 
-## Keycloak 영구 Admin 계정 생성 및 임시 계정 삭제
+## Keycloak 영구 `admin` 계정 생성 및 `temp-admin` 삭제
 
-### 영구 Admin 계정 생성
-
-#### 웹 콘솔에서 작업:
-1. **http://localhost:8081** 접속 후 temp-admin으로 로그인
+1. **http://localhost:8081** 접속 후 `temp-admin`으로 로그인
 2. 좌측 상단의 **Master** realm이 선택되어 있는지 확인
 3. 좌측 메뉴에서 **Users** 클릭
 4. **Create new user** 버튼 클릭
 
-#### 사용자 기본 정보 입력:
-```
-Username: admin
-Email: admin@example.com (선택사항)
-First name: Admin (선택사항)  
-Last name: User (선택사항)
-Email verified: ON (체크)
-Enabled: ON (체크)
-```
+- Email verified: On (체크)
+- Username: `admin`
+- Email: `admin@example.com`
+- First name: John
+- Last name: Doe
 
-5. **Create** 버튼 클릭
+5. Credentials 탭 비밀번호 저장
 
-### 비밀번호 설정
+- Password: 비밀번호
+- Password confirmation: 비밀번호 확인
+- Temporary: Off (체크 안 함)
 
-#### 생성된 사용자의 Credentials 탭에서:
-1. **admin** 사용자를 클릭하여 상세 페이지로 이동
-2. **Credentials** 탭 클릭
-3. **Set password** 클릭
-4. 비밀번호 설정:
-   ```
-   Password: Test12#$
-   Password confirmation: Test12#$
-   Temporary: OFF (체크 해제) ← 중요!
-   ```
-5. **Set password** 버튼 클릭
+6. Role mapping 탭 관리자 역할 부여
 
-### Admin 권한 부여
-
-#### Role mappings 설정:
-1. 같은 사용자 페이지에서 **Role mappings** 탭 클릭
-2. **Assign role** 버튼 클릭
-3. **Filter by clients** 체크박스 체크
-4. **master-realm » admin** 역할 하나만 할당하면 모든 관리 권한이 포함됩니다
-5. **Assign** 버튼 클릭
-
-### 임시 계정 삭제
-
-#### temp-admin 사용자 삭제:
-1. **Users** 목록으로 돌아가기
-2. **temp-admin** 사용자 찾기
-3. 해당 사용자 행의 **Actions** → **Delete** 클릭
-4. 삭제 확인
+`Realm roles` 선택 후 `Assign role`에서 `admin` 체크 후 `Assgin`
 
 ## 새 계정으로 로그인 테스트
 
@@ -170,6 +129,7 @@ Enabled: ON (체크)
    Username: admin
    Password: Test12#$
    ```
+3. Keycloak 임시 계정 `temp-admin` 삭제
 
 ## realm 생성
 
@@ -201,14 +161,34 @@ Enabled: ON (체크)
         - Web origins: (없음)
 
 - `pincoin-backend` 클라이언트 상세 보기 `Service accounts roles` 탭 선택
-    - Assign role 버튼 누르고 `Filter by realm roles` 드롭다운에서 `Filter by clients` 선택하여 다음 추가 할당
+    - Assign role 버튼 누르고 Client roles 선택 후 역할 추가
         - `realm-management`: `manage-users`
         - `realm-management`: `view-users`
         - `realm-management`: `query-users`
 
 - `pincoin-backend` 클라이언트 설정 완료 후 `Credentials` 탭에서 Client Secret 복사
 
+## master realm, pincoin realm 이벤트 로깅 저장 설정
+
+- Event Listeners: jboss-logging + email
+- User Events: Save events 체크, Expiration 90 days, 모든 이벤트 유지
+- Admin Events: Save events 체크, Expiration 90 days, Include representation(관리자가 변경한 데이터의 상세 내용까지 함께 저장) 체크 안 함, 모든 이벤트 유지
+
 # 스프링부트 설정
+
+## `docker-compose.yml`
+
+backend 도커 설정에 추가 사항: 의존성 추가, KEYCLOAK 접속 주소 설정
+
+```yaml
+    depends_on:
+      - redis
+      - keycloak # (1) 추가
+    environment:
+      - TZ=Asia/Seoul
+      - SPRING_PROFILES_ACTIVE=local
+      - KEYCLOAK_AUTH_SERVER_URL=http://keycloak:8080 # (2) 추가
+```
 
 ## `application.yml`
 

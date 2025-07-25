@@ -95,12 +95,12 @@ CREATE UNIQUE INDEX idx_auth_user_keycloak_id_unique ON auth_user (keycloak_id) 
 
 - 입력받은 회원정보(email, username, firstname, lastname, password) Redis에 임시 저장
 - 비밀번호는 AES 암호화하여 저장 (스프링부트 백엔드 application.yaml 정의 암호화 키 사용)
-- 인증 토큰 생성 및 Redis에 매핑 저장
+- UUID 인증 토큰 생성 및 Redis에 매핑 저장
 - TTL 설정 (예: 24시간)
 
 **2단계: 이메일 인증 발송**
 
-- 사용자 이메일로 인증 링크 발송
+- Keycloak이 아닌 백엔드에서 사용자 이메일로 인증 링크 발송
 - 인증 링크에 토큰 포함
 
 **3단계: 이메일 인증 완료 처리**

@@ -5,10 +5,4 @@ import jakarta.validation.constraints.NotBlank
 data class RecaptchaVerifyRequest(
     @field:NotBlank(message = "reCAPTCHA 토큰은 필수입니다")
     val token: String,
-
-    val remoteIp: String? = null,
-
-    val action: String? = null, // v3용 액션
-
-    val expectedHostname: String? = null,
 )

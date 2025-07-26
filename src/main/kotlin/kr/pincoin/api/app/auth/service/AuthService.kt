@@ -29,8 +29,7 @@ import org.springframework.stereotype.Service
 class AuthService(
     private val signUpFacade: SignUpFacade,
     private val signInFacade: SignInFacade,
-    // 향후 추가될 다른 인증 관련 퍼사드들
-    // private val tokenFacade: TokenFacade,
+    private val tokenFacade: TokenFacade,
     // private val passwordResetFacade: PasswordResetFacade,
 ) {
 
@@ -102,23 +101,50 @@ class AuthService(
     ): SignInResult =
         signInFacade.processSignIn(request, httpServletRequest)
 
-    // 향후 추가될 메서드들
-
     /**
      * JWT 토큰 갱신
      *
-     * TODO: TokenFacade로 위임 예정
+     * HTTP-only 쿠키의 리프레시 토큰을 사용하여 새로운 액세스 토큰을 발급합니다.
      *
-     * **구현 계획:**
-     * - HTTP-only 쿠키에서 리프레시 토큰 추출
-     * - Keycloak 리프레시 토큰 엔드포인트 호출
-     * - 새로운 액세스 토큰 발급
-     * - 필요시 리프레시 토큰도 갱신
+     * **처리 과정:**
+     * 1. 리프레시 토큰 유효성 검증
+     * 2. Keycloak 리프레시 엔드포인트 호출
+     * 3. 새로운 액세스 토큰 및 리프레시 토큰 발급
+     * 4. 토큰 rotation 처리 (보안 강화)
      *
-     * @param refreshToken 리프레시 토큰 (쿠키에서 추출)
-     * @return 새로운 액세스 토큰 응답
+     * **보안 기능:**
+     * - 토큰 바인딩 검증 (IP, User-Agent 등)
+     * - 토큰 재사용 감지
+     * - 이상 패턴 탐지 및 로깅
      */
-    // fun refreshToken(refreshToken: String): AccessTokenResponse = tokenFacade.refreshToken(refreshToken)
+    fun rotate(
+        refreshToken: String,
+        servletRequest: HttpServletRequest,
+    ): SignInResult =
+        tokenFacade.rotateAccessToken(refreshToken, servletRequest)
+
+    /**
+     * 사용자 로그아웃
+     *
+     * Keycloak 세션을 무효화하고 모든 관련 토큰을 폐기합니다.
+     *
+     * **처리 과정:**
+     * 1. 리프레시 토큰으로 Keycloak 세션 무효화
+     * 2. 액세스 토큰 블랙리스트 추가 (선택적)
+     * 3. 클라이언트 쿠키 삭제 명령
+     * 4. 로그아웃 로깅
+     *
+     * **보안 고려사항:**
+     * - 부분 실패 시에도 클라이언트 쿠키는 삭제
+     * - 로그아웃 시도 로깅 (보안 감사용)
+     * - 다중 세션 관리 (선택적)
+     */
+    fun logout(
+        refreshToken: String,
+        servletRequest: HttpServletRequest,
+    ) {
+        tokenFacade.logout(refreshToken, servletRequest)
+    }
 
     /**
      * 사용자 로그아웃

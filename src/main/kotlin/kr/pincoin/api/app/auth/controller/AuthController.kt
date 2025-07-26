@@ -74,7 +74,25 @@ class AuthController(
      *
      * @return 새로운 액세스 토큰 응답 (응답 본문)
      */
-    // POST /auth/refresh
+    @PostMapping("/refresh")
+    fun refresh(
+        @CookieValue(name = CookieKey.REFRESH_TOKEN_NAME) refreshToken: String,
+        httpServletRequest: HttpServletRequest,
+    ): ResponseEntity<ApiResponse<AccessTokenResponse>> {
+        val signInResult = authService.rotate(refreshToken, httpServletRequest)
+
+        // 리프레시 토큰을 HTTP-only 쿠키로 설정
+        val headers = createRefreshTokenCookie(
+            refreshToken = signInResult.refreshToken,
+            request = httpServletRequest,
+            rememberMe = true,
+            refreshExpiresIn = signInResult.refreshExpiresIn,
+        )
+
+        return ResponseEntity.ok()
+            .headers(headers)
+            .body(ApiResponse.of(signInResult.accessTokenResponse))
+    }
 
     // 4. 로그아웃
     /**
@@ -85,7 +103,26 @@ class AuthController(
      *
      * @return 로그아웃 성공 응답
      */
-    // POST /auth/logout
+    @PostMapping("/logout")
+    fun logout(
+        @CookieValue(name = CookieKey.REFRESH_TOKEN_NAME, required = false) refreshToken: String?,
+        httpServletRequest: HttpServletRequest,
+    ): ResponseEntity<ApiResponse<String>> {
+        // 리프레시 토큰이 있는 경우에만 Keycloak 로그아웃 처리
+        if (!refreshToken.isNullOrBlank()) {
+            authService.logout(refreshToken, httpServletRequest)
+        }
+
+        // 쿠키 삭제를 위한 헤더 생성 (토큰 값을 null로 설정)
+        val headers = createRefreshTokenCookie(
+            refreshToken = null,
+            request = httpServletRequest,
+        )
+
+        return ResponseEntity.ok()
+            .headers(headers)
+            .body(ApiResponse.of("로그아웃이 완료되었습니다."))
+    }
 
     /**
      * 리프레시 토큰을 포함하는 HTTP 쿠키 생성

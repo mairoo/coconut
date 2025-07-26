@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.*
 class RecaptchaController(
     private val recaptchaService: RecaptchaService,
 ) {
-
     /**
      * reCAPTCHA v2 검증 테스트
      */

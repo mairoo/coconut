@@ -3,8 +3,8 @@ package kr.pincoin.api.app.auth.controller
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import kr.pincoin.api.app.auth.request.SignUpRequest
+import kr.pincoin.api.app.auth.response.SignUpResponse
 import kr.pincoin.api.app.auth.service.AuthService
-import kr.pincoin.api.app.user.common.response.UserResponse
 import kr.pincoin.api.external.auth.keycloak.properties.KeycloakProperties
 import kr.pincoin.api.global.constant.CookieKey
 import kr.pincoin.api.global.response.success.ApiResponse
@@ -27,9 +27,9 @@ class AuthController(
     @PostMapping("/sign-up")
     fun signUp(
         @Valid @RequestBody request: SignUpRequest,
-    ): ResponseEntity<ApiResponse<UserResponse>> =
-        authService.createUser(request)
-            .let { UserResponse.from(it) }
+        httpServletRequest: HttpServletRequest,
+    ): ResponseEntity<ApiResponse<SignUpResponse>> =
+        authService.signUp(request, httpServletRequest)
             .let { ApiResponse.of(it) }
             .let { ResponseEntity.ok(it) }
 

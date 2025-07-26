@@ -33,4 +33,7 @@ data class SignUpRequest(
     @field:Size(max = 30, message = "성은 30자 이하로 입력해주세요")
     @JsonProperty("lastName")
     val lastName: String = "",
+
+    @JsonProperty("recaptchaToken")
+    val recaptchaToken: String? = null,
 )

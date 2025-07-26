@@ -65,6 +65,31 @@ web-config:
     allowed-headers: '*'
     max-age: 3600
 
+auth:
+  crypto:
+    # AES 암호화를 위한 16바이트 키 (운영환경에서는 환경변수로 설정)
+    secret-key: "mySecretKey12345"
+
+  email:
+    # 허용할 이메일 도메인 리스트 (빈 리스트면 모든 도메인 허용)
+    allowed-domains:
+      - gmail.com
+      - naver.com
+      - daum.net
+      - kakao.com
+      - outlook.com
+      - hotmail.com
+      - yahoo.com
+
+    # 차단할 이메일 도메인 리스트 (일회용 이메일 서비스)
+    blocked-domains:
+      - 10minutemail.com
+      - tempmail.org
+      - guerrillamail.com
+      - mailinator.com
+      - throwaway.email
+      - temp-mail.org
+
 management:
   endpoints:
     web:

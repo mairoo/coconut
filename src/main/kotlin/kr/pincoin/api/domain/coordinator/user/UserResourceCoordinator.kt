@@ -60,7 +60,7 @@ class UserResourceCoordinator(
             }
             throw BusinessException(UserErrorCode.SYSTEM_ERROR)
         } catch (e: BusinessException) {
-            logger.error { "사용자 생성 비즈니스 오류: email=${request.email}, error=$e" }
+            logger.error { "사용자 생성 오류: email=${request.email}, error=$e" }
 
             // DB 생성 실패시 Keycloak 사용자 삭제 (보상 트랜잭션)
             keycloakUserId?.let { userId ->
@@ -95,7 +95,6 @@ class UserResourceCoordinator(
 
         return@withContext when (val response = keycloakApiClient.login(loginRequest)) {
             is KeycloakResponse.Success -> {
-                logger.info { "사용자 인증 성공: email=$email" }
                 val tokenData = response.data
                 AccessTokenResponse.of(
                     accessToken = tokenData.accessToken,

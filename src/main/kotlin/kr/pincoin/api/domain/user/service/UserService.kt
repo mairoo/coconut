@@ -31,8 +31,6 @@ class UserService(
         request: AdminUserCreateRequest,
         keycloakId: UUID,
     ): User {
-        logger.info { "관리자 사용자 생성 시작: email=${request.email}" }
-
         try {
             val user = User.of(
                 password = "",
@@ -48,10 +46,7 @@ class UserService(
                 keycloakId = keycloakId,
             )
 
-            val savedUser = userRepository.save(user)
-            logger.info { "관리자 사용자 생성 완료: id=${savedUser.id}" }
-
-            return savedUser
+            return userRepository.save(user)
         } catch (_: DataIntegrityViolationException) {
             logger.error { "사용자 중복: email=${request.email}" }
             throw BusinessException(UserErrorCode.ALREADY_EXISTS)
@@ -63,8 +58,6 @@ class UserService(
         request: SignUpRequest,
         keycloakId: UUID,
     ): User {
-        logger.info { "일반 사용자 생성 시작: email=${request.email}" }
-
         try {
             val user = User.of(
                 password = "",
@@ -80,12 +73,7 @@ class UserService(
                 keycloakId = keycloakId,
             )
 
-            logger.info { "User 도메인 객체 생성 완료: email=${user.email}" }
-
-            val savedUser = userRepository.save(user)
-            logger.info { "일반 사용자 생성 완료: id=${savedUser.id}" }
-
-            return savedUser
+            return userRepository.save(user)
         } catch (_: DataIntegrityViolationException) {
             logger.error { "사용자 중복: email=${request.email}" }
             throw BusinessException(UserErrorCode.ALREADY_EXISTS)

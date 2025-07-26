@@ -90,6 +90,21 @@ auth:
       - throwaway.email
       - temp-mail.org
 
+aws:
+  s3:
+    region: ap-northeast-2 # 아시아 태평양 서울
+    bucket-name: dummy-bucket
+    access-key: dummy-access-key
+    secret-key: dummy-secret-key
+
+recaptcha:
+  site-key: "frontend-site-key"
+  secret-key: "backend-secret-key"
+  verify-url: "https://www.google.com/recaptcha/api/siteverify"
+  timeout: 5000 # 밀리초
+  enabled: true # 사용 여부
+  min-score: 0.5  # reCAPTCHA v3 최소 점수 (0.0 ~ 1.0)
+
 management:
   endpoints:
     web:
@@ -102,20 +117,6 @@ management:
     tags:
       application: ${spring.application.name:api}
       environment: prod # 개발환경은 local
-
-aws.s3:
-  region: ap-northeast-2 # 아시아 태평양 서울
-  bucket-name: dummy-bucket
-  access-key: dummy-access-key
-  secret-key: dummy-secret-key
-
-recaptcha:
-  site-key: "frontend-site-key"
-  secret-key: "backend-secret-key"
-  verify-url: "https://www.google.com/recaptcha/api/siteverify"
-  timeout: 5000 # 밀리초
-  enabled: true # 사용 여부
-  min-score: 0.5  # reCAPTCHA v3 최소 점수 (0.0 ~ 1.0)
 
 notification:
   mailgun:

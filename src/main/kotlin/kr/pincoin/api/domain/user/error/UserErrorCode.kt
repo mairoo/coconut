@@ -11,44 +11,36 @@ enum class UserErrorCode(
         HttpStatus.NOT_FOUND,
         "유효한 사용자가 없습니다",
     ),
-    INACTIVE(
-        HttpStatus.CONFLICT,
-        "사용자가 비활성화 상태입니다",
-    ),
     ALREADY_EXISTS(
         HttpStatus.BAD_REQUEST,
         "아이디 또는 이메일이 이미 존재합니다",
     ),
-    LOGIN_LOG_NOT_FOUND(
-        HttpStatus.NOT_FOUND,
-        "로그인 이력이 없습니다",
-    ),
-    PASSWORD_MISMATCH(
-        HttpStatus.BAD_REQUEST,
-        "비밀번호 불일치"
-    ),
-    ALREADY_DELETED(
-        HttpStatus.BAD_REQUEST,
-        "이미 삭제된 사용자입니다",
-    ),
-    EMAIL_RECENTLY_DELETED(
-        HttpStatus.BAD_REQUEST,
-        "최근에 삭제된 이메일 주소입니다. 30일 후에 다시 시도해주세요",
-    ),
-    PHONE_RECENTLY_DELETED(
-        HttpStatus.BAD_REQUEST,
-        "최근에 삭제된 휴대폰 번호입니다. 30일 후에 다시 시도해주세요"
-    ),
-    INVALID_STATUS_CHANGE(
-        HttpStatus.BAD_REQUEST,
-        "동일한 상태로 변경할 수 없습니다",
-    ),
-    SIGNUP_RATE_LIMIT_EXCEEDED(
-        HttpStatus.BAD_REQUEST,
-        "회원 가입 횟수 초과입니다",
-    ),
     SYSTEM_ERROR(
         HttpStatus.INTERNAL_SERVER_ERROR,
         "시스템 오류입니다",
-    )
+    ),
+    RECAPTCHA_TOKEN_REQUIRED(
+        HttpStatus.BAD_REQUEST,
+        "reCAPTCHA 토큰이 필요합니다",
+    ),
+    RECAPTCHA_VERIFICATION_FAILED(
+        HttpStatus.BAD_REQUEST,
+        "reCAPTCHA 검증에 실패했습니다",
+    ),
+    EMAIL_DOMAIN_NOT_ALLOWED(
+        HttpStatus.BAD_REQUEST,
+        "허용되지 않은 이메일 도메인입니다",
+    ),
+    DAILY_SIGNUP_LIMIT_EXCEEDED(
+        HttpStatus.TOO_MANY_REQUESTS,
+        "일일 가입 제한을 초과했습니다",
+    ),
+    SIGNUP_IN_PROGRESS(
+        HttpStatus.CONFLICT,
+        "이미 가입 진행 중인 이메일입니다",
+    ),
+    EMAIL_SEND_FAILED(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        "이메일 발송에 실패했습니다",
+    ),
 }

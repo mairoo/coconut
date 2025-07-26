@@ -6,10 +6,12 @@ import kr.pincoin.api.app.auth.request.SignUpRequest
 import kr.pincoin.api.domain.auth.properties.AuthProperties
 import kr.pincoin.api.domain.auth.utils.EmailUtils
 import kr.pincoin.api.domain.user.error.UserErrorCode
+import kr.pincoin.api.domain.user.service.UserService
 import kr.pincoin.api.external.auth.recaptcha.api.response.RecaptchaResponse
 import kr.pincoin.api.external.auth.recaptcha.service.RecaptchaService
 import kr.pincoin.api.global.exception.BusinessException
 import kr.pincoin.api.global.utils.ClientUtils
+import kr.pincoin.api.infra.user.repository.criteria.UserSearchCriteria
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.stereotype.Component
 import java.util.concurrent.TimeUnit
@@ -28,6 +30,7 @@ import java.util.concurrent.TimeUnit
  *    - 동시 가입 시도 방지 (중복 요청 차단)
  *
  * 2. 비즈니스 규칙 검증
+ *    - 이메일 중복 검사 (가입 전 사전 차단)
  *    - 이메일 형식 및 도메인 정책
  *    - 사용자명 중복 검사 (향후 구현)
  *    - 비밀번호 정책 준수 (향후 구현)
@@ -43,6 +46,7 @@ class SignUpValidator(
     private val emailUtils: EmailUtils,
     private val redisTemplate: RedisTemplate<String, String>,
     private val authProperties: AuthProperties,
+    private val userService: UserService,
 ) {
     private val logger = KotlinLogging.logger {}
 
@@ -55,8 +59,9 @@ class SignUpValidator(
      * **검증 순서:**
      * 1. reCAPTCHA 검증 (가장 먼저 봇 차단)
      * 2. 이메일 도메인 검증 (허용되지 않은 도메인 차단)
-     * 3. IP별 가입 빈도 제한 검증 (브루트포스 공격 방어)
-     * 4. 동시 가입 시도 방지 (같은 이메일로 중복 요청 차단)
+     * 3. 이메일 중복 검증 (이미 가입된 이메일 차단) ← 추가
+     * 4. IP별 가입 빈도 제한 검증 (브루트포스 공격 방어)
+     * 5. 동시 가입 시도 방지 (같은 이메일로 중복 요청 차단)
      *
      * @param request 회원가입 요청 정보
      * @param httpServletRequest HTTP 요청 정보 (클라이언트 정보 추출용)
@@ -78,7 +83,10 @@ class SignUpValidator(
         // 1-3. IP별 가입 빈도 제한 검증 (예, 3회/일)
         validateIpSignupLimit(clientInfo.ipAddress)
 
-        // 1-4. 동시 가입 시도 방지 (이메일 기준) - Redis 기반 중복 검증, 후진입은 conflict 오류 반환
+        // 1-4. 이메일 중복 검증 (이미 가입된 이메일 차단)
+        validateEmailNotExists(request.email)
+
+        // 1-5. 동시 가입 시도 방지 (이메일 기준) - Redis 기반 중복 검증, 후진입은 conflict 오류 반환
         preventConcurrentSignup(request.email)
     }
 
@@ -164,7 +172,31 @@ class SignUpValidator(
     }
 
     /**
-     * 1-4. 동시 가입 시도 방지
+     * 1-4. 이메일 중복 검증
+     */
+    private fun validateEmailNotExists(email: String) {
+        try {
+            userService.findUser(UserSearchCriteria(email = email, isActive = true))
+            logger.warn { "이미 가입된 이메일로 회원가입 시도: $email" }
+            throw BusinessException(UserErrorCode.EMAIL_ALREADY_EXISTS)
+        } catch (e: BusinessException) {
+            when (e.errorCode) {
+                UserErrorCode.EMAIL_ALREADY_EXISTS -> {
+                    // 이메일 중복인 경우 그대로 전파
+                    throw e
+                }
+
+                else -> {
+                    // 다른 에러는 시스템 에러로 처리
+                    logger.error { "이메일 중복 검증 중 예기치 못한 오류: email=$email, error=${e.errorCode}" }
+                    throw BusinessException(UserErrorCode.SYSTEM_ERROR)
+                }
+            }
+        }
+    }
+
+    /**
+     * 1-5. 동시 가입 시도 방지
      *
      * 같은 이메일로 동시에 여러 가입 요청이 들어오는 것을 방지합니다.
      * Redis 기반 분산 락을 사용하여 동시성 문제를 해결합니다.

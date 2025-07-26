@@ -10,7 +10,9 @@ import kr.pincoin.api.domain.auth.properties.AuthProperties
 import kr.pincoin.api.domain.auth.utils.EmailUtils
 import kr.pincoin.api.domain.coordinator.user.UserResourceCoordinator
 import kr.pincoin.api.domain.user.error.UserErrorCode
+import kr.pincoin.api.domain.user.service.UserService
 import kr.pincoin.api.global.exception.BusinessException
+import kr.pincoin.api.infra.user.repository.criteria.UserSearchCriteria
 import org.springframework.stereotype.Component
 import java.time.LocalDateTime
 import java.util.*
@@ -23,11 +25,13 @@ import java.util.*
  *
  * **1단계 - 회원가입 요청 처리:**
  * - 무작위 공격 방어 (reCAPTCHA, IP 제한, 동시 요청 차단)
+ * - 이메일 중복 검증 (사전 차단)
  * - 이메일 인증 발송
  * - 임시 데이터 저장
  *
  * **2단계 - 이메일 인증 완료:**
  * - 토큰 검증 및 임시 데이터 복원
+ * - 이메일 중복 재검증 (방어적 프로그래밍)
  * - Keycloak과 DB에 사용자 생성 (분산 트랜잭션)
  * - 데이터 정리 및 환영 이메일 발송
  *
@@ -45,6 +49,7 @@ class SignUpFacade(
     private val signUpEmailService: SignUpEmailService,
     private val authKeycloakService: AuthKeycloakService,
     private val userResourceCoordinator: UserResourceCoordinator,
+    private val userService: UserService,
     private val emailUtils: EmailUtils,
     private val authProperties: AuthProperties,
 ) {
@@ -59,6 +64,7 @@ class SignUpFacade(
      * 1. 무작위 회원가입 공격 대응
      *    - reCAPTCHA 검증
      *    - 이메일 도메인 검증 (일회용 이메일 서비스 등 차단)
+     *    - 이메일 중복 검증 (사전 차단)
      *    - IP별 가입 빈도 제한 검증 (예: 3회/일)
      *    - 동시 가입 시도 방지 (이메일 기준)
      *
@@ -84,11 +90,12 @@ class SignUpFacade(
     ): SignUpRequestedResponse {
         return runBlocking {
             try {
-                // 1. 무작위 회원 가입 공격 대응
+                // 1. 무작위 회원 가입 공격 대응 + 이메일 중복 검증
                 // 1-1. reCAPTCHA 검증
                 // 1-2. 이메일 도메인 검증 (일회용 이메일 서비스 등 차단)
                 // 1-3. IP별 가입 빈도 제한 검증 (예, 3회/일)
-                // 1-4. 동시 가입 시도 방지 (이메일 기준) - Redis 기반 중복 검증, 후진입은 conflict 오류 반환
+                // 1-4. 이메일 중복 검증 (이미 가입된 이메일 차단)
+                // 1-5. 동시 가입 시도 방지 (이메일 기준) - Redis 기반 중복 검증, 후진입은 conflict 오류 반환
                 signUpValidator.validateSignUpRequest(request, httpServletRequest)
 
                 // 2. 인증 이메일 발송
@@ -139,11 +146,15 @@ class SignUpFacade(
      *    - 비밀번호 복호화
      *    - SignUpRequest 객체 재구성
      *
-     * 2. Keycloak과 DB에 사용자 생성 (분산 트랜잭션)
+     * 2. 이메일 중복 재검증 (방어적 프로그래밍)
+     *    - 1단계와 2단계 사이의 시간차 동안 발생할 수 있는 중복 방지
+     *    - Race Condition, 다중 채널 가입, 시스템 장애 등 대응
+     *
+     * 3. Keycloak과 DB에 사용자 생성 (분산 트랜잭션)
      *    - Admin 토큰 획득
      *    - UserResourceCoordinator를 통한 안전한 사용자 생성
      *
-     * 3. 후처리 작업
+     * 4. 후처리 작업
      *    - Redis에서 임시 데이터 즉시 삭제 (토큰 무효화)
      *    - 동시 가입 시도 방지 락 해제
      *    - 회원 가입 완료 안내 이메일 발송
@@ -158,7 +169,7 @@ class SignUpFacade(
      *
      * @param token 이메일 인증 토큰 (UUID)
      * @return 회원가입 완료 응답 (실제 이메일, 사용자명, 완료시간 포함)
-     * @throws BusinessException 토큰 무효, Keycloak 연동 실패, DB 저장 실패 등의 경우
+     * @throws BusinessException 토큰 무효, 이메일 중복, Keycloak 연동 실패, DB 저장 실패 등의 경우
      */
     fun completeSignUp(token: String): SignUpCompletedResponse {
         return runBlocking {
@@ -166,30 +177,33 @@ class SignUpFacade(
                 // 1. Redis에서 임시 데이터 조회
                 val signupData = signUpDataManager.getAndValidateTemporaryData(token)
 
-                // 2. 비밀번호 복호화
+                // 2. 이메일 중복 재검증 (방어적 프로그래밍)
+                validateEmailNotExistsForFinalCheck(signupData.email)
+
+                // 3. 비밀번호 복호화
                 val decryptedPassword = signUpDataManager.decryptPassword(signupData.encryptedPassword)
 
-                // 3. SignUpRequest 객체 재구성
+                // 4. SignUpRequest 객체 재구성
                 val signUpRequest = SignUpRequest(
                     email = signupData.email,
                     username = signupData.username,
                     firstName = signupData.firstName,
                     lastName = signupData.lastName,
                     password = decryptedPassword,
-                    recaptchaToken = null // 이미 검증 완료
+                    recaptchaToken = null, // 이미 검증 완료
                 )
 
-                // 4. Admin 토큰 획득
+                // 5. Admin 토큰 획득
                 val adminToken = authKeycloakService.getAdminToken()
 
-                // 5. Keycloak과 DB에 사용자 생성 (분산 트랜잭션)
+                // 6. Keycloak과 DB에 사용자 생성 (분산 트랜잭션)
                 userResourceCoordinator.createUserWithKeycloak(signUpRequest, adminToken)
 
-                // 6. Redis에서 임시 데이터 즉시 삭제 (토큰 무효화)
-                // 7. 동시 가입 시도 방지 락 해제
+                // 7. Redis에서 임시 데이터 즉시 삭제 (토큰 무효화)
+                // 8. 동시 가입 시도 방지 락 해제
                 signUpDataManager.cleanupAfterSignUp(token, signupData.email)
 
-                // 8. 회원 가입 완료 안내 이메일 발송
+                // 9. 회원 가입 완료 안내 이메일 발송
                 signUpEmailService.sendWelcomeEmail(signupData.email, signupData.firstName)
 
                 SignUpCompletedResponse(
@@ -205,6 +219,43 @@ class SignUpFacade(
             } catch (e: Exception) {
                 logger.error { "이메일 인증 완료 예기치 못한 오류: token=$token, error=${e.message}" }
                 throw BusinessException(UserErrorCode.SYSTEM_ERROR)
+            }
+        }
+    }
+
+    /**
+     * 2단계 이메일 중복 재검증 (방어적 프로그래밍)
+     *
+     * 1단계에서 검증했지만, 1단계와 2단계 사이의 시간차 동안
+     * 다른 경로로 동일 이메일이 가입되었을 가능성을 방어합니다.
+     *
+     * **검증이 필요한 시나리오:**
+     * 1. Race Condition: 1단계 후 다른 세션에서 같은 이메일로 가입 완료
+     * 2. 다중 채널: 웹/앱/관리자 등 다른 경로로 동시 가입
+     * 3. 시스템 장애: 장애 복구 중 데이터 불일치 상황
+     * 4. 장시간 지연: 사용자가 오래된 인증 링크 클릭
+     *
+     * **1단계 검증과의 차이점:**
+     * - 1단계: 사용자 경험 개선용 (빠른 피드백, 불필요한 이메일 방지)
+     * - 2단계: 데이터 일관성 보장용 (최종 안전장치)
+     */
+    private fun validateEmailNotExistsForFinalCheck(email: String) {
+        try {
+            userService.findUser(UserSearchCriteria(email = email, isActive = true))
+            logger.warn { "2단계 중복 검증: 1단계 이후 가입된 이메일 발견 - email=$email" }
+            throw BusinessException(UserErrorCode.EMAIL_ALREADY_EXISTS)
+        } catch (e: BusinessException) {
+            when (e.errorCode) {
+                UserErrorCode.EMAIL_ALREADY_EXISTS -> {
+                    // 이메일 중복인 경우 그대로 전파
+                    throw e
+                }
+
+                else -> {
+                    // 다른 에러는 시스템 에러로 처리
+                    logger.error { "2단계 중복 검증 중 예기치 못한 오류: email=$email, error=${e.errorCode}" }
+                    throw BusinessException(UserErrorCode.SYSTEM_ERROR)
+                }
             }
         }
     }

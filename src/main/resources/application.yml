@@ -84,6 +84,14 @@ aws.s3:
   access-key: dummy-access-key
   secret-key: dummy-secret-key
 
+recaptcha:
+  site-key: "frontend-site-key"
+  secret-key: "backend-secret-key"
+  verify-url: "https://www.google.com/recaptcha/api/siteverify"
+  timeout: 5000 # 밀리초
+  enabled: true # 사용 여부
+  min-score: 0.5  # reCAPTCHA v3 최소 점수 (0.0 ~ 1.0)
+
 logging:
   level:
     root: INFO # 운영 WARN

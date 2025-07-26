@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.servlet.http.HttpServletRequest
 import kr.pincoin.api.app.auth.request.SignUpRequest
+import kr.pincoin.api.app.auth.vo.TemporarySignUpData
 import kr.pincoin.api.domain.auth.properties.AuthProperties
 import kr.pincoin.api.domain.auth.utils.CryptoUtils
 import kr.pincoin.api.domain.user.error.UserErrorCode
@@ -116,10 +117,11 @@ class SignUpDataManager(
      * @return 임시 회원가입 데이터
      * @throws BusinessException 토큰이 무효하거나 데이터 파싱 실패 시
      */
-    fun getAndValidateTemporaryData(token: String): TemporarySignupData {
-        return getTemporarySignupData(token)
+    fun getAndValidateTemporaryData(
+        token: String,
+    ): TemporarySignUpData =
+        getTemporarySignupData(token)
             ?: throw BusinessException(UserErrorCode.VERIFICATION_TOKEN_INVALID)
-    }
 
     /**
      * 비밀번호 복호화
@@ -129,9 +131,10 @@ class SignUpDataManager(
      * @param encryptedPassword 암호화된 비밀번호
      * @return 복호화된 원본 비밀번호
      */
-    fun decryptPassword(encryptedPassword: String): String {
-        return cryptoUtils.decrypt(encryptedPassword)
-    }
+    fun decryptPassword(
+        encryptedPassword: String,
+    ): String =
+        cryptoUtils.decrypt(encryptedPassword)
 
     /**
      * 회원가입 완료 후 정리
@@ -183,14 +186,14 @@ class SignUpDataManager(
      * @param token 이메일 인증 토큰
      * @return 파싱된 임시 회원가입 데이터, 토큰이 무효하거나 만료된 경우 null
      */
-    private fun getTemporarySignupData(token: String): TemporarySignupData? {
+    private fun getTemporarySignupData(token: String): TemporarySignUpData? {
         val key = "${authProperties.signup.redis.signupPrefix}$token"
         val jsonData = redisTemplate.opsForValue().get(key) ?: return null
 
         return try {
             val dataMap = objectMapper.readValue(jsonData, Map::class.java)
 
-            TemporarySignupData(
+            TemporarySignUpData(
                 email = dataMap["email"] as String,
                 username = dataMap["username"] as String,
                 firstName = dataMap["firstName"] as String,
@@ -232,22 +235,4 @@ class SignUpDataManager(
         val lockKey = "${authProperties.signup.redis.emailLockPrefix}$email"
         redisTemplate.delete(lockKey)
     }
-
-    /**
-     * 임시 회원가입 데이터 클래스
-     *
-     * Redis에서 조회한 JSON 데이터를 매핑하는 데이터 클래스입니다.
-     * 회원가입 2단계에서 사용자 생성에 필요한 모든 정보를 포함합니다.
-     */
-    data class TemporarySignupData(
-        val email: String,
-        val username: String,
-        val firstName: String,
-        val lastName: String,
-        val encryptedPassword: String,
-        val createdAt: String,
-        val ipAddress: String,
-        val userAgent: String,
-        val acceptLanguage: String,
-    )
 }

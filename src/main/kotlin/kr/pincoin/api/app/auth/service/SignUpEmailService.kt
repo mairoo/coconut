@@ -2,6 +2,7 @@ package kr.pincoin.api.app.auth.service
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.servlet.http.HttpServletRequest
+import kr.pincoin.api.app.auth.vo.EmailContent
 import kr.pincoin.api.domain.auth.properties.AuthProperties
 import kr.pincoin.api.domain.user.error.UserErrorCode
 import kr.pincoin.api.external.notification.mailgun.api.request.MailgunRequest
@@ -278,18 +279,4 @@ class SignUpEmailService(
 
         return EmailContent(text, html)
     }
-
-    /**
-     * 이메일 콘텐츠 데이터 클래스
-     *
-     * 텍스트와 HTML 버전의 이메일 콘텐츠를 담는 데이터 클래스입니다.
-     * 이메일 클라이언트 호환성을 위해 두 형식을 모두 제공합니다.
-     *
-     * @property text 텍스트 버전 (모든 이메일 클라이언트 지원)
-     * @property html HTML 버전 (풍부한 시각적 표현)
-     */
-    private data class EmailContent(
-        val text: String,
-        val html: String
-    )
 }

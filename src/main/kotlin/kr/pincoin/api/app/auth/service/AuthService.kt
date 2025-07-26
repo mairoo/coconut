@@ -77,7 +77,7 @@ class AuthService(
      * - 레거시 사용자 마이그레이션
      * - JWT 토큰 발급
      */
-    // fun login(request: LoginRequest): LoginResponse = SignInFacade.processLogin(request)
+    // fun signIn(request: SignInRequest): SignInResponse = SignInFacade.processLogin(request)
 
     /**
      * JWT 토큰 갱신

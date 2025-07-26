@@ -22,5 +22,11 @@ data class SignInRequest(
     val password: String,
 
     @JsonProperty("rememberMe")
-    val rememberMe: Boolean = false
+    val rememberMe: Boolean = false,
+
+    @JsonProperty("recaptchaToken")
+    val recaptchaToken: String? = null,
+
+    @JsonProperty("otpCode")
+    val otpCode: String? = null,
 )

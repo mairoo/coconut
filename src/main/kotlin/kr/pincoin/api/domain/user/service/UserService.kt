@@ -7,7 +7,6 @@ import kr.pincoin.api.domain.user.error.UserErrorCode
 import kr.pincoin.api.domain.user.model.User
 import kr.pincoin.api.domain.user.repository.UserRepository
 import kr.pincoin.api.global.exception.BusinessException
-import kr.pincoin.api.global.security.encoder.DjangoPasswordEncoder
 import kr.pincoin.api.infra.user.repository.criteria.UserSearchCriteria
 import kr.pincoin.api.infra.user.repository.projection.UserProfileProjection
 import org.springframework.dao.DataIntegrityViolationException
@@ -22,7 +21,6 @@ import java.util.*
 @Transactional(readOnly = true)
 class UserService(
     private val userRepository: UserRepository,
-    private val djangoPasswordEncoder: DjangoPasswordEncoder,
 ) {
     private val logger = KotlinLogging.logger {}
 
@@ -82,6 +80,16 @@ class UserService(
             throw e
         }
     }
+
+    @Transactional
+    fun linkKeycloak(
+        userId: Int,
+        keycloakId: UUID,
+    ): User =
+        userRepository.findUser(userId, UserSearchCriteria())
+            ?.linkKeycloak(keycloakId)
+            ?.let { userRepository.save(it) }
+            ?: throw BusinessException(UserErrorCode.NOT_FOUND)
 
     fun findUser(
         userId: Int,

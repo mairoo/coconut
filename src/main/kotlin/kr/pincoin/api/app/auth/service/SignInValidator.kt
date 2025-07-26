@@ -92,8 +92,6 @@ class SignInValidator(
             logger.warn { "로그인 reCAPTCHA 검증 실패 - 코드: ${result.errorCode}, 메시지: ${result.errorMessage}" }
             throw BusinessException(UserErrorCode.RECAPTCHA_VERIFICATION_FAILED)
         }
-
-        logger.debug { "로그인 reCAPTCHA 검증 성공" }
     }
 
     // TODO: 향후 구현될 추가 검증 메서드들

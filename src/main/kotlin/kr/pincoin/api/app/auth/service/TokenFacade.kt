@@ -103,15 +103,12 @@ class TokenFacade(
      */
     fun logout(
         refreshToken: String,
-        servletRequest: HttpServletRequest,
+        httpServletRequest: HttpServletRequest,
     ) {
         runBlocking {
             try {
                 // 1. Keycloak 로그아웃 엔드포인트 호출
                 callKeycloakLogoutEndpoint(refreshToken)
-
-                logger.info { "사용자 로그아웃 성공" }
-
             } catch (e: BusinessException) {
                 // 로그아웃 실패는 클라이언트에 알리지만 치명적이지 않음
                 logger.warn { "로그아웃 처리 중 오류 발생: ${e.errorCode}" }

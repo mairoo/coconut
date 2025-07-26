@@ -49,8 +49,6 @@ class KeycloakJwtAuthenticationConverter(
 
         val authorities = getUserAuthorities(email)
 
-        logger.debug { "JWT 인증 변환: email=$email, authorities=$authorities" }
-
         return JwtAuthenticationToken(jwt, authorities, email)
     }
 
@@ -69,8 +67,6 @@ class KeycloakJwtAuthenticationConverter(
                 // 단일 역할
                 val role = if (user.isSuperuser) "ROLE_ADMIN" else "ROLE_USER"
                 val authority = SimpleGrantedAuthority(role)
-
-                logger.debug { "사용자 권한 조회 완료: email=$email, role=$role" }
                 listOf(authority)
 
                 // 다중 역할

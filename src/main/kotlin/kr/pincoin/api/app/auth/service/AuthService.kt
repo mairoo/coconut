@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletRequest
 import kotlinx.coroutines.runBlocking
 import kr.pincoin.api.app.auth.request.SignUpRequest
 import kr.pincoin.api.app.auth.response.SignUpResponse
+import kr.pincoin.api.domain.auth.properties.AuthProperties
 import kr.pincoin.api.domain.auth.utils.CryptoUtils
 import kr.pincoin.api.domain.auth.utils.EmailUtils
 import kr.pincoin.api.domain.coordinator.user.UserResourceCoordinator
@@ -36,17 +37,9 @@ class AuthService(
     private val redisTemplate: RedisTemplate<String, String>,
     private val cryptoUtils: CryptoUtils,
     private val emailUtils: EmailUtils,
+    private val authProperties: AuthProperties,
 ) {
     private val logger = KotlinLogging.logger {}
-
-    companion object {
-        private const val SIGNUP_PREFIX = "signup:"
-        private const val IP_LIMIT_PREFIX = "signup_ip:"
-        private const val EMAIL_LOCK_PREFIX = "signup_lock:"
-        private const val VERIFICATION_TTL_HOURS = 24L
-        private const val MAX_DAILY_SIGNUPS_PER_IP = 3
-        private const val EMAIL_LOCK_MINUTES = 5L
-    }
 
     // 1-1. 회원가입 폼 처리
     /**
@@ -96,7 +89,7 @@ class AuthService(
                 SignUpResponse(
                     message = "인증 이메일이 발송되었습니다. 이메일을 확인해주세요.",
                     maskedEmail = emailUtils.maskEmail(request.email),
-                    expiresAt = LocalDateTime.now().plusHours(VERIFICATION_TTL_HOURS),
+                    expiresAt = LocalDateTime.now().plus(authProperties.signup.limits.verificationTtl),
                 )
             } catch (e: BusinessException) {
                 logger.error { "회원가입 오류: email=${request.email}, error=${e.errorCode}" }
@@ -191,10 +184,10 @@ class AuthService(
      * 1-3. IP별 가입 빈도 제한 검증
      */
     private fun validateIpSignupLimit(ip: String) {
-        val key = "$IP_LIMIT_PREFIX$ip"
+        val key = "${authProperties.signup.redis.ipLimitPrefix}$ip"
         val currentCount = redisTemplate.opsForValue().get(key)?.toIntOrNull() ?: 0
 
-        if (currentCount >= MAX_DAILY_SIGNUPS_PER_IP) {
+        if (currentCount >= authProperties.signup.limits.maxDailySignupsPerIp) {
             logger.warn { "IP별 일일 가입 제한 초과: ip=$ip, count=$currentCount" }
             throw BusinessException(UserErrorCode.DAILY_SIGNUP_LIMIT_EXCEEDED)
         }
@@ -204,9 +197,14 @@ class AuthService(
      * 1-4. 동시 가입 시도 방지
      */
     private fun preventConcurrentSignup(email: String) {
-        val lockKey = "$EMAIL_LOCK_PREFIX$email"
+        val lockKey = "${authProperties.signup.redis.emailLockPrefix}$email"
         val lockAcquired = redisTemplate.opsForValue()
-            .setIfAbsent(lockKey, "locked", EMAIL_LOCK_MINUTES, TimeUnit.MINUTES) ?: false
+            .setIfAbsent(
+                lockKey,
+                "locked",
+                authProperties.signup.limits.emailLockDuration.toMinutes(),
+                TimeUnit.MINUTES
+            ) ?: false
 
         if (!lockAcquired) {
             logger.warn { "동시 가입 시도 차단: email=$email" }
@@ -248,31 +246,35 @@ class AuthService(
         request: SignUpRequest,
         clientInfo: ClientUtils.ClientInfo
     ) {
-        val key = "$SIGNUP_PREFIX$token"
+        val key = "${authProperties.signup.redis.signupPrefix}$token"
         val signupData = mapOf(
             "email" to request.email,
             "username" to request.username,
             "firstName" to request.firstName,
             "lastName" to request.lastName,
-            "encryptedPassword" to request.password, // 이미 암호화된 상태
+            "encryptedPassword" to request.password,
             "createdAt" to LocalDateTime.now().toString(),
             "ipAddress" to clientInfo.ipAddress,
             "userAgent" to clientInfo.userAgent,
             "acceptLanguage" to clientInfo.acceptLanguage,
         )
 
-        // JSON으로 직렬화하여 저장
         val jsonData = com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(signupData)
-        redisTemplate.opsForValue().set(key, jsonData, VERIFICATION_TTL_HOURS, TimeUnit.HOURS)
+        redisTemplate.opsForValue().set(
+            key,
+            jsonData,
+            authProperties.signup.limits.verificationTtl.toHours(),
+            TimeUnit.HOURS
+        )
     }
 
     /**
      * 4. IP별 가입 횟수 증가
      */
     private fun incrementIpSignupCount(ip: String) {
-        val key = "$IP_LIMIT_PREFIX$ip"
+        val key = "${authProperties.signup.redis.ipLimitPrefix}$ip"
         redisTemplate.opsForValue().increment(key)
-        redisTemplate.expire(key, 24, TimeUnit.HOURS) // 24시간 후 만료
+        redisTemplate.expire(key, authProperties.signup.limits.ipLimitResetDuration.toHours(), TimeUnit.HOURS)
     }
 
     /**
@@ -293,13 +295,15 @@ class AuthService(
     private fun buildVerificationEmailContent(
         verificationUrl: String,
     ): EmailContent {
+        val ttlHours = authProperties.signup.limits.verificationTtl.toHours()
+
         val text = """
             안녕하세요!
             
             회원가입을 완료하려면 아래 링크를 클릭해주세요:
             $verificationUrl
             
-            이 링크는 24시간 후에 만료됩니다.
+            이 링크는 ${ttlHours}시간 후에 만료됩니다.
             
             만약 회원가입을 신청하지 않으셨다면 이 이메일을 무시해주세요.
         """.trimIndent()
@@ -317,7 +321,7 @@ class AuthService(
                 </a>
                 <p>또는 다음 링크를 복사하여 브라우저에 붙여넣기 하세요:</p>
                 <p><a href="$verificationUrl">$verificationUrl</a></p>
-                <p><small>이 링크는 24시간 후에 만료됩니다.</small></p>
+                <p><small>이 링크는 ${ttlHours}시간 후에 만료됩니다.</small></p>
                 <hr>
                 <p><small>만약 회원가입을 신청하지 않으셨다면 이 이메일을 무시해주세요.</small></p>
             </body>

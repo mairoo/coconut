@@ -15,6 +15,7 @@ import kr.pincoin.api.external.auth.keycloak.error.KeycloakErrorCode
 import kr.pincoin.api.external.auth.keycloak.properties.KeycloakProperties
 import kr.pincoin.api.external.auth.keycloak.service.KeycloakApiClient
 import kr.pincoin.api.global.exception.BusinessException
+import kr.pincoin.api.infra.user.repository.criteria.UserSearchCriteria
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
@@ -37,20 +38,18 @@ class UserResourceCoordinator(
         request: SignUpRequest,
         adminToken: String
     ): User = withContext(Dispatchers.IO) {
-        logger.info { "사용자 생성 시작: email=${request.email}" }
-
         var keycloakUserId: String? = null
 
         try {
-            // 1. Keycloak에 사용자 생성
+            // 1. 이메일 중복 검증 (Keycloak 생성 전 사전 검증)
+            validateEmailNotExists(request.email)
+
+            // 2. Keycloak에 사용자 생성
             keycloakUserId = createKeycloakUser(request, adminToken)
             val keycloakUuid = UUID.fromString(keycloakUserId)
-            logger.info { "Keycloak 사용자 생성 완료: userId=$keycloakUserId" }
 
-            // 2. DB에 사용자 생성 (Keycloak ID 연결)
+            // 3. DB에 사용자 생성 (Keycloak ID 연결)
             val user = userService.createUser(request, keycloakUuid)
-            logger.info { "DB 사용자 생성 완료: keycloakId=$keycloakUserId, dbUserId=${user.id}" }
-
             user
 
         } catch (_: IllegalArgumentException) {
@@ -85,15 +84,13 @@ class UserResourceCoordinator(
      * 사용자 인증 및 토큰 발급
      */
     suspend fun authenticateUser(email: String, password: String): AccessTokenResponse = withContext(Dispatchers.IO) {
-        logger.info { "사용자 인증 시작: email=$email" }
-
         val loginRequest = KeycloakLoginRequest(
             clientId = keycloakProperties.clientId,
             clientSecret = keycloakProperties.clientSecret,
             username = email,
             password = password,
             grantType = "password",
-            scope = "openid profile email"
+            scope = "openid profile email",
         )
 
         return@withContext when (val response = keycloakApiClient.login(loginRequest)) {
@@ -122,21 +119,40 @@ class UserResourceCoordinator(
     }
 
     /**
+     * 이메일 중복 검증
+     */
+    private fun validateEmailNotExists(email: String) {
+        try {
+            userService.findUser(UserSearchCriteria(email = email, isActive = true))
+            // 사용자가 발견되면 중복 이메일
+            logger.warn { "이미 가입된 이메일: $email" }
+            throw BusinessException(UserErrorCode.EMAIL_ALREADY_EXISTS)
+        } catch (e: BusinessException) {
+            when (e.errorCode) {
+                UserErrorCode.NOT_FOUND -> {
+                    // 사용자가 없으면 정상 (가입 가능)
+                    logger.debug { "이메일 중복 검증 통과: $email" }
+                }
+
+                else -> throw e // 다른 에러는 그대로 전파
+            }
+        }
+    }
+
+    /**
      * Keycloak에 사용자 생성
      */
     private suspend fun createKeycloakUser(
         request: SignUpRequest,
         adminToken: String
     ): String {
-        logger.info { "Keycloak 사용자 생성 시작: email=${request.email}" }
-
         val createUserRequest = KeycloakCreateUserRequest(
             username = request.email,
             email = request.email,
             firstName = request.firstName,
             lastName = request.lastName,
             enabled = true,
-            emailVerified = false,
+            emailVerified = true, // 이메일 인증 완료 후 호출되므로 true로 설정
             credentials = listOf(
                 KeycloakCreateUserRequest.KeycloakCredential(
                     type = "password",
@@ -148,7 +164,6 @@ class UserResourceCoordinator(
 
         return when (val response = keycloakApiClient.createUser(adminToken, createUserRequest)) {
             is KeycloakResponse.Success -> {
-                logger.info { "Keycloak 사용자 생성 성공: userId=${response.data.userId}, email=${request.email}" }
                 response.data.userId
             }
 
@@ -156,6 +171,7 @@ class UserResourceCoordinator(
                 logger.error { "Keycloak 사용자 생성 실패: email=${request.email}, error=${response.errorCode}" }
 
                 val errorCode = when (response.errorCode) {
+                    "USER_EXISTS" -> UserErrorCode.EMAIL_ALREADY_EXISTS
                     "TIMEOUT" -> KeycloakErrorCode.TIMEOUT
                     "SYSTEM_ERROR" -> KeycloakErrorCode.SYSTEM_ERROR
                     else -> KeycloakErrorCode.UNKNOWN
@@ -180,7 +196,6 @@ class UserResourceCoordinator(
         try {
             when (val response = keycloakApiClient.deleteUser(adminToken, keycloakUserId)) {
                 is KeycloakResponse.Success -> {
-                    logger.info { "보상 트랜잭션 성공: Keycloak 사용자 삭제 완료 - userId=$keycloakUserId" }
                 }
 
                 is KeycloakResponse.Error -> {

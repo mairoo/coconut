@@ -15,6 +15,14 @@ enum class UserErrorCode(
         HttpStatus.BAD_REQUEST,
         "아이디 또는 이메일이 이미 존재합니다",
     ),
+    EMAIL_ALREADY_EXISTS(
+        HttpStatus.CONFLICT,
+        "이미 가입된 이메일 주소입니다",
+    ),
+    VERIFICATION_TOKEN_INVALID(
+        HttpStatus.BAD_REQUEST,
+        "유효하지 않은 인증 토큰입니다",
+    ),
     SYSTEM_ERROR(
         HttpStatus.INTERNAL_SERVER_ERROR,
         "시스템 오류입니다",

@@ -44,7 +44,7 @@ class UserQueryRepositoryImpl(
     ): UserEntity? {
         val identifierConditions = listOfNotNull(
             criteria.username,
-            criteria.email
+            criteria.email,
         )
         require(identifierConditions.size == 1) { "검색 조건은 하나만 지정해야 합니다." }
 

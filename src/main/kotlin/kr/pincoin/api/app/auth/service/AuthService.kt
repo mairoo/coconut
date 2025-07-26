@@ -4,7 +4,8 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.servlet.http.HttpServletRequest
 import kotlinx.coroutines.runBlocking
 import kr.pincoin.api.app.auth.request.SignUpRequest
-import kr.pincoin.api.app.auth.response.SignUpResponse
+import kr.pincoin.api.app.auth.response.SignUpCompletedResponse
+import kr.pincoin.api.app.auth.response.SignUpRequestedResponse
 import kr.pincoin.api.domain.auth.properties.AuthProperties
 import kr.pincoin.api.domain.auth.utils.CryptoUtils
 import kr.pincoin.api.domain.auth.utils.EmailUtils
@@ -48,7 +49,7 @@ class AuthService(
     fun signUp(
         request: SignUpRequest,
         httpServletRequest: HttpServletRequest,
-    ): SignUpResponse {
+    ): SignUpRequestedResponse {
         return runBlocking {
             try {
                 val clientInfo = ClientUtils.getClientInfo(httpServletRequest)
@@ -86,7 +87,7 @@ class AuthService(
                 // 4. IP별 가입 횟수 증가
                 incrementIpSignupCount(clientInfo.ipAddress)
 
-                SignUpResponse(
+                SignUpRequestedResponse(
                     message = "인증 이메일이 발송되었습니다. 이메일을 확인해주세요.",
                     maskedEmail = emailUtils.maskEmail(request.email),
                     expiresAt = LocalDateTime.now().plus(authProperties.signup.limits.verificationTtl),
@@ -103,33 +104,162 @@ class AuthService(
 
     /**
      * 1-2. 이메일 인증 완료 시 회원 가입 완료 처리
-     *
-     * **3단계: 이메일 인증 완료 처리**
-     * - UUID 인증 토큰으로 Redis에서 회원정보 조회
-     * - AES-256 암호화된 비밀번호를 복호화
-     * - Keycloak에 사용자 생성 (복호화된 원본 비밀번호 사용)
-     * - RDBMS User 테이블에 사용자 정보 저장 (keycloak_id 포함)
-     * - Redis에서 임시 데이터 즉시 삭제 (토큰 무효화)
-     *
-     * **4단계: 인증 실패 처리**
+     * 인증 실패 처리
      * - Redis TTL을 통한 토큰 만료 관리 (암호화된 데이터 포함)
      * - 재가입 시 새로운 인증 프로세스 진행
-     *
-     * **데이터 일관성 보장**
+     * 데이터 일관성 보장
      * - 트랜잭션 경계: Keycloak 생성과 RDBMS 저장 간 분산 트랜잭션 관리
      * - 보상 트랜잭션: Keycloak 사용자 생성 성공 후 RDBMS 실패 시 Keycloak 사용자 삭제
-     *
-     * @param token UUID 기반 이메일 인증 토큰
-     * @return 회원가입 완료 응답
      */
+    fun verifyEmailAndCompleteSignup(token: String): SignUpCompletedResponse {
+        return runBlocking {
+            try {
+                // 1. Redis에서 임시 데이터 조회
+                val signupData = getTemporarySignupData(token)
+                    ?: throw BusinessException(UserErrorCode.VERIFICATION_TOKEN_INVALID)
 
-    // 이메일 인증 완료 처리
-    // 1. Redis에서 임시 데이터 조회
-    // 2. 비밀번호 복호화
-    // 3. SignUpRequest 객체 재구성
-    // 4. Keycloak과 DB에 사용자 생성 (분산 트랜잭션)
-    // 5. Redis에서 임시 데이터 즉시 삭제 (토큰 무효화)
-    // 6. 회원 가입 완료 안내 이메일 발송
+                // 2. 비밀번호 복호화
+                val decryptedPassword = cryptoUtils.decrypt(signupData.encryptedPassword)
+
+                // 3. SignUpRequest 객체 재구성
+                val signUpRequest = SignUpRequest(
+                    email = signupData.email,
+                    username = signupData.username,
+                    firstName = signupData.firstName,
+                    lastName = signupData.lastName,
+                    password = decryptedPassword,
+                    recaptchaToken = null // 이미 검증 완료
+                )
+
+                // 4. Admin 토큰 획득
+                val adminToken = getAdminToken()
+
+                // 5. Keycloak과 DB에 사용자 생성 (분산 트랜잭션)
+                userResourceCoordinator.createUserWithKeycloak(signUpRequest, adminToken)
+
+                // 6. Redis에서 임시 데이터 즉시 삭제 (토큰 무효화)
+                deleteTemporarySignupData(token)
+
+                // 7. 동시 가입 시도 방지 락 해제
+                releaseEmailLock(signupData.email)
+
+                // 8. 회원 가입 완료 안내 이메일 발송
+                sendWelcomeEmail(signupData.email, signupData.firstName)
+
+                SignUpCompletedResponse(
+                    message = "회원가입이 성공적으로 완료되었습니다.",
+                    email = signupData.email,
+                    username = signupData.username,
+                    completedAt = LocalDateTime.now(),
+                )
+
+            } catch (e: BusinessException) {
+                logger.error { "이메일 인증 완료 처리 오류: token=$token, error=${e.errorCode}" }
+                throw e
+            } catch (e: Exception) {
+                logger.error { "이메일 인증 완료 예기치 못한 오류: token=$token, error=${e.message}" }
+                throw BusinessException(UserErrorCode.SYSTEM_ERROR)
+            }
+        }
+    }
+
+    /**
+     * Redis에서 임시 회원가입 데이터 조회
+     */
+    private fun getTemporarySignupData(token: String): TemporarySignupData? {
+        val key = "${authProperties.signup.redis.signupPrefix}$token"
+        val jsonData = redisTemplate.opsForValue().get(key) ?: return null
+
+        return try {
+            val mapper = com.fasterxml.jackson.databind.ObjectMapper()
+            val dataMap = mapper.readValue(jsonData, Map::class.java)
+
+            TemporarySignupData(
+                email = dataMap["email"] as String,
+                username = dataMap["username"] as String,
+                firstName = dataMap["firstName"] as String,
+                lastName = dataMap["lastName"] as String,
+                encryptedPassword = dataMap["encryptedPassword"] as String,
+                createdAt = dataMap["createdAt"] as String,
+                ipAddress = dataMap["ipAddress"] as String,
+                userAgent = dataMap["userAgent"] as String,
+                acceptLanguage = dataMap["acceptLanguage"] as String
+            )
+        } catch (e: Exception) {
+            logger.error { "임시 데이터 파싱 오류: token=$token, error=${e.message}" }
+            null
+        }
+    }
+
+    /**
+     * Redis에서 임시 회원가입 데이터 삭제
+     */
+    private fun deleteTemporarySignupData(token: String) {
+        val key = "${authProperties.signup.redis.signupPrefix}$token"
+        redisTemplate.delete(key)
+    }
+
+    /**
+     * 이메일 락 해제
+     */
+    private fun releaseEmailLock(email: String) {
+        val lockKey = "${authProperties.signup.redis.emailLockPrefix}$email"
+        redisTemplate.delete(lockKey)
+    }
+
+    /**
+     * 회원가입 완료 환영 이메일 발송
+     */
+    private suspend fun sendWelcomeEmail(email: String, firstName: String) {
+        val emailContent = buildWelcomeEmailContent(firstName)
+
+        val mailgunRequest = MailgunRequest(
+            to = email,
+            subject = "회원가입을 축하합니다!",
+            text = emailContent.text,
+            html = emailContent.html,
+        )
+
+        try {
+            mailgunApiClient.sendEmail(mailgunRequest).block()
+        } catch (e: Exception) {
+            logger.warn { "환영 이메일 발송 실패: email=$email, error=${e.message}" }
+            // 환영 이메일 실패는 회원가입 완료를 방해하지 않음
+        }
+    }
+
+    /**
+     * 환영 이메일 콘텐츠 생성
+     */
+    private fun buildWelcomeEmailContent(firstName: String): EmailContent {
+        val text = """
+        안녕하세요 ${firstName}님!
+        
+        회원가입이 성공적으로 완료되었습니다.
+        이제 모든 서비스를 이용하실 수 있습니다.
+        
+        궁금한 사항이 있으시면 언제든지 문의해 주세요.
+        
+        감사합니다.
+    """.trimIndent()
+
+        val html = """
+        <html>
+        <body>
+            <h2>회원가입 완료!</h2>
+            <p>안녕하세요 <strong>${firstName}</strong>님!</p>
+            <p>회원가입이 성공적으로 완료되었습니다.</p>
+            <p>이제 모든 서비스를 이용하실 수 있습니다.</p>
+            <hr>
+            <p>궁금한 사항이 있으시면 언제든지 문의해 주세요.</p>
+            <p>감사합니다.</p>
+        </body>
+        </html>
+    """.trimIndent()
+
+        return EmailContent(text, html)
+    }
+
 
     /**
      * Admin 토큰 획득
@@ -337,5 +467,21 @@ class AuthService(
     private data class EmailContent(
         val text: String,
         val html: String
+    )
+
+
+    /**
+     * 임시 회원가입 데이터 클래스
+     */
+    private data class TemporarySignupData(
+        val email: String,
+        val username: String,
+        val firstName: String,
+        val lastName: String,
+        val encryptedPassword: String,
+        val createdAt: String,
+        val ipAddress: String,
+        val userAgent: String,
+        val acceptLanguage: String
     )
 }

@@ -74,7 +74,11 @@ class SignInFacade(
     ): SignInResult {
         return runBlocking {
             try {
-                // 0. 기본 보안 검증 (reCAPTCHA 등)
+                // 0. 로그인 보안 검증
+                // - reCAPTCHA 검증 (무작위 공격 방어)
+                // - IP별 로그인 시도 제한 (브루트포스 방어)
+                // - 계정별 연속 실패 제한 (계정 보호)
+                // - 2FA OTP 검증 (추가 보안)
                 signInValidator.validateSignInRequest(request, httpServletRequest)
 
                 // 1단계: Keycloak 우선 인증 시도

@@ -27,6 +27,9 @@ data class SignInRequest(
     @JsonProperty("recaptchaToken")
     val recaptchaToken: String? = null,
 
-    @JsonProperty("otpCode")
-    val otpCode: String? = null,
+    @field:Pattern(
+        regexp = "^[0-9]{6}$",
+        message = "TOTP 코드는 6자리 숫자여야 합니다"
+    )
+    val totpCode: String? = null,
 )

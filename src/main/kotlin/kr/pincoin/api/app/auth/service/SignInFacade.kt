@@ -30,7 +30,7 @@ import java.util.*
  * 3단계 로그인 프로세스를 관리합니다.
  *
  * **1단계 - Keycloak 우선 인증:**
- * - 사용자 이메일/패스워드로 Keycloak 인증 시도
+ * - 사용자 이메일/패스워드/TOTP로 Keycloak 인증 시도
  * - 성공 시: JWT 토큰 반환 (최종 완료)
  * - 실패 시: 2단계로 진행
  *
@@ -62,7 +62,7 @@ class SignInFacade(
      * 3단계 로그인 프로세스를 통해 Keycloak 우선 인증과
      * 레거시 사용자 마이그레이션을 지원합니다.
      *
-     * @param request 로그인 요청 정보
+     * @param request 로그인 요청 정보 (TOTP 코드 포함)
      * @param httpServletRequest HTTP 요청 정보
      * @return 로그인 응답 (JWT 토큰)
      * @throws BusinessException 인증 실패, 시스템 오류 등
@@ -74,24 +74,24 @@ class SignInFacade(
     ): SignInResult {
         return runBlocking {
             try {
-                // 0. 로그인 보안 검증
-                // - reCAPTCHA 검증 (무작위 공격 방어)
-                // - IP별 로그인 시도 제한 (브루트포스 방어)
-                // - 계정별 연속 실패 제한 (계정 보호)
-                // - 2FA OTP 검증 (추가 보안)
+                // 0. 로그인 보안 검증 (reCAPTCHA + 2FA 상태 확인)
                 signInValidator.validateSignInRequest(request, httpServletRequest)
 
-                // 1단계: Keycloak 우선 인증 시도
+                // 1단계: Keycloak 우선 인증 시도 (TOTP 포함)
                 try {
                     val keycloakResult = attemptKeycloakLogin(request)
-
                     return@runBlocking createSignInResult(keycloakResult)
                 } catch (e: BusinessException) {
                     when (e.errorCode) {
                         KeycloakErrorCode.INVALID_CREDENTIALS -> {
-                            // 2단계로 진행
+                            // 일반 인증 실패 - 2단계로 진행
+                            logger.debug { "Keycloak 인증 실패, 레거시 사용자 확인: email=${request.email}" }
                         }
-
+                        UserErrorCode.INVALID_TOTP_CODE -> {
+                            // TOTP 코드 오류 - 즉시 실패 (레거시 마이그레이션 불가)
+                            logger.warn { "TOTP 코드 오류: email=${request.email}" }
+                            throw e
+                        }
                         else -> {
                             logger.error { "Keycloak 인증 시스템 오류: email=${request.email}, error=${e.errorCode}" }
                             throw e
@@ -99,13 +99,17 @@ class SignInFacade(
                     }
                 }
 
-                // 2단계: 레거시 사용자 검증
+                // 2단계: 레거시 사용자 검증 (TOTP 코드가 있으면 레거시는 건너뜀)
+                if (request.totpCode != null) {
+                    logger.debug { "TOTP 코드가 있는데 Keycloak 인증 실패: email=${request.email}" }
+                    throw BusinessException(UserErrorCode.INVALID_CREDENTIALS)
+                }
+
                 val legacyUser = findAndValidateLegacyUser(request)
                     ?: throw BusinessException(UserErrorCode.INVALID_CREDENTIALS)
 
-                // 3단계: Keycloak 마이그레이션
+                // 3단계: Keycloak 마이그레이션 (TOTP 없는 사용자만)
                 val migratedResult = migrateLegacyUserToKeycloak(legacyUser, request)
-
                 createSignInResult(migratedResult)
 
             } catch (e: BusinessException) {
@@ -119,19 +123,33 @@ class SignInFacade(
     }
 
     /**
-     * 1단계: Keycloak 우선 인증 시도
+     * 1단계: Keycloak 우선 인증 시도 (TOTP 지원)
      */
     private suspend fun attemptKeycloakLogin(
         request: SignInRequest,
     ): KeycloakLoginResult {
-        val loginRequest = KeycloakLoginRequest(
-            clientId = keycloakProperties.clientId,
-            clientSecret = keycloakProperties.clientSecret,
-            username = request.email,
-            password = request.password,
-            grantType = "password",
-            scope = "openid profile email",
-        )
+        // TOTP 코드 유무에 따라 적절한 로그인 요청 생성
+        val loginRequest = if (request.totpCode != null) {
+            KeycloakLoginRequest(
+                clientId = keycloakProperties.clientId,
+                clientSecret = keycloakProperties.clientSecret,
+                username = request.email,
+                password = request.password,
+                grantType = "password",
+                scope = "openid profile email",
+                totp = request.totpCode // TOTP 코드 포함
+            )
+        } else {
+            KeycloakLoginRequest(
+                clientId = keycloakProperties.clientId,
+                clientSecret = keycloakProperties.clientSecret,
+                username = request.email,
+                password = request.password,
+                grantType = "password",
+                scope = "openid profile email",
+                totp = null // TOTP 코드 없음
+            )
+        }
 
         return when (val response = keycloakApiClient.login(loginRequest)) {
             is KeycloakResponse.Success -> {
@@ -145,7 +163,17 @@ class SignInFacade(
 
             is KeycloakResponse.Error -> {
                 val errorCode = when (response.errorCode) {
-                    "invalid_grant", "invalid_client" -> KeycloakErrorCode.INVALID_CREDENTIALS
+                    "invalid_grant" -> {
+                        // TOTP 코드 오류와 일반 인증 오류 구분
+                        if (request.totpCode != null) {
+                            logger.warn { "TOTP 코드 검증 실패: email=${request.email}" }
+                            UserErrorCode.INVALID_TOTP_CODE
+                        } else {
+                            logger.debug { "일반 인증 실패: email=${request.email}" }
+                            KeycloakErrorCode.INVALID_CREDENTIALS
+                        }
+                    }
+                    "invalid_client" -> KeycloakErrorCode.INVALID_CREDENTIALS
                     "TIMEOUT" -> KeycloakErrorCode.TIMEOUT
                     else -> KeycloakErrorCode.UNKNOWN
                 }
@@ -185,7 +213,6 @@ class SignInFacade(
                     logger.warn { "사용자 없음: email=${request.email}" }
                     null
                 }
-
                 else -> throw e
             }
         }

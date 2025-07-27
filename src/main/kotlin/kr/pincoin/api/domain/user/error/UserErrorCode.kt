@@ -55,4 +55,34 @@ enum class UserErrorCode(
         HttpStatus.INTERNAL_SERVER_ERROR,
         "이메일 발송에 실패했습니다",
     ),
+
+    // TOTP 2FA 관련 에러 코드들
+    TOTP_CODE_REQUIRED(
+        HttpStatus.BAD_REQUEST,
+        "2FA가 활성화된 계정입니다. TOTP 코드를 입력해주세요",
+    ),
+    INVALID_TOTP_CODE(
+        HttpStatus.BAD_REQUEST,
+        "TOTP 코드가 올바르지 않습니다",
+    ),
+    TOTP_ALREADY_ENABLED(
+        HttpStatus.CONFLICT,
+        "이미 2FA가 활성화되어 있습니다",
+    ),
+    TOTP_SETUP_SESSION_EXPIRED(
+        HttpStatus.BAD_REQUEST,
+        "2FA 설정 세션이 만료되었습니다",
+    ),
+    KEYCLOAK_NOT_LINKED(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        "Keycloak 계정이 연결되지 않았습니다",
+    ),
+    TOTP_SETUP_FAILED(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        "2FA 설정에 실패했습니다",
+    ),
+    TOTP_DISABLE_FAILED(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        "2FA 비활성화에 실패했습니다",
+    ),
 }

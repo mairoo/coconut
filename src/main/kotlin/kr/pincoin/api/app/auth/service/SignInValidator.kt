@@ -3,6 +3,7 @@ package kr.pincoin.api.app.auth.service
 import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.servlet.http.HttpServletRequest
 import kr.pincoin.api.app.auth.request.SignInRequest
+import kr.pincoin.api.domain.coordinator.user.TotpResourceCoordinator
 import kr.pincoin.api.domain.user.error.UserErrorCode
 import kr.pincoin.api.external.auth.recaptcha.api.response.RecaptchaResponse
 import kr.pincoin.api.external.auth.recaptcha.service.RecaptchaService
@@ -17,31 +18,32 @@ import org.springframework.stereotype.Component
  *
  * **주요 검증 항목:**
  * 1. reCAPTCHA 검증 (봇/스팸 차단)
- * 2. 향후 확장 가능한 추가 보안 검증
+ * 2. 2FA OTP 검증 (사용자별 2FA 활성화 상태 확인)
+ * 3. 향후 확장 가능한 추가 보안 검증
  *    - IP별 로그인 시도 제한
  *    - 계정별 로그인 실패 카운트
  *    - 디바이스 핑거프린팅
- *    - 2FA OTP 검증
  */
 @Component
 class SignInValidator(
     private val recaptchaService: RecaptchaService,
+    private val totpResourceCoordinator: TotpResourceCoordinator,
 ) {
     private val logger = KotlinLogging.logger {}
 
     /**
-     * 로그인 요청 전체 검증
+     * 로그인 요청 전체 검증 (TOTP 지원)
      *
      * 로그인 요청에 대한 모든 보안 검증을 수행합니다.
      * 점진적 마이그레이션을 고려하여 필수 검증만 우선 구현합니다.
      *
      * **현재 구현된 검증:**
      * 1. reCAPTCHA 검증 (무작위 공격 방어)
+     * 2. 2FA OTP 검증 (사용자별 활성화 상태 확인)
      *
      * **향후 추가 예정:**
-     * 2. IP별 로그인 시도 제한 (브루트포스 방어)
-     * 3. 계정별 연속 실패 제한 (계정 보호)
-     * 4. 2FA OTP 검증 (추가 보안)
+     * 3. IP별 로그인 시도 제한 (브루트포스 방어)
+     * 4. 계정별 연속 실패 제한 (계정 보호)
      *
      * @param request 로그인 요청 정보
      * @param httpServletRequest HTTP 요청 정보
@@ -54,15 +56,15 @@ class SignInValidator(
         // 1. reCAPTCHA 검증 (봇/스팸 차단)
         validateRecaptcha(request.recaptchaToken)
 
+        // 2. 2FA OTP 검증 (사용자별 2FA 활성화 상태 확인)
+        validate2FA(request.email, request.totpCode)
+
         // TODO: 향후 추가할 검증들
-        // 2. IP별 로그인 시도 제한
+        // 3. IP별 로그인 시도 제한
         // validateIpLoginLimit(clientInfo.ipAddress)
 
-        // 3. 계정별 연속 실패 제한
+        // 4. 계정별 연속 실패 제한
         // validateAccountLockout(request.email)
-
-        // 4. 2FA OTP 검증 (OTP 필요한 계정의 경우)
-        // validate2FA(request.email, request.otpCode)
     }
 
     /**
@@ -94,6 +96,60 @@ class SignInValidator(
         }
     }
 
+    /**
+     * 2FA OTP 검증
+     *
+     * 사용자의 2FA 활성화 여부를 확인하고,
+     * 활성화된 경우 TOTP 코드 입력을 필수로 요구합니다.
+     *
+     * **검증 로직:**
+     * 1. 사용자의 2FA 활성화 상태 확인
+     * 2. 활성화된 경우 TOTP 코드 필수 검증
+     * 3. 비활성화된 경우 TOTP 코드 무시
+     *
+     * **에러 처리:**
+     * - 2FA 상태 확인 실패 시 로그인 허용 (가용성 우선)
+     * - 사용자 없음은 로그인 단계에서 처리
+     */
+    private suspend fun validate2FA(email: String, totpCode: String?) {
+        try {
+            // 1. 사용자의 2FA 활성화 상태 확인
+            val totpStatus = totpResourceCoordinator.getTotpStatus(email)
+
+            if (totpStatus.enabled) {
+                // 2FA가 활성화된 사용자인 경우 TOTP 코드 필수
+                if (totpCode.isNullOrBlank()) {
+                    logger.warn { "2FA 활성화된 사용자의 TOTP 코드 누락: email=$email" }
+                    throw BusinessException(UserErrorCode.TOTP_CODE_REQUIRED)
+                }
+
+                logger.debug { "2FA 활성화된 사용자 로그인 시도: email=$email" }
+            } else {
+                // 2FA 비활성화된 사용자는 TOTP 코드 불필요
+                if (!totpCode.isNullOrBlank()) {
+                    logger.debug { "2FA 비활성화된 사용자가 TOTP 코드 전송: email=$email (무시됨)" }
+                }
+            }
+
+        } catch (e: BusinessException) {
+            when (e.errorCode) {
+                UserErrorCode.TOTP_CODE_REQUIRED -> throw e
+                UserErrorCode.NOT_FOUND -> {
+                    // 사용자가 존재하지 않는 경우 - 로그인 단계에서 처리
+                    logger.debug { "2FA 검증 중 사용자 없음: email=$email" }
+                }
+
+                else -> {
+                    // 2FA 상태 확인 실패 시 로그인 허용 (가용성 우선)
+                    logger.warn { "2FA 상태 확인 실패하지만 로그인 허용: email=$email, error=${e.errorCode}" }
+                }
+            }
+        } catch (e: Exception) {
+            // 예기치 못한 오류 시 로그인 허용 (가용성 우선)
+            logger.warn { "2FA 검증 중 예기치 못한 오류, 로그인 허용: email=$email, error=${e.message}" }
+        }
+    }
+
     // TODO: 향후 구현될 추가 검증 메서드들
 
     /**
@@ -119,19 +175,6 @@ class SignInValidator(
     private fun validateAccountLockout(email: String) {
         // 계정별 로그인 실패 횟수 체크
         // 5회 실패 시 15분 잠금, 10회 실패 시 1시간 잠금 등
-    }
-    */
-
-    /**
-     * 2FA OTP 검증
-     *
-     * Google Authenticator 등의 TOTP 코드를 검증합니다.
-     * 사용자 설정에 따라 선택적으로 적용됩니다.
-     */
-    /*
-    private fun validate2FA(email: String, otpCode: String?) {
-        // 해당 사용자의 2FA 설정 확인
-        // OTP 코드 검증 (Google Authenticator TOTP)
     }
     */
 }

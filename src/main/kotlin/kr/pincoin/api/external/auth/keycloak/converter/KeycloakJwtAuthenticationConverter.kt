@@ -74,7 +74,6 @@ class KeycloakJwtAuthenticationConverter(
                  * val authorities = user.roles.map { role ->
                  *   SimpleGrantedAuthority(role.name)
                  * }
-                 * logger.debug { "사용자 권한 조회 완료: email=$email, roles=${user.roles.map { it.name }}" }
                  * authorities
                  */
             } else {

@@ -139,7 +139,7 @@ class AuthService(
      * - 로그아웃 시도 로깅 (보안 감사용)
      * - 다중 세션 관리 (선택적)
      */
-    fun logout(
+    fun signOut(
         refreshToken: String,
         servletRequest: HttpServletRequest,
     ) {
@@ -239,6 +239,7 @@ class AuthService(
      * - DB에서 소프트 삭제 처리
      * - 관련 세션 모두 무효화
      * - 개인정보 보호를 위한 데이터 마스킹
+     * - redis에 해당 이메일 주소 재가입 금지 저장
      *
      * @param accessToken 현재 액세스 토큰
      * @param password 현재 비밀번호 (재확인용)

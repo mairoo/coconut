@@ -103,14 +103,14 @@ class AuthController(
      *
      * @return 로그아웃 성공 응답
      */
-    @PostMapping("/logout")
-    fun logout(
+    @PostMapping("/sign-out")
+    fun signOut(
         @CookieValue(name = CookieKey.REFRESH_TOKEN_NAME, required = false) refreshToken: String?,
         httpServletRequest: HttpServletRequest,
     ): ResponseEntity<ApiResponse<String>> {
         // 리프레시 토큰이 있는 경우에만 Keycloak 로그아웃 처리
         if (!refreshToken.isNullOrBlank()) {
-            authService.logout(refreshToken, httpServletRequest)
+            authService.signOut(refreshToken, httpServletRequest)
         }
 
         // 쿠키 삭제를 위한 헤더 생성 (토큰 값을 null로 설정)

@@ -185,11 +185,12 @@ class SignUpValidator(
                     // 이메일 중복인 경우 그대로 전파
                     throw e
                 }
+
                 UserErrorCode.NOT_FOUND -> {
-                    // User? 가 아닌 User 응답 또는 예외이기 때문에 사용자가 없으면 정상 - 회원가입 진행 가능
-                    logger.debug { "이메일 중복 검증 통과: $email" }
+                    // User? 가 아닌 User 응답 또는 예외이므로 사용자가 없으면 정상 - 회원가입 진행 가능
                     // 정상적으로 메서드 종료 (예외를 던지지 않음)
                 }
+
                 else -> {
                     // 다른 에러는 시스템 에러로 처리
                     logger.error(e) { "이메일 중복 검증 중 예기치 못한 오류: email=$email, error=${e.errorCode}" }

@@ -87,14 +87,26 @@ class SignInFacade(
                             // 일반 인증 실패 - 2단계로 진행
                             logger.debug { "Keycloak 인증 실패, 레거시 사용자 확인: email=${request.email}" }
                         }
+
                         UserErrorCode.INVALID_TOTP_CODE -> {
                             // TOTP 코드 오류 - 즉시 실패 (레거시 마이그레이션 불가)
                             logger.warn { "TOTP 코드 오류: email=${request.email}" }
                             throw e
                         }
+
+                        UserErrorCode.NOT_FOUND -> {
+                            // 사용자가 Keycloak에 없음 - 레거시 확인으로 진행
+                        }
+
+                        KeycloakErrorCode.TIMEOUT -> {
+                            // 타임아웃 - 레거시 확인으로 진행 (가용성 우선)
+                            logger.warn { "Keycloak 타임아웃, 레거시 사용자 확인 시도: email=${request.email}" }
+                        }
+
                         else -> {
-                            logger.error { "Keycloak 인증 시스템 오류: email=${request.email}, error=${e.errorCode}" }
-                            throw e
+                            // 예상치 못한 오류이지만 레거시 사용자 확인은 시도
+                            logger.warn { "Keycloak 인증 오류, 레거시 사용자 확인 시도: email=${request.email}, error=${e.errorCode}" }
+                            // 예외를 던지지 않고 레거시 확인으로 진행
                         }
                     }
                 }
@@ -173,6 +185,7 @@ class SignInFacade(
                             KeycloakErrorCode.INVALID_CREDENTIALS
                         }
                     }
+
                     "invalid_client" -> KeycloakErrorCode.INVALID_CREDENTIALS
                     "TIMEOUT" -> KeycloakErrorCode.TIMEOUT
                     else -> KeycloakErrorCode.UNKNOWN
@@ -213,6 +226,7 @@ class SignInFacade(
                     logger.warn { "사용자 없음: email=${request.email}" }
                     null
                 }
+
                 else -> throw e
             }
         }

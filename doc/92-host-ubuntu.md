@@ -212,14 +212,13 @@ sudo systemctl reload nginx
 | 서비스               | 외부포트  | 내부포트 | 역할        |
 |-------------------|-------|------|-----------|
 | redis             | -     | 6379 | 내부전용      |
-| mariadb           | 13306 | 3306 | 관리용       |
 | keycloak-postgres | 15432 | 5432 | 관리용       |
 | keycloak          | 8801  | 8080 | 인증서버      |
-| nginx-api         | 8800  | 80   | API 로드밸런서 |
+| nginx-api         | 8800  | 8080 | API 로드밸런서 |
 | backend-1         | -     | 8080 | 내부전용      |
 | backend-2         | -     | 8080 | 내부전용      |
 | prometheus        | -     | 9090 | 내부전용      |
 | grafana           | 9300  | 3000 | 모니터링      |
-| nginx-web         | 8300  | 80   | 웹 로드밸런서   |
+| nginx-web         | 8300  | 3000 | 웹 로드밸런서   |
 | frontend-1        | -     | 3000 | 내부전용      |
 | frontend-2        | -     | 3000 | 내부전용      |

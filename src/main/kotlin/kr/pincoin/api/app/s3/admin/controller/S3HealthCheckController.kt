@@ -4,12 +4,14 @@ import kr.pincoin.api.app.s3.admin.response.HealthCheckResponse
 import kr.pincoin.api.external.s3.service.S3HealthCheckService
 import kr.pincoin.api.global.response.success.ApiResponse
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/open/s3/healthcheck")
+@RequestMapping("/admin/s3/healthcheck")
+@PreAuthorize("hasRole('ADMIN')")
 class S3HealthCheckController(
     private val s3HealthCheckService: S3HealthCheckService,
 ) {

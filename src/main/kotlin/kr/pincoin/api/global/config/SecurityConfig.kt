@@ -1,5 +1,7 @@
 package kr.pincoin.api.global.config
 
+import kr.pincoin.api.external.auth.keycloak.converter.KeycloakJwtAuthenticationConverter
+import kr.pincoin.api.external.auth.keycloak.decoder.KeycloakJwtDecoder
 import kr.pincoin.api.global.properties.CorsProperties
 import kr.pincoin.api.global.security.encoder.DjangoPasswordEncoder
 import kr.pincoin.api.global.security.handler.ApiAccessDeniedHandler
@@ -22,6 +24,8 @@ class SecurityConfig(
     private val authenticationEntryPoint: ApiAuthenticationEntryPoint,
     private val accessDeniedHandler: ApiAccessDeniedHandler,
     private val corsProperties: CorsProperties,
+    private val keycloakJwtDecoder: KeycloakJwtDecoder,
+    private val keycloakJwtAuthenticationConverter: KeycloakJwtAuthenticationConverter,
 ) {
 
     @Bean
@@ -51,6 +55,14 @@ class SecurityConfig(
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             }
             // 2. OAuth2 Resource Server 설정
+            .oauth2ResourceServer { oauth2 ->
+                oauth2.jwt { jwt ->
+                    jwt.decoder(keycloakJwtDecoder.createDecoder())
+                    jwt.jwtAuthenticationConverter(keycloakJwtAuthenticationConverter)
+                }
+                oauth2.authenticationEntryPoint(authenticationEntryPoint)
+                oauth2.accessDeniedHandler(accessDeniedHandler)
+            }
             // 3. 권한 설정
             .authorizeHttpRequests { auth ->
                 auth

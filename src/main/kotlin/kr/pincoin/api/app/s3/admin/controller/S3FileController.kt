@@ -4,13 +4,15 @@ import kr.pincoin.api.external.s3.api.response.S3FileInfoResponse
 import kr.pincoin.api.external.s3.service.S3FileService
 import kr.pincoin.api.global.response.success.ApiResponse
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/open/s3/files")
+@RequestMapping("/admin/s3/files")
+@PreAuthorize("hasRole('ADMIN')")
 class S3FileController(
     private val s3FileService: S3FileService,
 ) {

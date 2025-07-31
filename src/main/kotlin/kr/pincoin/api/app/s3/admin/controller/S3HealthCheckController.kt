@@ -1,19 +1,17 @@
 package kr.pincoin.api.app.s3.admin.controller
 
 import kr.pincoin.api.app.s3.admin.response.HealthCheckResponse
-import kr.pincoin.api.external.s3.service.S3HealthCheckService
+import kr.pincoin.api.app.s3.admin.service.AdminS3HealthCheckController
 import kr.pincoin.api.global.response.success.ApiResponse
 import org.springframework.http.ResponseEntity
-import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/admin/s3/healthcheck")
-@PreAuthorize("hasRole('ADMIN')")
 class S3HealthCheckController(
-    private val s3HealthCheckService: S3HealthCheckService,
+    private val adminS3HealthCheckService: AdminS3HealthCheckController,
 ) {
     /**
      * S3 빠른 연결 테스트
@@ -21,7 +19,7 @@ class S3HealthCheckController(
      */
     @GetMapping()
     suspend fun quickHealthCheck(): ResponseEntity<ApiResponse<HealthCheckResponse>> =
-        s3HealthCheckService.quickHealthCheck()
+        adminS3HealthCheckService.quickHealthCheck()
             .let { ApiResponse.of(it, message = "S3 연결이 정상입니다") }
             .let { ResponseEntity.ok(it) }
 
@@ -32,7 +30,7 @@ class S3HealthCheckController(
      */
     @GetMapping("/full")
     suspend fun fullHealthCheck(): ResponseEntity<ApiResponse<HealthCheckResponse>> =
-        s3HealthCheckService.performHealthCheck()
+        adminS3HealthCheckService.performHealthCheck()
             .let { ApiResponse.of(it, message = "S3 전체 헬스체크가 성공적으로 완료되었습니다") }
             .let { ResponseEntity.ok(it) }
 }

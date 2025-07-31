@@ -35,23 +35,23 @@ spring:
       resourceserver:
         jwt:
           # Keycloak JWT 검증 설정 (기존 JWT와 병행 사용)
-          issuer-uri: http://keycloak:8080/realms/pincoin
+          issuer-uri: http://keycloak:8080/realms/pincoin-local
       client:
         registration:
           keycloak:
-            client-id: pincoin-backend
+            client-id: pincoin-api-client
             client-secret: your-client-secret
             scope: openid,profile,email
             authorization-grant-type: authorization_code
             redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
         provider:
           keycloak:
-            issuer-uri: http://keycloak:8080/realms/pincoin
+            issuer-uri: http://keycloak:8080/realms/pincoin-local
             user-name-attribute: preferred_username
 
 keycloak:
-  realm: pincoin
-  client-id: pincoin-backend
+  realm: pincoin-local
+  client-id: pincoin-api-client
   client-secret: your-client-secret
   server-url: http://keycloak:8080
   timeout: 5000

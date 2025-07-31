@@ -15,35 +15,12 @@ services:
         max-size: "20m"
         max-file: "10"
 
-  keycloak-postgres:
-    container_name: ${PREFIX}-keycloak-postgres
-    image: postgres:15-alpine
-    restart: unless-stopped
-    ports:
-      - "15432:5432"
-    volumes:
-      - keycloak-postgres-data:/var/lib/postgresql/data
-    networks:
-      - app-network
-    environment:
-      - TZ=Asia/Seoul
-      - POSTGRES_DB=${KEYCLOAK_POSTGRES_DATABASE}
-      - POSTGRES_USER=${KEYCLOAK_POSTGRES_USER}
-      - POSTGRES_PASSWORD=${KEYCLOAK_POSTGRES_PASSWORD}
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "20m"
-        max-file: "10"
-
   keycloak:
     container_name: ${PREFIX}-keycloak
     image: quay.io/keycloak/keycloak:26.3.1
     restart: unless-stopped
     ports:
       - "8081:8080"
-    depends_on:
-      - keycloak-postgres
     networks:
       - app-network
     environment:
@@ -110,7 +87,5 @@ volumes:
     name: ${PREFIX}-redis-data
   gradle-cache:
     name: ${PREFIX}-gradle-cache
-  keycloak-postgres-data:
-    name: ${PREFIX}-keycloak-postgres-data
   keycloak-data:
     name: ${PREFIX}-keycloak-data

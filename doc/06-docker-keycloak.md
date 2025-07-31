@@ -149,7 +149,7 @@ docker compose restart keycloak
 
 - Host: smtp.mailgun.org (또는 smtp.gmail.com)
 - Port: 587
-- Encryption: Enable SSL (체크 안 함), Enable StartTLS (체크)
+- Encryption: Enable SSL (체크 안 함), **Enable StartTLS (체크)**
 - Authentication: Enabled (체크)
 - Username: postmaster@mg.example.com (또는 gmail 주소)
 - Authentication Type: Password

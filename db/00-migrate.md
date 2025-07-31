@@ -1,2 +1,2 @@
 - audit_log 테이블 추가
-- 
+- auth_user.keycloak_id 추가

@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/admin/s3/healthcheck")
-class S3HealthCheckController(
+class AdminS3HealthCheckController(
     private val adminS3HealthCheckService: AdminS3HealthCheckController,
 ) {
     /**

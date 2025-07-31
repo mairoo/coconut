@@ -11,8 +11,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/admin/s3/files")
-
-class S3FileController(
+class AdminS3FileController(
     private val adminS3FileService: AdminS3FileService,
 ) {
     /**

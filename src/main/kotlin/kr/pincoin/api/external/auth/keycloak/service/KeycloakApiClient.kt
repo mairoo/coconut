@@ -8,7 +8,6 @@ import kr.pincoin.api.external.auth.keycloak.api.response.*
 import kr.pincoin.api.external.auth.keycloak.error.KeycloakApiErrorCode
 import kr.pincoin.api.external.auth.keycloak.properties.KeycloakProperties
 import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.util.LinkedMultiValueMap
@@ -35,21 +34,19 @@ class KeycloakApiClient(
     suspend fun createUser(
         adminToken: String,
         request: KeycloakCreateUserRequest,
-    ): KeycloakResponse<KeycloakCreateUserData> = executeApiCall(
-        uri = "/admin/realms/${keycloakProperties.realm}/users",
-        method = HttpMethod.POST,
-        headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer $adminToken"),
-        contentType = MediaType.APPLICATION_JSON,
-        request = request,
-        isLocationResponse = true
-    ) { locationHeader ->
-        val userId = extractUserIdFromLocation(locationHeader)
-        if (userId != null) {
-            KeycloakResponse.Success(KeycloakCreateUserData(userId = userId))
-        } else {
-            KeycloakResponse.Error("PARSE_ERROR", "Location 헤더에서 사용자 ID를 추출할 수 없습니다")
+    ): KeycloakResponse<KeycloakCreateUserData> =
+        executePostWithLocation(
+            uri = "/admin/realms/${keycloakProperties.realm}/users",
+            headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer $adminToken"),
+            request = request,
+        ) { locationHeader ->
+            val userId = extractUserIdFromLocation(locationHeader)
+            if (userId != null) {
+                KeycloakResponse.Success(KeycloakCreateUserData(userId = userId))
+            } else {
+                KeycloakResponse.Error("PARSE_ERROR", "Location 헤더에서 사용자 ID를 추출할 수 없습니다")
+            }
         }
-    }
 
     /**
      * Admin API - 사용자 정보 조회
@@ -57,32 +54,27 @@ class KeycloakApiClient(
     suspend fun getUser(
         adminToken: String,
         userId: String,
-    ): KeycloakResponse<KeycloakUserResponse> = executeApiCall(
-        uri = "/admin/realms/${keycloakProperties.realm}/users/$userId",
-        method = HttpMethod.GET,
-        headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer $adminToken")
-    ) { responseBody ->
-        handleSuccessResponse(responseBody, KeycloakUserResponse::class.java)
-    }
+    ): KeycloakResponse<KeycloakUserResponse> =
+        executeGet(
+            uri = "/admin/realms/${keycloakProperties.realm}/users/$userId",
+            headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer $adminToken"),
+        ) { responseBody ->
+            handleSuccessResponse(responseBody, KeycloakUserResponse::class.java)
+        }
 
     /**
      * Admin API - 사용자 정보 수정
-     * 비밀번호 변경 시 204 NO_CONTENT 응답 처리
      */
     suspend fun updateUser(
         adminToken: String,
         userId: String,
         request: KeycloakUpdateUserRequest,
-    ): KeycloakResponse<KeycloakLogoutResponse> = executeApiCall(
-        uri = "/admin/realms/${keycloakProperties.realm}/users/$userId",
-        method = HttpMethod.PUT,
-        headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer $adminToken"),
-        contentType = MediaType.APPLICATION_JSON,
-        request = request
-    ) {
-        // PUT 요청은 일반적으로 204 NO_CONTENT를 반환하므로 단순히 성공 응답 반환
-        KeycloakResponse.Success(KeycloakLogoutResponse)
-    }
+    ): KeycloakResponse<KeycloakLogoutResponse> =
+        executePutWithoutResponse(
+            uri = "/admin/realms/${keycloakProperties.realm}/users/$userId",
+            headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer $adminToken"),
+            request = request,
+        )
 
     /**
      * Admin API - 사용자 삭제
@@ -90,31 +82,25 @@ class KeycloakApiClient(
     suspend fun deleteUser(
         adminToken: String,
         userId: String,
-    ): KeycloakResponse<KeycloakLogoutResponse> = executeApiCall(
-        uri = "/admin/realms/${keycloakProperties.realm}/users/$userId",
-        method = HttpMethod.DELETE,
-        headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer $adminToken")
-    ) {
-        KeycloakResponse.Success(KeycloakLogoutResponse)
-    }
+    ): KeycloakResponse<KeycloakLogoutResponse> =
+        executeDeleteWithoutResponse(
+            uri = "/admin/realms/${keycloakProperties.realm}/users/$userId",
+            headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer $adminToken"),
+        )
 
     /**
      * Admin API - 사용자에게 필수 액션 설정
-     * requiredActions 목록을 그대로 설정합니다.
      */
     suspend fun setUserRequiredActions(
         adminToken: String,
         userId: String,
         requiredActions: List<String>
-    ): KeycloakResponse<KeycloakLogoutResponse> = executeApiCall(
-        uri = "/admin/realms/${keycloakProperties.realm}/users/$userId",
-        method = HttpMethod.PUT,
-        headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer $adminToken"),
-        contentType = MediaType.APPLICATION_JSON,
-        request = KeycloakRequiredActionRequest(requiredActions = requiredActions)
-    ) {
-        KeycloakResponse.Success(KeycloakLogoutResponse)
-    }
+    ): KeycloakResponse<KeycloakLogoutResponse> =
+        executePutWithoutResponse(
+            uri = "/admin/realms/${keycloakProperties.realm}/users/$userId",
+            headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer $adminToken"),
+            request = KeycloakRequiredActionRequest(requiredActions = requiredActions),
+        )
 
     // ========================================
     // Admin API - 인증정보 관리
@@ -126,42 +112,38 @@ class KeycloakApiClient(
     suspend fun getUserCredentials(
         adminToken: String,
         userId: String
-    ): KeycloakResponse<List<KeycloakCredentialResponse>> = executeApiCall(
-        uri = "/admin/realms/${keycloakProperties.realm}/users/$userId/credentials",
-        method = HttpMethod.GET,
-        headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer $adminToken")
-    ) { responseBody ->
-        try {
-            val collectionType: CollectionType = objectMapper.typeFactory
-                .constructCollectionType(List::class.java, KeycloakCredentialResponse::class.java)
+    ): KeycloakResponse<List<KeycloakCredentialResponse>> =
+        executeGet(
+            uri = "/admin/realms/${keycloakProperties.realm}/users/$userId/credentials",
+            headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer $adminToken")
+        ) { responseBody ->
+            try {
+                val collectionType: CollectionType = objectMapper.typeFactory
+                    .constructCollectionType(List::class.java, KeycloakCredentialResponse::class.java)
 
-            val credentials: List<KeycloakCredentialResponse> = objectMapper.readValue(responseBody, collectionType)
-            KeycloakResponse.Success(credentials)
-        } catch (e: Exception) {
-            KeycloakResponse.Error("PARSE_ERROR", "인증정보 파싱 실패: ${e.message}")
+                val credentials: List<KeycloakCredentialResponse> = objectMapper.readValue(responseBody, collectionType)
+                KeycloakResponse.Success(credentials)
+            } catch (e: Exception) {
+                KeycloakResponse.Error("PARSE_ERROR", "인증정보 파싱 실패: ${e.message}")
+            }
         }
-    }
 
     /**
      * Admin API - TOTP 인증정보 생성
-     * 단순히 제공된 Secret으로 TOTP 인증정보를 생성합니다.
      */
     suspend fun createTotpCredential(
         adminToken: String,
         userId: String,
         secret: String
-    ): KeycloakResponse<KeycloakLogoutResponse> = executeApiCall(
-        uri = "/admin/realms/${keycloakProperties.realm}/users/$userId/credentials",
-        method = HttpMethod.POST,
-        headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer $adminToken"),
-        contentType = MediaType.APPLICATION_JSON,
-        request = KeycloakTotpSetupRequest(
-            secretData = """{"value":"$secret"}""",
-            credentialData = """{"subType":"totp","digits":6,"period":30,"algorithm":"HmacSHA1"}"""
+    ): KeycloakResponse<KeycloakLogoutResponse> =
+        executePostWithoutResponse(
+            uri = "/admin/realms/${keycloakProperties.realm}/users/$userId/credentials",
+            headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer $adminToken"),
+            request = KeycloakTotpSetupRequest(
+                secretData = """{"value":"$secret"}""",
+                credentialData = """{"subType":"totp","digits":6,"period":30,"algorithm":"HmacSHA1"}""",
+            )
         )
-    ) {
-        KeycloakResponse.Success(KeycloakLogoutResponse)
-    }
 
     /**
      * Admin API - 특정 인증정보 삭제
@@ -170,13 +152,11 @@ class KeycloakApiClient(
         adminToken: String,
         userId: String,
         credentialId: String
-    ): KeycloakResponse<KeycloakLogoutResponse> = executeApiCall(
-        uri = "/admin/realms/${keycloakProperties.realm}/users/$userId/credentials/$credentialId",
-        method = HttpMethod.DELETE,
-        headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer $adminToken")
-    ) {
-        KeycloakResponse.Success(KeycloakLogoutResponse)
-    }
+    ): KeycloakResponse<KeycloakLogoutResponse> =
+        executeDeleteWithoutResponse(
+            uri = "/admin/realms/${keycloakProperties.realm}/users/$userId/credentials/$credentialId",
+            headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer $adminToken"),
+        )
 
     // ========================================
     // User Account API - 사용자 셀프 서비스
@@ -189,19 +169,16 @@ class KeycloakApiClient(
         accessToken: String,
         currentPassword: String,
         newPassword: String,
-    ): KeycloakResponse<KeycloakLogoutResponse> = executeApiCall(
-        uri = "/realms/${keycloakProperties.realm}/account/credentials/password",
-        method = HttpMethod.PUT,
-        headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer $accessToken"),
-        contentType = MediaType.APPLICATION_JSON,
-        request = mapOf(
-            "currentPassword" to currentPassword,
-            "newPassword" to newPassword,
-            "confirmation" to newPassword
+    ): KeycloakResponse<KeycloakLogoutResponse> =
+        executePutWithoutResponse(
+            uri = "/realms/${keycloakProperties.realm}/account/credentials/password",
+            headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer $accessToken"),
+            request = mapOf(
+                "currentPassword" to currentPassword,
+                "newPassword" to newPassword,
+                "confirmation" to newPassword,
+            )
         )
-    ) {
-        KeycloakResponse.Success(KeycloakLogoutResponse)
-    }
 
     // ========================================
     // OpenID Connect API - 인증/토큰
@@ -212,232 +189,277 @@ class KeycloakApiClient(
      */
     suspend fun getAdminToken(
         request: KeycloakAdminTokenRequest,
-    ): KeycloakResponse<KeycloakAdminTokenData> {
-        val formData = LinkedMultiValueMap<String, String>().apply {
-            add("client_id", request.clientId)
-            add("client_secret", request.clientSecret)
-            add("grant_type", request.grantType)
-        }
-
-        return when (val tokenResult =
-            executeTokenApiCall("/realms/${keycloakProperties.realm}/protocol/openid-connect/token", formData)) {
+    ): KeycloakResponse<KeycloakAdminTokenData> =
+        when (val tokenResult = executeFormPost(
+            uri = "/realms/${keycloakProperties.realm}/protocol/openid-connect/token",
+            formData = LinkedMultiValueMap<String, String>().apply {
+                add("client_id", request.clientId)
+                add("client_secret", request.clientSecret)
+                add("grant_type", request.grantType)
+            },
+        )) {
             is KeycloakResponse.Success -> KeycloakResponse.Success(
                 KeycloakAdminTokenData(accessToken = tokenResult.data.accessToken)
             )
 
             is KeycloakResponse.Error -> KeycloakResponse.Error(
                 errorCode = tokenResult.errorCode,
-                errorMessage = tokenResult.errorMessage
+                errorMessage = tokenResult.errorMessage,
             )
         }
-    }
 
     /**
      * Direct Grant - 로그인
      */
     suspend fun login(
         request: KeycloakLoginRequest,
-    ): KeycloakResponse<KeycloakTokenResponse> {
-        val formData = LinkedMultiValueMap<String, String>().apply {
-            add("client_id", request.clientId)
-            add("client_secret", request.clientSecret)
-            add("grant_type", request.grantType)
-            add("username", request.username)
-            add("password", request.password)
-            add("scope", request.scope)
-            request.totp?.let { add("totp", it) }
-        }
-
-        return executeTokenApiCall(
-            "/realms/${keycloakProperties.realm}/protocol/openid-connect/token",
-            formData
+    ): KeycloakResponse<KeycloakTokenResponse> =
+        executeFormPost(
+            uri = "/realms/${keycloakProperties.realm}/protocol/openid-connect/token",
+            formData = LinkedMultiValueMap<String, String>().apply {
+                add("client_id", request.clientId)
+                add("client_secret", request.clientSecret)
+                add("grant_type", request.grantType)
+                add("username", request.username)
+                add("password", request.password)
+                add("scope", request.scope)
+                request.totp?.let { add("totp", it) }
+            },
         )
-    }
 
     /**
      * 토큰 갱신
      */
     suspend fun refreshToken(
         request: KeycloakRefreshTokenRequest,
-    ): KeycloakResponse<KeycloakTokenResponse> {
-        val formData = LinkedMultiValueMap<String, String>().apply {
-            add("client_id", request.clientId)
-            add("client_secret", request.clientSecret)
-            add("grant_type", request.grantType)
-            add("refresh_token", request.refreshToken)
-        }
-
-        return executeTokenApiCall(
-            "/realms/${keycloakProperties.realm}/protocol/openid-connect/token",
-            formData
+    ): KeycloakResponse<KeycloakTokenResponse> =
+        executeFormPost(
+            uri = "/realms/${keycloakProperties.realm}/protocol/openid-connect/token",
+            formData = LinkedMultiValueMap<String, String>().apply {
+                add("client_id", request.clientId)
+                add("client_secret", request.clientSecret)
+                add("grant_type", request.grantType)
+                add("refresh_token", request.refreshToken)
+            },
         )
-    }
 
     /**
      * 로그아웃
      */
     suspend fun logout(
         request: KeycloakLogoutRequest,
-    ): KeycloakResponse<KeycloakLogoutResponse> {
-        val formData = LinkedMultiValueMap<String, String>().apply {
-            add("client_id", request.clientId)
-            add("client_secret", request.clientSecret)
-            add("refresh_token", request.refreshToken)
-        }
-
-        return executeLogoutApiCall(
-            "/realms/${keycloakProperties.realm}/protocol/openid-connect/logout",
-            formData
+    ): KeycloakResponse<KeycloakLogoutResponse> =
+        executeFormPostWithoutResponse(
+            uri = "/realms/${keycloakProperties.realm}/protocol/openid-connect/logout",
+            formData = LinkedMultiValueMap<String, String>().apply {
+                add("client_id", request.clientId)
+                add("client_secret", request.clientSecret)
+                add("refresh_token", request.refreshToken)
+            }
         )
-    }
 
     /**
      * UserInfo 조회
      */
     suspend fun getUserInfo(
         accessToken: String,
-    ): KeycloakResponse<KeycloakUserInfoResponse> = executeApiCall(
-        uri = "/realms/${keycloakProperties.realm}/protocol/openid-connect/userinfo",
-        method = HttpMethod.GET,
-        headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer $accessToken")
-    ) { responseBody ->
-        handleSuccessResponse(responseBody, KeycloakUserInfoResponse::class.java)
+    ): KeycloakResponse<KeycloakUserInfoResponse> =
+        executeGet(
+            uri = "/realms/${keycloakProperties.realm}/protocol/openid-connect/userinfo",
+            headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer $accessToken")
+        ) { responseBody ->
+            handleSuccessResponse(responseBody, KeycloakUserInfoResponse::class.java)
+        }
+
+    // ========================================
+    // HTTP 메서드별 실행 메서드
+    // ========================================
+
+    /**
+     * GET 요청 (응답 본문 반환)
+     */
+    private suspend fun <T> executeGet(
+        uri: String,
+        headers: Map<String, String> = emptyMap(),
+        responseParser: (String) -> KeycloakResponse<T>
+    ): KeycloakResponse<T> = try {
+        var requestSpec = keycloakWebClient.get().uri(uri)
+        headers.forEach { (key, value) ->
+            requestSpec = requestSpec.header(key, value)
+        }
+
+        val response = requestSpec.retrieve().awaitBody<String>()
+        responseParser(response)
+    } catch (e: WebClientResponseException) {
+        handleHttpError(e)
+    } catch (e: Exception) {
+        handleGenericError(e)
+    }
+
+    /**
+     * POST 요청 (Location 헤더 반환)
+     */
+    private suspend fun <T> executePostWithLocation(
+        uri: String,
+        headers: Map<String, String> = emptyMap(),
+        request: Any,
+        responseParser: (String) -> KeycloakResponse<T>
+    ): KeycloakResponse<T> = try {
+        var requestSpec = keycloakWebClient.post().uri(uri)
+        headers.forEach { (key, value) ->
+            requestSpec = requestSpec.header(key, value)
+        }
+
+        val response = requestSpec
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(request)
+            .retrieve()
+            .toBodilessEntity()
+            .awaitSingle()
+
+        val locationHeader = response.headers.getFirst(HttpHeaders.LOCATION)
+        responseParser(locationHeader ?: "")
+    } catch (e: WebClientResponseException) {
+        handleHttpError(e)
+    } catch (e: Exception) {
+        handleGenericError(e)
+    }
+
+    /**
+     * POST 요청 (응답 없음)
+     */
+    private suspend fun executePostWithoutResponse(
+        uri: String,
+        headers: Map<String, String> = emptyMap(),
+        request: Any
+    ): KeycloakResponse<KeycloakLogoutResponse> = try {
+        var requestSpec = keycloakWebClient.post().uri(uri)
+        headers.forEach { (key, value) ->
+            requestSpec = requestSpec.header(key, value)
+        }
+
+        requestSpec
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(request)
+            .retrieve()
+            .awaitBodilessEntity()
+
+        KeycloakResponse.Success(KeycloakLogoutResponse)
+    } catch (e: WebClientResponseException) {
+        handleHttpError(e)
+    } catch (e: Exception) {
+        handleGenericError(e)
+    }
+
+    /**
+     * PUT 요청 (응답 없음)
+     */
+    private suspend fun executePutWithoutResponse(
+        uri: String,
+        headers: Map<String, String> = emptyMap(),
+        request: Any? = null
+    ): KeycloakResponse<KeycloakLogoutResponse> = try {
+        var requestSpec = keycloakWebClient.put().uri(uri)
+        headers.forEach { (key, value) ->
+            requestSpec = requestSpec.header(key, value)
+        }
+
+        if (request != null) {
+            requestSpec
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(request)
+                .retrieve()
+                .awaitBodilessEntity()
+        } else {
+            requestSpec.retrieve().awaitBodilessEntity()
+        }
+
+        KeycloakResponse.Success(KeycloakLogoutResponse)
+    } catch (e: WebClientResponseException) {
+        handleHttpError(e)
+    } catch (e: Exception) {
+        handleGenericError(e)
+    }
+
+    /**
+     * DELETE 요청 (응답 없음)
+     */
+    private suspend fun executeDeleteWithoutResponse(
+        uri: String,
+        headers: Map<String, String> = emptyMap()
+    ): KeycloakResponse<KeycloakLogoutResponse> = try {
+        var requestSpec = keycloakWebClient.delete().uri(uri)
+        headers.forEach { (key, value) ->
+            requestSpec = requestSpec.header(key, value)
+        }
+
+        requestSpec.retrieve().awaitBodilessEntity()
+        KeycloakResponse.Success(KeycloakLogoutResponse)
+    } catch (e: WebClientResponseException) {
+        handleHttpError(e)
+    } catch (e: Exception) {
+        handleGenericError(e)
+    }
+
+    /**
+     * Form POST 요청 (응답 본문 반환)
+     */
+    private suspend fun executeFormPost(
+        uri: String,
+        formData: LinkedMultiValueMap<String, String>
+    ): KeycloakResponse<KeycloakTokenResponse> = try {
+        val response = keycloakWebClient
+            .post()
+            .uri(uri)
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .body(BodyInserters.fromFormData(formData))
+            .retrieve()
+            .awaitBody<String>()
+
+        handleSuccessResponse(response, KeycloakTokenResponse::class.java)
+    } catch (e: WebClientResponseException) {
+        handleHttpError(e)
+    } catch (e: Exception) {
+        handleGenericError(e)
+    }
+
+    /**
+     * Form POST 요청 (응답 없음)
+     */
+    private suspend fun executeFormPostWithoutResponse(
+        uri: String,
+        formData: LinkedMultiValueMap<String, String>
+    ): KeycloakResponse<KeycloakLogoutResponse> = try {
+        keycloakWebClient
+            .post()
+            .uri(uri)
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .body(BodyInserters.fromFormData(formData))
+            .retrieve()
+            .awaitBodilessEntity()
+
+        KeycloakResponse.Success(KeycloakLogoutResponse)
+    } catch (e: WebClientResponseException) {
+        handleHttpError(e)
+    } catch (e: Exception) {
+        handleGenericError(e)
     }
 
     // ========================================
-    // Private Helper Methods
+    // Helper Methods
     // ========================================
-
-    /**
-     * 통합된 API 호출 메서드
-     */
-    private suspend fun <T> executeApiCall(
-        uri: String,
-        method: HttpMethod,
-        headers: Map<String, String> = emptyMap(),
-        contentType: MediaType = MediaType.APPLICATION_JSON,
-        request: Any? = null,
-        isLocationResponse: Boolean = false,
-        responseParser: (String) -> KeycloakResponse<T>,
-    ): KeycloakResponse<T> =
-        try {
-            val webClientSpec = when (method) {
-                HttpMethod.GET -> keycloakWebClient.get()
-                HttpMethod.POST -> keycloakWebClient.post()
-                HttpMethod.PUT -> keycloakWebClient.put()
-                HttpMethod.DELETE -> keycloakWebClient.delete()
-                else -> throw IllegalArgumentException("지원하지 않는 HTTP 메서드: $method")
-            }
-
-            var requestSpec = webClientSpec.uri(uri)
-            headers.forEach { (key, value) ->
-                requestSpec = requestSpec.header(key, value)
-            }
-
-            when {
-                isLocationResponse -> {
-                    val response = (requestSpec as WebClient.RequestBodyUriSpec)
-                        .contentType(contentType)
-                        .bodyValue(request ?: "")
-                        .retrieve()
-                        .toBodilessEntity()
-                        .awaitSingle()
-
-                    val locationHeader = response.headers.getFirst(HttpHeaders.LOCATION)
-                    responseParser(locationHeader ?: "")
-                }
-
-                method == HttpMethod.DELETE || method == HttpMethod.PUT -> {
-                    // DELETE와 PUT 모두 bodiless로 처리 (204 NO_CONTENT 대응)
-                    if (method == HttpMethod.PUT && request != null) {
-                        (requestSpec as WebClient.RequestBodyUriSpec)
-                            .contentType(contentType)
-                            .bodyValue(request)
-                            .retrieve()
-                            .awaitBodilessEntity()
-                    } else {
-                        requestSpec.retrieve().awaitBodilessEntity()
-                    }
-                    responseParser("")
-                }
-
-                method == HttpMethod.GET -> {
-                    val response = requestSpec.retrieve().awaitBody<String>()
-                    responseParser(response)
-                }
-
-                else -> {
-                    // POST는 여전히 응답 본문이 있을 수 있음
-                    val response = (requestSpec as WebClient.RequestBodyUriSpec)
-                        .contentType(contentType)
-                        .bodyValue(request ?: "")
-                        .retrieve()
-                        .awaitBody<String>()
-
-                    responseParser(response)
-                }
-            }
-        } catch (e: WebClientResponseException) {
-            handleHttpError(e)
-        } catch (e: Exception) {
-            handleGenericError(e)
-        }
-
-    /**
-     * 토큰 API 호출 (form-urlencoded)
-     */
-    private suspend fun executeTokenApiCall(
-        uri: String,
-        formData: LinkedMultiValueMap<String, String>,
-    ): KeycloakResponse<KeycloakTokenResponse> =
-        try {
-            val response = keycloakWebClient
-                .post()
-                .uri(uri)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .body(BodyInserters.fromFormData(formData))
-                .retrieve()
-                .awaitBody<String>()
-
-            handleSuccessResponse(response, KeycloakTokenResponse::class.java)
-        } catch (e: WebClientResponseException) {
-            handleHttpError(e)
-        } catch (e: Exception) {
-            handleGenericError(e)
-        }
-
-    /**
-     * 로그아웃 API 호출
-     */
-    private suspend fun executeLogoutApiCall(
-        uri: String,
-        formData: LinkedMultiValueMap<String, String>,
-    ): KeycloakResponse<KeycloakLogoutResponse> =
-        try {
-            keycloakWebClient
-                .post()
-                .uri(uri)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .body(BodyInserters.fromFormData(formData))
-                .retrieve()
-                .awaitBodilessEntity()
-
-            KeycloakResponse.Success(KeycloakLogoutResponse)
-        } catch (e: WebClientResponseException) {
-            handleHttpError(e)
-        } catch (e: Exception) {
-            handleGenericError(e)
-        }
 
     /**
      * Location 헤더에서 사용자 ID 추출
      */
-    private fun extractUserIdFromLocation(locationHeader: String?): String? {
-        return locationHeader?.let { location ->
-            location.substringAfterLast("/")
-                .takeIf { it.isNotBlank() && it.matches(UUID_REGEX) }
-        }
-    }
+    private fun extractUserIdFromLocation(
+        locationHeader: String?,
+    ): String? =
+        locationHeader
+            ?.let { location ->
+                location.substringAfterLast("/")
+                    .takeIf { it.isNotBlank() && it.matches(UUID_REGEX) }
+            }
 
     /**
      * 성공 응답 파싱

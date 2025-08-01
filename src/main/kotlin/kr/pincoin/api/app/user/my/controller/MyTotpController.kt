@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.*
 class MyTotpController(
     private val totpResourceCoordinator: TotpResourceCoordinator
 ) {
-
     /**
      * 내 2FA 상태 조회
      *

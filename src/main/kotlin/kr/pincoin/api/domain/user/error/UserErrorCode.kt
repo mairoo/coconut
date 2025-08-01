@@ -85,4 +85,18 @@ enum class UserErrorCode(
         HttpStatus.INTERNAL_SERVER_ERROR,
         "2FA 비활성화에 실패했습니다",
     ),
+
+    // 비밀번호 변경 관련 에러 코드 추가
+    LEGACY_USER_PASSWORD_CHANGE_NOT_SUPPORTED(
+        HttpStatus.BAD_REQUEST,
+        "레거시 사용자는 비밀번호 변경이 지원되지 않습니다. Keycloak 마이그레이션 후 이용해주세요",
+    ),
+    PASSWORD_CHANGE_FAILED(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        "비밀번호 변경에 실패했습니다",
+    ),
+    CURRENT_PASSWORD_INVALID(
+        HttpStatus.BAD_REQUEST,
+        "현재 비밀번호가 올바르지 않습니다",
+    ),
 }

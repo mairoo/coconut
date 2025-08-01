@@ -24,6 +24,11 @@ class KeycloakApiClient(
     private val keycloakProperties: KeycloakProperties,
     private val objectMapper: ObjectMapper,
 ) {
+
+    // ========================================
+    // Admin API - 사용자 관리
+    // ========================================
+
     /**
      * Admin API - 사용자 생성
      */
@@ -44,20 +49,6 @@ class KeycloakApiClient(
         } else {
             KeycloakResponse.Error("PARSE_ERROR", "Location 헤더에서 사용자 ID를 추출할 수 없습니다")
         }
-    }
-
-    /**
-     * Admin API - 사용자 삭제
-     */
-    suspend fun deleteUser(
-        adminToken: String,
-        userId: String,
-    ): KeycloakResponse<KeycloakLogoutResponse> = executeApiCall(
-        uri = "/admin/realms/${keycloakProperties.realm}/users/$userId",
-        method = HttpMethod.DELETE,
-        headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer $adminToken")
-    ) {
-        KeycloakResponse.Success(KeycloakLogoutResponse)
     }
 
     /**
@@ -89,6 +80,154 @@ class KeycloakApiClient(
         request = request
     ) { responseBody ->
         handleSuccessResponse(responseBody, KeycloakUserResponse::class.java)
+    }
+
+    /**
+     * Admin API - 사용자 삭제
+     */
+    suspend fun deleteUser(
+        adminToken: String,
+        userId: String,
+    ): KeycloakResponse<KeycloakLogoutResponse> = executeApiCall(
+        uri = "/admin/realms/${keycloakProperties.realm}/users/$userId",
+        method = HttpMethod.DELETE,
+        headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer $adminToken")
+    ) {
+        KeycloakResponse.Success(KeycloakLogoutResponse)
+    }
+
+    /**
+     * Admin API - 사용자에게 필수 액션 설정
+     * requiredActions 목록을 그대로 설정합니다.
+     */
+    suspend fun setUserRequiredActions(
+        adminToken: String,
+        userId: String,
+        requiredActions: List<String>
+    ): KeycloakResponse<KeycloakLogoutResponse> = executeApiCall(
+        uri = "/admin/realms/${keycloakProperties.realm}/users/$userId",
+        method = HttpMethod.PUT,
+        headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer $adminToken"),
+        contentType = MediaType.APPLICATION_JSON,
+        request = KeycloakRequiredActionRequest(requiredActions = requiredActions)
+    ) {
+        KeycloakResponse.Success(KeycloakLogoutResponse)
+    }
+
+    // ========================================
+    // Admin API - 인증정보 관리
+    // ========================================
+
+    /**
+     * Admin API - 사용자의 인증정보 목록 조회
+     */
+    suspend fun getUserCredentials(
+        adminToken: String,
+        userId: String
+    ): KeycloakResponse<List<KeycloakCredentialResponse>> = executeApiCall(
+        uri = "/admin/realms/${keycloakProperties.realm}/users/$userId/credentials",
+        method = HttpMethod.GET,
+        headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer $adminToken")
+    ) { responseBody ->
+        try {
+            val collectionType: CollectionType = objectMapper.typeFactory
+                .constructCollectionType(List::class.java, KeycloakCredentialResponse::class.java)
+
+            val credentials: List<KeycloakCredentialResponse> = objectMapper.readValue(responseBody, collectionType)
+            KeycloakResponse.Success(credentials)
+        } catch (e: Exception) {
+            KeycloakResponse.Error("PARSE_ERROR", "인증정보 파싱 실패: ${e.message}")
+        }
+    }
+
+    /**
+     * Admin API - TOTP 인증정보 생성
+     * 단순히 제공된 Secret으로 TOTP 인증정보를 생성합니다.
+     */
+    suspend fun createTotpCredential(
+        adminToken: String,
+        userId: String,
+        secret: String
+    ): KeycloakResponse<KeycloakLogoutResponse> = executeApiCall(
+        uri = "/admin/realms/${keycloakProperties.realm}/users/$userId/credentials",
+        method = HttpMethod.POST,
+        headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer $adminToken"),
+        contentType = MediaType.APPLICATION_JSON,
+        request = KeycloakTotpSetupRequest(
+            secretData = """{"value":"$secret"}""",
+            credentialData = """{"subType":"totp","digits":6,"period":30,"algorithm":"HmacSHA1"}"""
+        )
+    ) {
+        KeycloakResponse.Success(KeycloakLogoutResponse)
+    }
+
+    /**
+     * Admin API - 특정 인증정보 삭제
+     */
+    suspend fun deleteCredential(
+        adminToken: String,
+        userId: String,
+        credentialId: String
+    ): KeycloakResponse<KeycloakLogoutResponse> = executeApiCall(
+        uri = "/admin/realms/${keycloakProperties.realm}/users/$userId/credentials/$credentialId",
+        method = HttpMethod.DELETE,
+        headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer $adminToken")
+    ) {
+        KeycloakResponse.Success(KeycloakLogoutResponse)
+    }
+
+    // ========================================
+    // User Account API - 사용자 셀프 서비스
+    // ========================================
+
+    /**
+     * User Account API - 사용자 비밀번호 변경
+     */
+    suspend fun changeUserPassword(
+        accessToken: String,
+        currentPassword: String,
+        newPassword: String,
+    ): KeycloakResponse<KeycloakLogoutResponse> = executeApiCall(
+        uri = "/realms/${keycloakProperties.realm}/account/credentials/password",
+        method = HttpMethod.PUT,
+        headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer $accessToken"),
+        contentType = MediaType.APPLICATION_JSON,
+        request = mapOf(
+            "currentPassword" to currentPassword,
+            "newPassword" to newPassword,
+            "confirmation" to newPassword
+        )
+    ) {
+        KeycloakResponse.Success(KeycloakLogoutResponse)
+    }
+
+    // ========================================
+    // OpenID Connect API - 인증/토큰
+    // ========================================
+
+    /**
+     * Admin 토큰 획득
+     */
+    suspend fun getAdminToken(
+        request: KeycloakAdminTokenRequest,
+    ): KeycloakResponse<KeycloakAdminTokenData> {
+        val formData = LinkedMultiValueMap<String, String>().apply {
+            add("client_id", request.clientId)
+            add("client_secret", request.clientSecret)
+            add("grant_type", request.grantType)
+        }
+
+        return when (val tokenResult =
+            executeTokenApiCall("/realms/${keycloakProperties.realm}/protocol/openid-connect/token", formData)) {
+            is KeycloakResponse.Success -> KeycloakResponse.Success(
+                KeycloakAdminTokenData(accessToken = tokenResult.data.accessToken)
+            )
+
+            is KeycloakResponse.Error -> KeycloakResponse.Error(
+                errorCode = tokenResult.errorCode,
+                errorMessage = tokenResult.errorMessage
+            )
+        }
     }
 
     /**
@@ -151,107 +290,6 @@ class KeycloakApiClient(
     }
 
     /**
-     * Admin API - TOTP 인증정보 생성
-     * 단순히 제공된 Secret으로 TOTP 인증정보를 생성합니다.
-     */
-    suspend fun createTotpCredential(
-        adminToken: String,
-        userId: String,
-        secret: String
-    ): KeycloakResponse<KeycloakLogoutResponse> = executeApiCall(
-        uri = "/admin/realms/${keycloakProperties.realm}/users/$userId/credentials",
-        method = HttpMethod.POST,
-        headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer $adminToken"),
-        contentType = MediaType.APPLICATION_JSON,
-        request = KeycloakTotpSetupRequest(
-            secretData = """{"value":"$secret"}""",
-            credentialData = """{"subType":"totp","digits":6,"period":30,"algorithm":"HmacSHA1"}"""
-        )
-    ) {
-        KeycloakResponse.Success(KeycloakLogoutResponse)
-    }
-
-    /**
-     * Admin API - 사용자에게 필수 액션 설정
-     * requiredActions 목록을 그대로 설정합니다.
-     */
-    suspend fun setUserRequiredActions(
-        adminToken: String,
-        userId: String,
-        requiredActions: List<String>
-    ): KeycloakResponse<KeycloakLogoutResponse> = executeApiCall(
-        uri = "/admin/realms/${keycloakProperties.realm}/users/$userId",
-        method = HttpMethod.PUT,
-        headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer $adminToken"),
-        contentType = MediaType.APPLICATION_JSON,
-        request = KeycloakRequiredActionRequest(requiredActions = requiredActions)
-    ) {
-        KeycloakResponse.Success(KeycloakLogoutResponse)
-    }
-
-    /**
-     * Admin API - 사용자의 인증정보 목록 조회
-     */
-    suspend fun getUserCredentials(
-        adminToken: String,
-        userId: String
-    ): KeycloakResponse<List<KeycloakCredentialResponse>> = executeApiCall(
-        uri = "/admin/realms/${keycloakProperties.realm}/users/$userId/credentials",
-        method = HttpMethod.GET,
-        headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer $adminToken")
-    ) { responseBody ->
-        try {
-            val collectionType: CollectionType = objectMapper.typeFactory
-                .constructCollectionType(List::class.java, KeycloakCredentialResponse::class.java)
-
-            val credentials: List<KeycloakCredentialResponse> = objectMapper.readValue(responseBody, collectionType)
-            KeycloakResponse.Success(credentials)
-        } catch (e: Exception) {
-            KeycloakResponse.Error("PARSE_ERROR", "인증정보 파싱 실패: ${e.message}")
-        }
-    }
-
-    /**
-     * Admin API - 특정 인증정보 삭제
-     */
-    suspend fun deleteCredential(
-        adminToken: String,
-        userId: String,
-        credentialId: String
-    ): KeycloakResponse<KeycloakLogoutResponse> = executeApiCall(
-        uri = "/admin/realms/${keycloakProperties.realm}/users/$userId/credentials/$credentialId",
-        method = HttpMethod.DELETE,
-        headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer $adminToken")
-    ) {
-        KeycloakResponse.Success(KeycloakLogoutResponse)
-    }
-
-    /**
-     * Admin 토큰 획득
-     */
-    suspend fun getAdminToken(
-        request: KeycloakAdminTokenRequest,
-    ): KeycloakResponse<KeycloakAdminTokenData> {
-        val formData = LinkedMultiValueMap<String, String>().apply {
-            add("client_id", request.clientId)
-            add("client_secret", request.clientSecret)
-            add("grant_type", request.grantType)
-        }
-
-        return when (val tokenResult =
-            executeTokenApiCall("/realms/${keycloakProperties.realm}/protocol/openid-connect/token", formData)) {
-            is KeycloakResponse.Success -> KeycloakResponse.Success(
-                KeycloakAdminTokenData(accessToken = tokenResult.data.accessToken)
-            )
-
-            is KeycloakResponse.Error -> KeycloakResponse.Error(
-                errorCode = tokenResult.errorCode,
-                errorMessage = tokenResult.errorMessage
-            )
-        }
-    }
-
-    /**
      * UserInfo 조회
      */
     suspend fun getUserInfo(
@@ -263,6 +301,10 @@ class KeycloakApiClient(
     ) { responseBody ->
         handleSuccessResponse(responseBody, KeycloakUserInfoResponse::class.java)
     }
+
+    // ========================================
+    // Private Helper Methods
+    // ========================================
 
     /**
      * 통합된 API 호출 메서드

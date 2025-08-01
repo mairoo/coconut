@@ -43,7 +43,7 @@ class UserEntity private constructor(
     val dateJoined: LocalDateTime,
 
     @Column(name = "keycloak_id")
-    val keycloakId: UUID? = null
+    val keycloakId: UUID? = null,
 ) {
     companion object {
         fun of(

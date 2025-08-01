@@ -19,5 +19,8 @@ data class KeycloakUpdateUserRequest(
     val enabled: Boolean? = null,
 
     @JsonProperty("emailVerified")
-    val emailVerified: Boolean? = null
+    val emailVerified: Boolean? = null,
+
+    @JsonProperty("credentials")
+    val credentials: List<KeycloakCreateUserRequest.KeycloakCredential>? = null,
 )

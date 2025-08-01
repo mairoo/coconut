@@ -32,7 +32,7 @@ class AdminUserProfileController(
     /**
      * 임시 비밀번호 설정 (다음 로그인 시 변경 강제)
      */
-    @PatchMapping("/{userId}/password/temporary")
+    @PatchMapping("/{userId}/temporary-password")
     fun setTemporaryPassword(
         @PathVariable userId: Int,
         @Valid @RequestBody request: AdminPasswordChangeRequest,

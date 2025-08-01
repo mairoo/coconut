@@ -81,6 +81,7 @@ auth:
       - outlook.com
       - hotmail.com
       - yahoo.com
+      - nate.com
 
     # 차단할 이메일 도메인 리스트 (일회용 이메일 서비스)
     blocked-domains:

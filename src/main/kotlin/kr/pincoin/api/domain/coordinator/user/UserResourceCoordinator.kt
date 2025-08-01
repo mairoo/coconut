@@ -7,6 +7,7 @@ import kr.pincoin.api.app.auth.request.SignUpRequest
 import kr.pincoin.api.app.auth.response.AccessTokenResponse
 import kr.pincoin.api.domain.user.error.UserErrorCode
 import kr.pincoin.api.domain.user.model.User
+import kr.pincoin.api.domain.user.service.ProfileService
 import kr.pincoin.api.domain.user.service.UserService
 import kr.pincoin.api.external.auth.keycloak.api.request.KeycloakCreateUserRequest
 import kr.pincoin.api.external.auth.keycloak.api.request.KeycloakLoginRequest
@@ -23,6 +24,7 @@ import java.util.*
 @Transactional(readOnly = true)
 class UserResourceCoordinator(
     private val userService: UserService,
+    private val profileService: ProfileService,
     private val keycloakApiClient: KeycloakApiClient,
     private val keycloakProperties: KeycloakProperties,
 ) {
@@ -46,6 +48,9 @@ class UserResourceCoordinator(
 
             // 2. DB에 사용자 생성 (Keycloak ID 연결)
             val user = userService.createUser(request, keycloakUuid)
+
+            // 3. Profile 생성
+            profileService.createProfile(user.id!!)
             user
 
         } catch (_: IllegalArgumentException) {
@@ -149,6 +154,7 @@ class UserResourceCoordinator(
                         logger.warn { "예상치 못한 Keycloak 사용자 중복: email=${request.email}" }
                         UserErrorCode.EMAIL_ALREADY_EXISTS
                     }
+
                     "TIMEOUT" -> KeycloakErrorCode.TIMEOUT
                     "SYSTEM_ERROR" -> KeycloakErrorCode.SYSTEM_ERROR
                     else -> KeycloakErrorCode.UNKNOWN

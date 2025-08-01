@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service
 
 @Service
 @PreAuthorize("hasRole('ADMIN')")
-class AdminS3HealthCheckController(
+class AdminS3HealthCheckService(
     private val s3HealthCheckService: S3HealthCheckService,
 ) {
     suspend fun quickHealthCheck(): HealthCheckResponse =

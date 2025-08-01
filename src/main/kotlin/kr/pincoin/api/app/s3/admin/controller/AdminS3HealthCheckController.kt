@@ -1,7 +1,7 @@
 package kr.pincoin.api.app.s3.admin.controller
 
 import kr.pincoin.api.app.s3.admin.response.HealthCheckResponse
-import kr.pincoin.api.app.s3.admin.service.AdminS3HealthCheckController
+import kr.pincoin.api.app.s3.admin.service.AdminS3HealthCheckService
 import kr.pincoin.api.global.response.success.ApiResponse
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/admin/s3/healthcheck")
 class AdminS3HealthCheckController(
-    private val adminS3HealthCheckService: AdminS3HealthCheckController,
+    private val adminS3HealthCheckService: AdminS3HealthCheckService,
 ) {
     /**
      * S3 빠른 연결 테스트

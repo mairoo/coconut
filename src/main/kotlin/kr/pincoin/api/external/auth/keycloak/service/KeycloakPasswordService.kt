@@ -8,7 +8,6 @@ import kr.pincoin.api.external.auth.keycloak.api.request.KeycloakCreateUserReque
 import kr.pincoin.api.external.auth.keycloak.api.request.KeycloakUpdateUserRequest
 import kr.pincoin.api.external.auth.keycloak.api.response.KeycloakLogoutResponse
 import kr.pincoin.api.external.auth.keycloak.api.response.KeycloakResponse
-import kr.pincoin.api.external.auth.keycloak.api.response.KeycloakUserResponse
 import kr.pincoin.api.external.auth.keycloak.properties.KeycloakProperties
 import org.springframework.stereotype.Service
 
@@ -26,7 +25,7 @@ class KeycloakPasswordService(
         userId: String,
         newPassword: String,
         temporary: Boolean = false
-    ): KeycloakResponse<KeycloakUserResponse> =
+    ): KeycloakResponse<KeycloakLogoutResponse> =
         withContext(Dispatchers.IO) {
             try {
                 withTimeout(keycloakProperties.timeout) {
@@ -87,7 +86,7 @@ class KeycloakPasswordService(
     suspend fun setTemporaryPassword(
         userId: String,
         tempPassword: String
-    ): KeycloakResponse<KeycloakUserResponse> =
+    ): KeycloakResponse<KeycloakLogoutResponse> =
         changePasswordByAdmin(userId, tempPassword, temporary = true)
 
     /**

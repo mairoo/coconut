@@ -67,19 +67,21 @@ class KeycloakApiClient(
 
     /**
      * Admin API - 사용자 정보 수정
+     * 비밀번호 변경 시 204 NO_CONTENT 응답 처리
      */
     suspend fun updateUser(
         adminToken: String,
         userId: String,
         request: KeycloakUpdateUserRequest,
-    ): KeycloakResponse<KeycloakUserResponse> = executeApiCall(
+    ): KeycloakResponse<KeycloakLogoutResponse> = executeApiCall(
         uri = "/admin/realms/${keycloakProperties.realm}/users/$userId",
         method = HttpMethod.PUT,
         headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer $adminToken"),
         contentType = MediaType.APPLICATION_JSON,
         request = request
-    ) { responseBody ->
-        handleSuccessResponse(responseBody, KeycloakUserResponse::class.java)
+    ) {
+        // PUT 요청은 일반적으로 204 NO_CONTENT를 반환하므로 단순히 성공 응답 반환
+        KeycloakResponse.Success(KeycloakLogoutResponse)
     }
 
     /**
@@ -345,8 +347,17 @@ class KeycloakApiClient(
                     responseParser(locationHeader ?: "")
                 }
 
-                method == HttpMethod.DELETE -> {
-                    requestSpec.retrieve().awaitBodilessEntity()
+                method == HttpMethod.DELETE || method == HttpMethod.PUT -> {
+                    // DELETE와 PUT 모두 bodiless로 처리 (204 NO_CONTENT 대응)
+                    if (method == HttpMethod.PUT && request != null) {
+                        (requestSpec as WebClient.RequestBodyUriSpec)
+                            .contentType(contentType)
+                            .bodyValue(request)
+                            .retrieve()
+                            .awaitBodilessEntity()
+                    } else {
+                        requestSpec.retrieve().awaitBodilessEntity()
+                    }
                     responseParser("")
                 }
 
@@ -356,6 +367,7 @@ class KeycloakApiClient(
                 }
 
                 else -> {
+                    // POST는 여전히 응답 본문이 있을 수 있음
                     val response = (requestSpec as WebClient.RequestBodyUriSpec)
                         .contentType(contentType)
                         .bodyValue(request ?: "")

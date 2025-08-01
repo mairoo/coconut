@@ -100,7 +100,7 @@ class KeycloakUserService(
         email: String? = null,
         enabled: Boolean? = null,
         emailVerified: Boolean? = null,
-    ): KeycloakResponse<KeycloakUserResponse> =
+    ): KeycloakResponse<KeycloakLogoutResponse> =
         withContext(Dispatchers.IO) {
             try {
                 withTimeout(keycloakProperties.timeout) {

@@ -246,7 +246,7 @@ class SignInFacade(
         val keycloakUserId = createKeycloakUserForMigration(user, request, adminToken)
 
         // DB에 Keycloak ID 업데이트
-        userService.linkKeycloak(user.id!!, UUID.fromString(keycloakUserId))
+        userService.linkKeycloak(user.id!!, UUID.fromString(keycloakUserId), true)
 
         // 새로 생성된 Keycloak 계정으로 로그인하여 토큰 발급
         return attemptKeycloakLogin(request)

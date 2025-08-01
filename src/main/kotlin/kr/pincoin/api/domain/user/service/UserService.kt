@@ -85,9 +85,11 @@ class UserService(
     fun linkKeycloak(
         userId: Int,
         keycloakId: UUID,
+        clearPassword: Boolean = true,
     ): User =
         userRepository.findUser(userId, UserSearchCriteria())
             ?.linkKeycloak(keycloakId)
+            ?.run { if (clearPassword) clearPassword() else this }
             ?.let { userRepository.save(it) }
             ?: throw BusinessException(UserErrorCode.NOT_FOUND)
 

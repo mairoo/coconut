@@ -17,9 +17,8 @@ class User private constructor(
     val dateJoined: LocalDateTime = LocalDateTime.now(),
     val keycloakId: UUID? = null,
 ) {
-    fun updatePassword(newPassword: String): User {
-        require(newPassword.isNotBlank()) { "비밀번호는 필수 입력값입니다" }
-        return copy(password = newPassword)
+    fun clearPassword(): User {
+        return copy(password = "")
     }
 
     fun updateEmail(

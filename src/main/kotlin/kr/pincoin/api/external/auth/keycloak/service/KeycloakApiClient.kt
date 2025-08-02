@@ -209,6 +209,26 @@ class KeycloakApiClient(
         }
 
     /**
+     * Authorization Code를 Access Token으로 교환
+     */
+    suspend fun exchangeAuthorizationCode(
+        code: String,
+        redirectUri: String,
+        clientId: String,
+        clientSecret: String,
+    ): KeycloakResponse<KeycloakTokenResponse> =
+        executeFormPost(
+            uri = "/realms/${keycloakProperties.realm}/protocol/openid-connect/token",
+            formData = LinkedMultiValueMap<String, String>().apply {
+                add("grant_type", "authorization_code")
+                add("code", code)
+                add("redirect_uri", redirectUri)
+                add("client_id", clientId)
+                add("client_secret", clientSecret)
+            },
+        )
+
+    /**
      * Direct Grant - 로그인
      */
     suspend fun login(

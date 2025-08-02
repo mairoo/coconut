@@ -134,9 +134,20 @@ enum class UserErrorCode(
         "Authorization Code가 만료되었습니다",
     ),
 
-    // 구현 관련 임시 에러 코드
-    NOT_IMPLEMENTED(
-        HttpStatus.NOT_IMPLEMENTED,
-        "아직 구현되지 않은 기능입니다",
+    INVALID_AUTHORIZATION_CODE(
+        HttpStatus.BAD_REQUEST,
+        "유효하지 않은 인증 코드입니다",
+    ),
+    INVALID_CLIENT_CREDENTIALS(
+        HttpStatus.UNAUTHORIZED,
+        "유효하지 않은 클라이언트 인증 정보입니다",
+    ),
+    TOKEN_REFRESH_FAILED(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        "토큰 갱신에 실패했습니다",
+    ),
+    INVALID_REFRESH_TOKEN(
+        HttpStatus.BAD_REQUEST,
+        "유효하지 않은 갱신 토큰입니다",
     ),
 }

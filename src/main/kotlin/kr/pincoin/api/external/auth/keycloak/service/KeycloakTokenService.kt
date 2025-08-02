@@ -19,6 +19,30 @@ class KeycloakTokenService(
     private val keycloakProperties: KeycloakProperties,
 ) {
     /**
+     * Authorization Code를 Access Token으로 교환
+     */
+    suspend fun exchangeAuthorizationCode(
+        code: String,
+        redirectUri: String,
+    ): KeycloakResponse<KeycloakTokenResponse> =
+        withContext(Dispatchers.IO) {
+            try {
+                withTimeout(keycloakProperties.timeout) {
+                    keycloakApiClient.exchangeAuthorizationCode(
+                        code = code,
+                        redirectUri = redirectUri,
+                        clientId = keycloakProperties.clientId,
+                        clientSecret = keycloakProperties.clientSecret,
+                    )
+                }
+            } catch (_: TimeoutCancellationException) {
+                handleTimeout("Authorization Code 토큰 교환")
+            } catch (e: Exception) {
+                handleError(e, "Authorization Code 토큰 교환")
+            }
+        }
+
+    /**
      * 로그인 처리
      */
     suspend fun login(

@@ -80,16 +80,6 @@ class KeycloakPasswordService(
         }
 
     /**
-     * 임시 비밀번호 발송 (관리자가 사용자에게 임시 비밀번호 설정)
-     * 사용자는 다음 로그인 시 비밀번호 변경 강제
-     */
-    suspend fun setTemporaryPassword(
-        userId: String,
-        tempPassword: String
-    ): KeycloakResponse<KeycloakLogoutResponse> =
-        changePasswordByAdmin(userId, tempPassword, temporary = true)
-
-    /**
      * 비밀번호 재설정 필수 액션 추가
      * 사용자가 다음 로그인 시 비밀번호 변경 화면 표시
      */

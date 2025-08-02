@@ -28,21 +28,4 @@ class AdminUserProfileController(
                 )
             }
             .let { ResponseEntity.ok(it) }
-
-    /**
-     * 임시 비밀번호 설정 (다음 로그인 시 변경 강제)
-     */
-    @PatchMapping("/{userId}/temporary-password")
-    fun setTemporaryPassword(
-        @PathVariable userId: Int,
-        @Valid @RequestBody request: AdminPasswordChangeRequest,
-    ): ResponseEntity<ApiResponse<Nothing?>> =
-        adminUserProfileService.setTemporaryPassword(userId, request.newPassword)
-            .let {
-                ApiResponse.of(
-                    data = null,
-                    message = "임시 비밀번호가 설정되었습니다. 사용자는 다음 로그인 시 비밀번호를 변경해야 합니다",
-                )
-            }
-            .let { ResponseEntity.ok(it) }
 }

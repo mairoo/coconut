@@ -86,41 +86,4 @@ class AdminUserProfileService(
             throw BusinessException(UserErrorCode.SYSTEM_ERROR)
         }
     }
-
-    /**
-     * 사용자 임시 비밀번호 설정 (다음 로그인 시 변경 강제)
-     */
-    fun setTemporaryPassword(
-        userId: Int,
-        tempPassword: String,
-    ): Boolean = runBlocking {
-        try {
-            val user = userService.findUser(userId, UserSearchCriteria())
-
-            if (user.keycloakId != null) {
-                when (val result = keycloakPasswordService.setTemporaryPassword(
-                    userId = user.keycloakId.toString(),
-                    tempPassword = tempPassword
-                )) {
-                    is KeycloakResponse.Success -> {
-                        logger.info { "임시 비밀번호 설정 성공: userId=$userId" }
-                        true
-                    }
-
-                    is KeycloakResponse.Error -> {
-                        logger.error { "임시 비밀번호 설정 실패: userId=$userId, error=${result.errorCode}" }
-                        throw BusinessException(UserErrorCode.SYSTEM_ERROR)
-                    }
-                }
-            } else {
-                logger.warn { "레거시 사용자 임시 비밀번호 설정 시도: userId=$userId" }
-                throw BusinessException(UserErrorCode.LEGACY_USER_PASSWORD_CHANGE_NOT_SUPPORTED)
-            }
-        } catch (e: BusinessException) {
-            throw e
-        } catch (e: Exception) {
-            logger.error { "임시 비밀번호 설정 중 예외 발생: userId=$userId, error=${e.message}" }
-            throw BusinessException(UserErrorCode.SYSTEM_ERROR)
-        }
-    }
 }

@@ -11,7 +11,7 @@ data class KeycloakProperties(
 
     val clientSecret: String = "",
 
-    val serverUrl: String = "http://keycloak:8080",
+    val serverUrl: String = "http://localhost:8081",
 
     val timeout: Long = 10000,
 
@@ -49,37 +49,5 @@ data class KeycloakProperties(
 
         // 3. 일치하는 것이 없으면 요청 도메인 그대로 사용
         return domainWithoutPort
-    }
-
-    /**
-     * redirect URI가 허용된 목록에 있는지 검증
-     *
-     * @param redirectUri 검증할 redirect URI
-     * @return 허용 여부
-     */
-    fun isAllowedRedirectUri(redirectUri: String): Boolean {
-        // 정확한 매칭
-        if (redirectUri in allowedRedirectUris) return true
-
-        // 패턴 매칭
-        return allowedRedirectUris.any { pattern ->
-            when {
-                pattern.contains("*") -> {
-                    // 와일드카드를 정규표현식으로 변환
-                    val regex = pattern
-                        .replace(".", "\\.")  // 점을 리터럴로 처리
-                        .replace("*", "[a-zA-Z0-9-]+")  // 와일드카드를 영숫자+하이픈으로 매칭
-                        .toRegex()
-                    regex.matches(redirectUri)
-                }
-
-                pattern.endsWith("/*") -> {
-                    // 경로 와일드카드 (/auth/* 같은 패턴)
-                    redirectUri.startsWith(pattern.dropLast(1))
-                }
-
-                else -> false
-            }
-        }
     }
 }

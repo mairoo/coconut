@@ -1,6 +1,5 @@
 package kr.pincoin.api.app.oauth2.service
 
-import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.servlet.http.HttpServletRequest
 import kr.pincoin.api.app.oauth2.response.OAuth2LoginUrlResponse
 import kr.pincoin.api.external.auth.keycloak.properties.KeycloakProperties
@@ -18,8 +17,6 @@ import org.springframework.stereotype.Service
 class OAuth2Service(
     private val keycloakProperties: KeycloakProperties,
 ) {
-    private val logger = KotlinLogging.logger {}
-
     /**
      * OAuth2 로그인 URL 생성
      *
@@ -54,11 +51,6 @@ class OAuth2Service(
             redirectUri = redirectUri,
             state = state,
         )
-
-        logger.info {
-            "OAuth2 로그인 URL 생성 완료: redirectUri=$redirectUri, " +
-                    "clientIP=${clientInfo.ipAddress}, userAgent=${clientInfo.userAgent}"
-        }
 
         return OAuth2LoginUrlResponse.of(loginUrl, state)
     }

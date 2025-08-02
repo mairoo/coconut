@@ -99,4 +99,44 @@ enum class UserErrorCode(
         HttpStatus.BAD_REQUEST,
         "현재 비밀번호가 올바르지 않습니다",
     ),
+
+    // OAuth2 Authorization Code Flow 관련 에러 코드
+    INVALID_REDIRECT_URI(
+        HttpStatus.BAD_REQUEST,
+        "허용되지 않은 redirect_uri입니다",
+    ),
+    ACCESS_DENIED(
+        HttpStatus.FORBIDDEN,
+        "사용자가 로그인을 거부했습니다",
+    ),
+    INVALID_REQUEST(
+        HttpStatus.BAD_REQUEST,
+        "잘못된 OAuth2 요청입니다",
+    ),
+    OAUTH_ERROR(
+        HttpStatus.BAD_REQUEST,
+        "OAuth2 인증 중 오류가 발생했습니다",
+    ),
+    TOKEN_EXCHANGE_FAILED(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        "Authorization Code를 토큰으로 교환하는데 실패했습니다",
+    ),
+    USER_INFO_FETCH_FAILED(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        "사용자 정보를 가져오는데 실패했습니다",
+    ),
+    INVALID_STATE_PARAMETER(
+        HttpStatus.BAD_REQUEST,
+        "잘못된 state 파라미터입니다. CSRF 공격이 감지되었습니다",
+    ),
+    AUTHORIZATION_CODE_EXPIRED(
+        HttpStatus.BAD_REQUEST,
+        "Authorization Code가 만료되었습니다",
+    ),
+
+    // 구현 관련 임시 에러 코드
+    NOT_IMPLEMENTED(
+        HttpStatus.NOT_IMPLEMENTED,
+        "아직 구현되지 않은 기능입니다",
+    ),
 }

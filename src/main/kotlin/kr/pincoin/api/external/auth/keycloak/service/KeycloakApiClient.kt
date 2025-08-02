@@ -248,37 +248,6 @@ class KeycloakApiClient(
         )
 
     /**
-     * 토큰 갱신
-     */
-    suspend fun refreshToken(
-        request: KeycloakRefreshTokenRequest,
-    ): KeycloakResponse<KeycloakTokenResponse> =
-        executeFormPost(
-            uri = "/realms/${keycloakProperties.realm}/protocol/openid-connect/token",
-            formData = LinkedMultiValueMap<String, String>().apply {
-                add("client_id", request.clientId)
-                add("client_secret", request.clientSecret)
-                add("grant_type", request.grantType)
-                add("refresh_token", request.refreshToken)
-            },
-        )
-
-    /**
-     * 로그아웃
-     */
-    suspend fun logout(
-        request: KeycloakLogoutRequest,
-    ): KeycloakResponse<KeycloakLogoutResponse> =
-        executeFormPostWithoutResponse(
-            uri = "/realms/${keycloakProperties.realm}/protocol/openid-connect/logout",
-            formData = LinkedMultiValueMap<String, String>().apply {
-                add("client_id", request.clientId)
-                add("client_secret", request.clientSecret)
-                add("refresh_token", request.refreshToken)
-            }
-        )
-
-    /**
      * UserInfo 조회
      */
     suspend fun getUserInfo(

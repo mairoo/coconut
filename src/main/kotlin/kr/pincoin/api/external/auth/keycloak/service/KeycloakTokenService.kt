@@ -4,10 +4,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
-import kr.pincoin.api.external.auth.keycloak.api.request.KeycloakLoginRequest
-import kr.pincoin.api.external.auth.keycloak.api.request.KeycloakLogoutRequest
-import kr.pincoin.api.external.auth.keycloak.api.request.KeycloakRefreshTokenRequest
-import kr.pincoin.api.external.auth.keycloak.api.response.KeycloakLogoutResponse
 import kr.pincoin.api.external.auth.keycloak.api.response.KeycloakResponse
 import kr.pincoin.api.external.auth.keycloak.api.response.KeycloakTokenResponse
 import kr.pincoin.api.external.auth.keycloak.properties.KeycloakProperties
@@ -39,80 +35,6 @@ class KeycloakTokenService(
                 handleTimeout("Authorization Code 토큰 교환")
             } catch (e: Exception) {
                 handleError(e, "Authorization Code 토큰 교환")
-            }
-        }
-
-    /**
-     * 로그인 처리
-     */
-    suspend fun login(
-        username: String,
-        password: String,
-    ): KeycloakResponse<KeycloakTokenResponse> =
-        withContext(Dispatchers.IO) {
-            try {
-                withTimeout(keycloakProperties.timeout) {
-                    val request = KeycloakLoginRequest(
-                        clientId = keycloakProperties.clientId,
-                        clientSecret = keycloakProperties.clientSecret,
-                        username = username,
-                        password = password
-                    )
-
-                    keycloakApiClient.login(request)
-                }
-            } catch (_: TimeoutCancellationException) {
-                handleTimeout("로그인")
-            } catch (e: Exception) {
-                handleError(e, "로그인")
-            }
-        }
-
-    /**
-     * 토큰 갱신
-     */
-    suspend fun refreshToken(
-        refreshToken: String
-    ): KeycloakResponse<KeycloakTokenResponse> =
-        withContext(Dispatchers.IO) {
-            try {
-                withTimeout(keycloakProperties.timeout) {
-                    val request = KeycloakRefreshTokenRequest(
-                        clientId = keycloakProperties.clientId,
-                        clientSecret = keycloakProperties.clientSecret,
-                        refreshToken = refreshToken
-                    )
-
-                    keycloakApiClient.refreshToken(request)
-                }
-            } catch (_: TimeoutCancellationException) {
-                handleTimeout("토큰 갱신")
-            } catch (e: Exception) {
-                handleError(e, "토큰 갱신")
-            }
-        }
-
-    /**
-     * 로그아웃 처리
-     */
-    suspend fun logout(
-        refreshToken: String,
-    ): KeycloakResponse<KeycloakLogoutResponse> =
-        withContext(Dispatchers.IO) {
-            try {
-                withTimeout(keycloakProperties.timeout) {
-                    val request = KeycloakLogoutRequest(
-                        clientId = keycloakProperties.clientId,
-                        clientSecret = keycloakProperties.clientSecret,
-                        refreshToken = refreshToken
-                    )
-
-                    keycloakApiClient.logout(request)
-                }
-            } catch (_: TimeoutCancellationException) {
-                handleTimeout("로그아웃")
-            } catch (e: Exception) {
-                handleError(e, "로그아웃")
             }
         }
 

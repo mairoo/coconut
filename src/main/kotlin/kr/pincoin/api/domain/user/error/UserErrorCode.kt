@@ -56,6 +56,12 @@ enum class UserErrorCode(
         "이메일 발송에 실패했습니다",
     ),
 
+    // 마이그레이션 관련 에러 코드
+    ALREADY_MIGRATED(
+        HttpStatus.CONFLICT,
+        "이미 마이그레이션이 완료된 사용자입니다",
+    ),
+
     // TOTP 2FA 관련 에러 코드들
     TOTP_CODE_REQUIRED(
         HttpStatus.BAD_REQUEST,
@@ -91,49 +97,20 @@ enum class UserErrorCode(
         HttpStatus.BAD_REQUEST,
         "레거시 사용자는 비밀번호 변경이 지원되지 않습니다. Keycloak 마이그레이션 후 이용해주세요",
     ),
-    PASSWORD_CHANGE_FAILED(
-        HttpStatus.INTERNAL_SERVER_ERROR,
-        "비밀번호 변경에 실패했습니다",
-    ),
-    CURRENT_PASSWORD_INVALID(
-        HttpStatus.BAD_REQUEST,
-        "현재 비밀번호가 올바르지 않습니다",
-    ),
 
     // OAuth2 Authorization Code Flow 관련 에러 코드
     INVALID_REDIRECT_URI(
         HttpStatus.BAD_REQUEST,
         "허용되지 않은 redirect_uri입니다",
     ),
-    ACCESS_DENIED(
-        HttpStatus.FORBIDDEN,
-        "사용자가 로그인을 거부했습니다",
-    ),
-    INVALID_REQUEST(
-        HttpStatus.BAD_REQUEST,
-        "잘못된 OAuth2 요청입니다",
-    ),
-    OAUTH_ERROR(
-        HttpStatus.BAD_REQUEST,
-        "OAuth2 인증 중 오류가 발생했습니다",
-    ),
     TOKEN_EXCHANGE_FAILED(
         HttpStatus.INTERNAL_SERVER_ERROR,
         "Authorization Code를 토큰으로 교환하는데 실패했습니다",
-    ),
-    USER_INFO_FETCH_FAILED(
-        HttpStatus.INTERNAL_SERVER_ERROR,
-        "사용자 정보를 가져오는데 실패했습니다",
     ),
     INVALID_STATE_PARAMETER(
         HttpStatus.BAD_REQUEST,
         "잘못된 state 파라미터입니다. CSRF 공격이 감지되었습니다",
     ),
-    AUTHORIZATION_CODE_EXPIRED(
-        HttpStatus.BAD_REQUEST,
-        "Authorization Code가 만료되었습니다",
-    ),
-
     INVALID_AUTHORIZATION_CODE(
         HttpStatus.BAD_REQUEST,
         "유효하지 않은 인증 코드입니다",
@@ -141,13 +118,5 @@ enum class UserErrorCode(
     INVALID_CLIENT_CREDENTIALS(
         HttpStatus.UNAUTHORIZED,
         "유효하지 않은 클라이언트 인증 정보입니다",
-    ),
-    TOKEN_REFRESH_FAILED(
-        HttpStatus.INTERNAL_SERVER_ERROR,
-        "토큰 갱신에 실패했습니다",
-    ),
-    INVALID_REFRESH_TOKEN(
-        HttpStatus.BAD_REQUEST,
-        "유효하지 않은 갱신 토큰입니다",
     ),
 }

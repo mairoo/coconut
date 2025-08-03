@@ -2,9 +2,9 @@ package kr.pincoin.api.app.auth.controller
 
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
-import kr.pincoin.api.app.auth.request.SignInRequest
+import kr.pincoin.api.app.auth.request.MigrationRequest
 import kr.pincoin.api.app.auth.request.SignUpRequest
-import kr.pincoin.api.app.auth.response.AccessTokenResponse
+import kr.pincoin.api.app.auth.response.MigrationResponse
 import kr.pincoin.api.app.auth.response.SignUpCompletedResponse
 import kr.pincoin.api.app.auth.response.SignUpRequestedResponse
 import kr.pincoin.api.app.auth.service.AuthService
@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*
 class AuthController(
     private val authService: AuthService,
 ) {
-    // 1-.1 회원 가입 폼 처리
+    // 1-1. 회원 가입 폼 처리
     @PostMapping("/sign-up")
     fun signUp(
         @Valid @RequestBody request: SignUpRequest,
@@ -36,15 +36,13 @@ class AuthController(
             .let { ApiResponse.of(it) }
             .let { ResponseEntity.ok(it) }
 
-    // 2. 로그인
-    @PostMapping("/sign-in")
-    fun signIn(
-        @Valid @RequestBody request: SignInRequest,
+    // 2. 레거시 사용자 마이그레이션
+    @PostMapping("/migrate")
+    fun migrateUser(
+        @Valid @RequestBody request: MigrationRequest,
         httpServletRequest: HttpServletRequest,
-    ): ResponseEntity<ApiResponse<AccessTokenResponse>> {
-        val signInResult = authService.signIn(request, httpServletRequest)
-
-        return ResponseEntity.ok()
-            .body(ApiResponse.of(signInResult.accessTokenResponse))
-    }
+    ): ResponseEntity<ApiResponse<MigrationResponse>> =
+        authService.migrateUser(request, httpServletRequest)
+            .let { ApiResponse.of(it) }
+            .let { ResponseEntity.ok(it) }
 }

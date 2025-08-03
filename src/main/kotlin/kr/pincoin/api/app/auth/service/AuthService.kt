@@ -1,11 +1,11 @@
 package kr.pincoin.api.app.auth.service
 
 import jakarta.servlet.http.HttpServletRequest
-import kr.pincoin.api.app.auth.request.SignInRequest
+import kr.pincoin.api.app.auth.request.MigrationRequest
 import kr.pincoin.api.app.auth.request.SignUpRequest
+import kr.pincoin.api.app.auth.response.MigrationResponse
 import kr.pincoin.api.app.auth.response.SignUpCompletedResponse
 import kr.pincoin.api.app.auth.response.SignUpRequestedResponse
-import kr.pincoin.api.app.auth.vo.SignInResult
 import org.springframework.stereotype.Service
 
 /**
@@ -21,14 +21,14 @@ import org.springframework.stereotype.Service
  *
  * **하위 시스템:**
  * - SignUpFacade: 회원가입 프로세스 전체 관리
- * - SignInFacade: 로그인 프로세스 관리
+ * - SignInFacade: 레거시 사용자 마이그레이션 관리 (향후 MigrationFacade로 변경 예정)
  * - TokenFacade: 토큰 관리 (향후 구현)
  * - PasswordResetFacade: 비밀번호 재설정 (향후 구현)
  */
 @Service
 class AuthService(
     private val signUpFacade: SignUpFacade,
-    private val signInFacade: SignInFacade,
+    private val migrationFacade: MigrationFacade,
     // private val passwordResetFacade: PasswordResetFacade,
 ) {
 
@@ -64,41 +64,32 @@ class AuthService(
         signUpFacade.completeSignUp(token)
 
     /**
-     * 사용자 로그인
+     * 레거시 사용자 마이그레이션
      *
-     * Keycloak 우선 인증과 레거시 사용자 마이그레이션을 지원하는
-     * 3단계 로그인 프로세스를 실행합니다.
+     * Django allauth 기반 레거시 사용자를 Keycloak으로 마이그레이션합니다.
      *
      * **처리 단계:**
      * 1. 보안 검증 (reCAPTCHA 등)
-     * 2. Keycloak 우선 인증 시도
-     * 3. 실패 시 레거시 사용자 검증 및 마이그레이션
+     * 2. 레거시 사용자 검증 (PBKDF2 비밀번호 확인)
+     * 3. 이미 마이그레이션된 사용자 확인
+     * 4. Keycloak으로 마이그레이션 수행
      *
-     * **3단계 로그인 프로세스:**
-     * - **1단계**: Keycloak 우선 인증 시도
-     *   - 성공 시: JWT 토큰 반환 (최종 완료)
-     *   - 실패 시: 2단계로 진행
-     *
-     * - **2단계**: 레거시 사용자 검증
-     *   - 기존 User 테이블에서 사용자 조회
-     *   - 레거시 패스워드 인코더(PBKDF2)로 비밀번호 검증
-     *   - 검증 실패 시: 인증 오류 반환
-     *   - 검증 성공 시: 3단계로 진행
-     *
-     * - **3단계**: Keycloak 마이그레이션
-     *   - 레거시 사용자를 Keycloak에 생성
-     *   - User 테이블의 keycloak_id 업데이트
-     *   - 새로운 Keycloak 계정으로 JWT 토큰 발급
+     * **마이그레이션 프로세스:**
+     * - **사용자 확인**: 기존 User 테이블에서 사용자 조회
+     * - **비밀번호 검증**: 레거시 패스워드 인코더(PBKDF2)로 비밀번호 검증
+     * - **중복 확인**: 이미 keycloak_id가 있는 사용자는 마이그레이션 완료로 처리
+     * - **Keycloak 생성**: 레거시 사용자를 Keycloak에 생성
+     * - **연결**: User 테이블의 keycloak_id 업데이트
      *
      * **보안 기능:**
      * - reCAPTCHA 검증 (무작위 공격 방어)
-     * - 향후 확장: IP별 로그인 제한, 계정 잠금 정책, 2FA 등
+     * - 향후 확장: IP별 마이그레이션 제한 등
      */
-    fun signIn(
-        request: SignInRequest,
+    fun migrateUser(
+        request: MigrationRequest,
         httpServletRequest: HttpServletRequest,
-    ): SignInResult =
-        signInFacade.processSignIn(request, httpServletRequest)
+    ): MigrationResponse =
+        migrationFacade.processMigration(request, httpServletRequest)
 
     /**
      * 비밀번호 재설정 요청
@@ -110,9 +101,6 @@ class AuthService(
      * - 비밀번호 재설정 토큰 생성
      * - 재설정 이메일 발송
      * - Redis에 임시 토큰 저장
-     *
-     * @param email 비밀번호를 재설정할 이메일 주소
-     * @return 재설정 이메일 발송 완료 응답
      */
     // fun requestPasswordReset(email: String): PasswordResetRequestResponse = passwordResetFacade.requestPasswordReset(email)
 
@@ -126,10 +114,6 @@ class AuthService(
      * - 새 비밀번호 유효성 검사
      * - Keycloak과 DB에서 비밀번호 업데이트
      * - 재설정 토큰 무효화
-     *
-     * @param token 비밀번호 재설정 토큰
-     * @param newPassword 새로운 비밀번호
-     * @return 비밀번호 재설정 완료 응답
      */
     // fun completePasswordReset(token: String, newPassword: String): PasswordResetCompleteResponse = passwordResetFacade.completePasswordReset(token, newPassword)
 
@@ -143,9 +127,6 @@ class AuthService(
      * - Keycloak 사용자 정보 조회
      * - DB 사용자 정보와 병합
      * - 개인정보는 마스킹 처리
-     *
-     * @param accessToken 현재 액세스 토큰
-     * @return 사용자 프로필 정보
      */
     // fun getUserProfile(accessToken: String): UserProfileResponse = userProfileFacade.getUserProfile(accessToken)
 
@@ -159,10 +140,6 @@ class AuthService(
      * - 입력값 검증 및 권한 확인
      * - Keycloak과 DB에서 동시 업데이트
      * - 이메일 변경 시 재인증 프로세스
-     *
-     * @param accessToken 현재 액세스 토큰
-     * @param request 프로필 수정 요청
-     * @return 프로필 수정 완료 응답
      */
     // fun updateUserProfile(accessToken: String, request: UpdateProfileRequest): UpdateProfileResponse = userProfileFacade.updateUserProfile(accessToken, request)
 
@@ -178,10 +155,6 @@ class AuthService(
      * - 관련 세션 모두 무효화
      * - 개인정보 보호를 위한 데이터 마스킹
      * - redis에 해당 이메일 주소 재가입 금지 저장
-     *
-     * @param accessToken 현재 액세스 토큰
-     * @param password 현재 비밀번호 (재확인용)
-     * @return 계정 비활성화 완료 응답
      */
     // fun deactivateAccount(accessToken: String, password: String): DeactivateAccountResponse = userProfileFacade.deactivateAccount(accessToken, password)
 }

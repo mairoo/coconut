@@ -209,6 +209,25 @@ class KeycloakApiClient(
         )
 
     /**
+     * Resource Owner Password Credentials Grant
+     * 사용자 자격증명 검증용
+     */
+    suspend fun validateUserCredentials(
+        email: String,
+        password: String,
+    ): KeycloakResponse<KeycloakTokenResponse> =
+        executeFormPost(
+            uri = "/realms/${keycloakProperties.realm}/protocol/openid-connect/token",
+            formData = LinkedMultiValueMap<String, String>().apply {
+                add("grant_type", "password")
+                add("client_id", keycloakProperties.clientId)
+                add("client_secret", keycloakProperties.clientSecret)
+                add("username", email)
+                add("password", password)
+            }
+        )
+
+    /**
      * UserInfo 조회
      */
     suspend fun getUserInfo(

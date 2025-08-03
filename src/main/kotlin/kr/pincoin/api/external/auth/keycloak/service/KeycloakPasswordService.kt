@@ -83,6 +83,38 @@ class KeycloakPasswordService(
             }
         }
 
+    /**
+     * 사용자 현재 비밀번호 검증
+     * Resource Owner Password Credentials Grant를 통해 자격증명 확인
+     */
+    suspend fun validateCurrentPassword(
+        email: String,
+        password: String
+    ): KeycloakResponse<KeycloakLogoutResponse> =
+        withContext(Dispatchers.IO) {
+            try {
+                withTimeout(keycloakProperties.timeout) {
+                    when (val result = keycloakApiClient.validateUserCredentials(email, password)) {
+                        is KeycloakResponse.Success -> KeycloakResponse.Success(KeycloakLogoutResponse)
+                        is KeycloakResponse.Error -> {
+                            if (result.errorCode in listOf("invalid_grant", "unauthorized")) {
+                                KeycloakResponse.Error(
+                                    "INVALID_CREDENTIALS",
+                                    "이메일 또는 비밀번호가 올바르지 않습니다"
+                                )
+                            } else {
+                                KeycloakResponse.Error(result.errorCode, result.errorMessage)
+                            }
+                        }
+                    }
+                }
+            } catch (_: TimeoutCancellationException) {
+                handleTimeout("비밀번호 검증")
+            } catch (e: Exception) {
+                handleError(e, "비밀번호 검증")
+            }
+        }
+
     private fun handleTimeout(
         operation: String,
     ): KeycloakResponse<Nothing> =

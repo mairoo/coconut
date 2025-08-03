@@ -1,6 +1,5 @@
 package kr.pincoin.api.app.user.admin.controller
 
-import jakarta.servlet.http.HttpServletRequest
 import kr.pincoin.api.app.user.common.response.TotpStatusResponse
 import kr.pincoin.api.domain.coordinator.user.TotpResourceCoordinator
 import kr.pincoin.api.global.response.success.ApiResponse
@@ -18,9 +17,8 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/admin/totp")
 @PreAuthorize("hasRole('ADMIN')")
 class AdminTotpController(
-    private val totpResourceCoordinator: TotpResourceCoordinator
+    private val totpResourceCoordinator: TotpResourceCoordinator,
 ) {
-
     /**
      * 특정 사용자의 2FA 상태 조회
      *
@@ -31,9 +29,6 @@ class AdminTotpController(
      * - 보안 정책 준수 확인 (특권 사용자 2FA 필수 여부)
      * - 사용자 지원 요청 시 상태 확인
      * - 보안 감사 및 리포팅
-     *
-     * @param targetUserEmail 조회할 사용자의 이메일
-     * @return 해당 사용자의 2FA 상태 정보
      */
     @GetMapping("/users/{targetUserEmail}/status")
     suspend fun getUserTotpStatus(
@@ -64,15 +59,10 @@ class AdminTotpController(
      * - 대상 사용자는 다음 로그인 시 즉시 2FA 설정 필요
      * - 설정 완료 전까지는 서비스 이용 불가
      * - 중요한 결정이므로 충분한 사전 안내 권장
-     *
-     * @param targetUserEmail 2FA 설정을 강제할 사용자 이메일
-     * @param httpServletRequest HTTP 요청 정보 (감사 로그용)
-     * @return 강제 설정 완료 메시지
      */
     @PostMapping("/users/{targetUserEmail}/force-setup")
     suspend fun forceUserTotpSetup(
         @PathVariable targetUserEmail: String,
-        httpServletRequest: HttpServletRequest
     ): ResponseEntity<ApiResponse<String>> =
         totpResourceCoordinator.forceUserTotpSetup(targetUserEmail)
             .let { ApiResponse.of("사용자 '$targetUserEmail'에게 2FA 설정이 강제되었습니다. 해당 사용자는 다음 로그인 시 2FA 설정이 필요합니다.") }
@@ -102,15 +92,10 @@ class AdminTotpController(
      * - 매우 민감한 작업이므로 남용 금지
      * - 정당한 사유 없이 사용 금지
      * - 사용자에게 사전/사후 알림 필수
-     *
-     * @param targetUserEmail 2FA를 비활성화할 사용자 이메일
-     * @param httpServletRequest HTTP 요청 정보 (감사 로그용)
-     * @return 비활성화 완료 메시지
      */
     @DeleteMapping("/users/{targetUserEmail}/force-disable")
     suspend fun forceDisableUserTotp(
         @PathVariable targetUserEmail: String,
-        httpServletRequest: HttpServletRequest
     ): ResponseEntity<ApiResponse<String>> =
         totpResourceCoordinator.disableTotp(targetUserEmail)
             .let { ApiResponse.of("관리자에 의해 사용자 '$targetUserEmail'의 2FA가 비활성화되었습니다. 보안을 위해 즉시 비밀번호 변경을 권장합니다.") }

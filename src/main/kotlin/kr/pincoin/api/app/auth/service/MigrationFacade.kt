@@ -8,10 +8,9 @@ import kr.pincoin.api.app.auth.response.MigrationResponse
 import kr.pincoin.api.domain.user.error.UserErrorCode
 import kr.pincoin.api.domain.user.model.User
 import kr.pincoin.api.domain.user.service.UserService
-import kr.pincoin.api.external.auth.keycloak.api.request.KeycloakCreateUserRequest
 import kr.pincoin.api.external.auth.keycloak.api.response.KeycloakResponse
 import kr.pincoin.api.external.auth.keycloak.error.KeycloakErrorCode
-import kr.pincoin.api.external.auth.keycloak.service.KeycloakApiClient
+import kr.pincoin.api.external.auth.keycloak.service.KeycloakUserService
 import kr.pincoin.api.global.exception.BusinessException
 import kr.pincoin.api.global.security.encoder.DjangoPasswordEncoder
 import kr.pincoin.api.infra.user.repository.criteria.UserSearchCriteria
@@ -41,8 +40,7 @@ import java.util.*
 class MigrationFacade(
     private val migrationValidator: MigrationValidator,
     private val userService: UserService,
-    private val keycloakApiClient: KeycloakApiClient,
-    private val authKeycloakService: AuthKeycloakService,
+    private val keycloakUserService: KeycloakUserService,
     private val djangoPasswordEncoder: DjangoPasswordEncoder,
 ) {
     private val logger = KotlinLogging.logger {}
@@ -133,11 +131,8 @@ class MigrationFacade(
         user: User,
         request: MigrationRequest,
     ): LocalDateTime {
-        // Admin 토큰 획득
-        val adminToken = authKeycloakService.getAdminToken()
-
         // Keycloak에 사용자 생성
-        val keycloakUserId = createKeycloakUserForMigration(user, request, adminToken)
+        val keycloakUserId = createKeycloakUserForMigration(user, request)
 
         // DB에 Keycloak ID 업데이트
         userService.linkKeycloak(user.id!!, UUID.fromString(keycloakUserId), true)
@@ -151,25 +146,15 @@ class MigrationFacade(
     private suspend fun createKeycloakUserForMigration(
         user: User,
         request: MigrationRequest,
-        adminToken: String,
     ): String {
-        val createUserRequest = KeycloakCreateUserRequest(
+        return when (val response = keycloakUserService.createUser(
             username = user.email,
             email = user.email,
             firstName = user.firstName,
             lastName = user.lastName,
+            password = request.password,
             enabled = true,
-            emailVerified = true, // 레거시 사용자이므로 이메일 인증됨으로 설정
-            credentials = listOf(
-                KeycloakCreateUserRequest.KeycloakCredential(
-                    type = "password",
-                    value = request.password, // 사용자가 입력한 비밀번호로 설정
-                    temporary = false,
-                )
-            )
-        )
-
-        return when (val response = keycloakApiClient.createUser(adminToken, createUserRequest)) {
+        )) {
             is KeycloakResponse.Success -> {
                 logger.info { "마이그레이션용 Keycloak 사용자 생성 성공: email=${user.email}" }
                 response.data.userId

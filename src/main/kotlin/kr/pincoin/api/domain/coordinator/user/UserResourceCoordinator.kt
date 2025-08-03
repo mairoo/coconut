@@ -4,17 +4,13 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kr.pincoin.api.app.auth.request.SignUpRequest
-import kr.pincoin.api.app.auth.response.AccessTokenResponse
 import kr.pincoin.api.domain.user.error.UserErrorCode
 import kr.pincoin.api.domain.user.model.User
 import kr.pincoin.api.domain.user.service.ProfileService
 import kr.pincoin.api.domain.user.service.UserService
-import kr.pincoin.api.external.auth.keycloak.api.request.KeycloakCreateUserRequest
-import kr.pincoin.api.external.auth.keycloak.api.request.KeycloakLoginRequest
 import kr.pincoin.api.external.auth.keycloak.api.response.KeycloakResponse
 import kr.pincoin.api.external.auth.keycloak.error.KeycloakErrorCode
-import kr.pincoin.api.external.auth.keycloak.properties.KeycloakProperties
-import kr.pincoin.api.external.auth.keycloak.service.KeycloakApiClient
+import kr.pincoin.api.external.auth.keycloak.service.KeycloakUserService
 import kr.pincoin.api.global.exception.BusinessException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -25,8 +21,7 @@ import java.util.*
 class UserResourceCoordinator(
     private val userService: UserService,
     private val profileService: ProfileService,
-    private val keycloakApiClient: KeycloakApiClient,
-    private val keycloakProperties: KeycloakProperties,
+    private val keycloakUserService: KeycloakUserService,
 ) {
     private val logger = KotlinLogging.logger {}
 
@@ -36,14 +31,13 @@ class UserResourceCoordinator(
      */
     @Transactional
     suspend fun createUserWithKeycloak(
-        request: SignUpRequest,
-        adminToken: String
+        request: SignUpRequest
     ): User = withContext(Dispatchers.IO) {
         var keycloakUserId: String? = null
 
         try {
             // 1. Keycloak에 사용자 생성
-            keycloakUserId = createKeycloakUser(request, adminToken)
+            keycloakUserId = createKeycloakUser(request)
             val keycloakUuid = UUID.fromString(keycloakUserId)
 
             // 2. DB에 사용자 생성 (Keycloak ID 연결)
@@ -57,7 +51,7 @@ class UserResourceCoordinator(
             // UUID 변환 실패시
             logger.error { "Keycloak ID를 UUID로 변환 실패: keycloakUserId=$keycloakUserId" }
             keycloakUserId?.let { userId ->
-                executeCompensatingTransaction(userId, adminToken, request.email)
+                executeCompensatingTransaction(userId, request.email)
             }
             throw BusinessException(UserErrorCode.SYSTEM_ERROR)
         } catch (e: BusinessException) {
@@ -65,7 +59,7 @@ class UserResourceCoordinator(
 
             // DB 생성 실패시 Keycloak 사용자 삭제 (보상 트랜잭션)
             keycloakUserId?.let { userId ->
-                executeCompensatingTransaction(userId, adminToken, request.email)
+                executeCompensatingTransaction(userId, request.email)
             }
 
             throw e
@@ -74,7 +68,7 @@ class UserResourceCoordinator(
 
             // DB 생성 실패시 Keycloak 사용자 삭제 (보상 트랜잭션)
             keycloakUserId?.let { userId ->
-                executeCompensatingTransaction(userId, adminToken, request.email)
+                executeCompensatingTransaction(userId, request.email)
             }
 
             throw BusinessException(UserErrorCode.SYSTEM_ERROR)
@@ -82,66 +76,19 @@ class UserResourceCoordinator(
     }
 
     /**
-     * 사용자 인증 및 토큰 발급
-     */
-    suspend fun authenticateUser(email: String, password: String): AccessTokenResponse = withContext(Dispatchers.IO) {
-        val loginRequest = KeycloakLoginRequest(
-            clientId = keycloakProperties.clientId,
-            clientSecret = keycloakProperties.clientSecret,
-            username = email,
-            password = password,
-            grantType = "password",
-            scope = "openid profile email",
-        )
-
-        return@withContext when (val response = keycloakApiClient.login(loginRequest)) {
-            is KeycloakResponse.Success -> {
-                val tokenData = response.data
-                AccessTokenResponse.of(
-                    accessToken = tokenData.accessToken,
-                    expiresIn = tokenData.expiresIn,
-                )
-            }
-
-            is KeycloakResponse.Error -> {
-                logger.error { "사용자 인증 실패: email=$email, error=${response.errorCode}" }
-
-                val errorCode = when (response.errorCode) {
-                    "invalid_grant" -> KeycloakErrorCode.INVALID_CREDENTIALS
-                    "invalid_client" -> KeycloakErrorCode.INVALID_CREDENTIALS
-                    "TIMEOUT" -> KeycloakErrorCode.TIMEOUT
-                    else -> KeycloakErrorCode.UNKNOWN
-                }
-
-                throw BusinessException(errorCode)
-            }
-        }
-    }
-
-    /**
      * Keycloak에 사용자 생성
      */
     private suspend fun createKeycloakUser(
-        request: SignUpRequest,
-        adminToken: String
+        request: SignUpRequest
     ): String {
-        val createUserRequest = KeycloakCreateUserRequest(
+        return when (val response = keycloakUserService.createUser(
             username = request.email,
             email = request.email,
             firstName = request.firstName,
             lastName = request.lastName,
+            password = request.password,
             enabled = true,
-            emailVerified = true, // 이메일 인증 완료 후 호출되므로 true로 설정
-            credentials = listOf(
-                KeycloakCreateUserRequest.KeycloakCredential(
-                    type = "password",
-                    value = request.password,
-                    temporary = false
-                )
-            )
-        )
-
-        return when (val response = keycloakApiClient.createUser(adminToken, createUserRequest)) {
+        )) {
             is KeycloakResponse.Success -> {
                 response.data.userId
             }
@@ -171,13 +118,12 @@ class UserResourceCoordinator(
      */
     private suspend fun executeCompensatingTransaction(
         keycloakUserId: String,
-        adminToken: String,
         email: String
     ) {
         logger.warn { "보상 트랜잭션 시작: Keycloak 사용자 삭제 - userId=$keycloakUserId, email=$email" }
 
         try {
-            when (val response = keycloakApiClient.deleteUser(adminToken, keycloakUserId)) {
+            when (val response = keycloakUserService.deleteUser(keycloakUserId)) {
                 is KeycloakResponse.Success -> {
                     logger.info { "보상 트랜잭션 성공: Keycloak 사용자 삭제 완료 - userId=$keycloakUserId" }
                 }

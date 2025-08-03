@@ -47,7 +47,6 @@ class SignUpFacade(
     private val signUpValidator: SignUpValidator,
     private val signUpDataManager: SignUpDataManager,
     private val signUpEmailService: SignUpEmailService,
-    private val authKeycloakService: AuthKeycloakService,
     private val userResourceCoordinator: UserResourceCoordinator,
     private val userService: UserService,
     private val emailUtils: EmailUtils,
@@ -151,7 +150,6 @@ class SignUpFacade(
      *    - Race Condition, 다중 채널 가입, 시스템 장애 등 대응
      *
      * 3. Keycloak과 DB에 사용자 생성 (분산 트랜잭션)
-     *    - Admin 토큰 획득
      *    - UserResourceCoordinator를 통한 안전한 사용자 생성
      *
      * 4. 후처리 작업
@@ -193,17 +191,14 @@ class SignUpFacade(
                     recaptchaToken = null, // 이미 검증 완료
                 )
 
-                // 5. Admin 토큰 획득
-                val adminToken = authKeycloakService.getAdminToken()
+                // 5. Keycloak과 DB에 사용자 생성 (분산 트랜잭션)
+                userResourceCoordinator.createUserWithKeycloak(signUpRequest)
 
-                // 6. Keycloak과 DB에 사용자 생성 (분산 트랜잭션)
-                userResourceCoordinator.createUserWithKeycloak(signUpRequest, adminToken)
-
-                // 7. Redis에서 임시 데이터 즉시 삭제 (토큰 무효화)
-                // 8. 동시 가입 시도 방지 락 해제
+                // 6. Redis에서 임시 데이터 즉시 삭제 (토큰 무효화)
+                // 7. 동시 가입 시도 방지 락 해제
                 signUpDataManager.cleanupAfterSignUp(token, signupData.email)
 
-                // 9. 회원 가입 완료 안내 이메일 발송
+                // 8. 회원 가입 완료 안내 이메일 발송
                 signUpEmailService.sendWelcomeEmail(signupData.email, signupData.firstName)
 
                 SignUpCompletedResponse(
@@ -250,10 +245,12 @@ class SignUpFacade(
                     // 이메일 중복인 경우 그대로 전파
                     throw e
                 }
+
                 UserErrorCode.NOT_FOUND -> {
                     // User? 가 아닌 User 응답 또는 예외이므로 사용자가 없으면 정상 - 2단계 검증 통과
                     // 정상적으로 메서드 종료 (예외를 던지지 않음)
                 }
+
                 else -> {
                     // 다른 예상치 못한 에러는 시스템 에러로 처리
                     logger.error { "2단계 중복 검증 중 예기치 못한 오류: email=$email, error=${e.errorCode}" }

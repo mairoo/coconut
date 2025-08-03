@@ -4,10 +4,10 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
 import kr.pincoin.api.app.user.my.request.MyPasswordChangeRequest
 import kr.pincoin.api.domain.user.error.UserErrorCode
+import kr.pincoin.api.domain.user.model.User
 import kr.pincoin.api.external.auth.keycloak.api.response.KeycloakResponse
 import kr.pincoin.api.external.auth.keycloak.service.KeycloakPasswordService
 import kr.pincoin.api.global.exception.BusinessException
-import kr.pincoin.api.global.security.model.CurrentUserInfo
 import org.springframework.stereotype.Service
 
 @Service
@@ -17,7 +17,7 @@ class MyUserProfileService(
     private val logger = KotlinLogging.logger {}
 
     fun changeUserPassword(
-        currentUser: CurrentUserInfo,
+        currentUser: User,
         request: MyPasswordChangeRequest,
     ): Boolean = runBlocking {
         try {
@@ -25,7 +25,7 @@ class MyUserProfileService(
             validateCurrentPassword(currentUser.email, request.currentPassword)
 
             // 비밀번호 변경
-            changePassword(currentUser.keycloakId, request.newPassword)
+            changePassword(currentUser.keycloakId.toString(), request.newPassword)
 
             return@runBlocking true
         } catch (e: BusinessException) {

@@ -2,6 +2,7 @@ package kr.pincoin.api.external.auth.keycloak.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.type.CollectionType
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.reactor.awaitSingle
 import kr.pincoin.api.external.auth.keycloak.api.request.*
 import kr.pincoin.api.external.auth.keycloak.api.response.*
@@ -23,6 +24,7 @@ class KeycloakApiClient(
     private val keycloakProperties: KeycloakProperties,
     private val objectMapper: ObjectMapper,
 ) {
+    private val logger = KotlinLogging.logger {}
 
     // ========================================
     // Admin API - 사용자 관리
@@ -229,25 +231,6 @@ class KeycloakApiClient(
         )
 
     /**
-     * Direct Grant - 로그인
-     */
-    suspend fun login(
-        request: KeycloakLoginRequest,
-    ): KeycloakResponse<KeycloakTokenResponse> =
-        executeFormPost(
-            uri = "/realms/${keycloakProperties.realm}/protocol/openid-connect/token",
-            formData = LinkedMultiValueMap<String, String>().apply {
-                add("client_id", request.clientId)
-                add("client_secret", request.clientSecret)
-                add("grant_type", request.grantType)
-                add("username", request.username)
-                add("password", request.password)
-                add("scope", request.scope)
-                request.totp?.let { add("totp", it) }
-            },
-        )
-
-    /**
      * UserInfo 조회
      */
     suspend fun getUserInfo(
@@ -412,28 +395,6 @@ class KeycloakApiClient(
         handleGenericError(e)
     }
 
-    /**
-     * Form POST 요청 (응답 없음)
-     */
-    private suspend fun executeFormPostWithoutResponse(
-        uri: String,
-        formData: LinkedMultiValueMap<String, String>
-    ): KeycloakResponse<KeycloakLogoutResponse> = try {
-        keycloakWebClient
-            .post()
-            .uri(uri)
-            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-            .body(BodyInserters.fromFormData(formData))
-            .retrieve()
-            .awaitBodilessEntity()
-
-        KeycloakResponse.Success(KeycloakLogoutResponse)
-    } catch (e: WebClientResponseException) {
-        handleHttpError(e)
-    } catch (e: Exception) {
-        handleGenericError(e)
-    }
-
     // ========================================
     // Helper Methods
     // ========================================
@@ -479,28 +440,42 @@ class KeycloakApiClient(
      */
     private fun handleHttpError(
         e: WebClientResponseException,
-    ): KeycloakResponse<Nothing> =
-        try {
-            val jsonNode = objectMapper.readTree(e.responseBodyAsString)
-            if (jsonNode.has("error")) {
-                KeycloakResponse.Error(
-                    errorCode = jsonNode.get("error").asText(),
-                    errorMessage = jsonNode.get("error_description")?.asText() ?: "HTTP 오류"
-                )
-            } else {
-                val errorCode = KeycloakApiErrorCode.fromStatus(e.statusCode.value())
-                KeycloakResponse.Error(
-                    errorCode = errorCode.code,
-                    errorMessage = errorCode.message
-                )
+        request: Any? = null,
+    ): KeycloakResponse<Nothing> {
+        val statusCode = e.statusCode.value()
+        val responseBody = e.responseBodyAsString
+
+        // 실제 Keycloak 에러 응답 그대로 로깅
+        logger.error {
+            "Keycloak API 에러 - Status: $statusCode, Response: $responseBody"
+        }
+
+        return try {
+            val jsonNode = objectMapper.readTree(responseBody)
+
+            // Keycloak 에러 응답에서 실제 에러 정보 추출
+            val keycloakError = jsonNode.get("error")?.asText() ?: "UNKNOWN"
+            val keycloakErrorDescription = jsonNode.get("error_description")?.asText()
+                ?: jsonNode.get("errorMessage")?.asText()
+                ?: responseBody
+
+            logger.error {
+                "Keycloak 에러 상세 - Code: $keycloakError, Description: $keycloakErrorDescription"
             }
+
+            KeycloakResponse.Error(keycloakError, keycloakErrorDescription)
+
         } catch (_: Exception) {
+            // JSON 파싱 실패시 원본 응답 그대로 반환
+            logger.error { "Keycloak 응답 파싱 실패 - 원본 응답: $responseBody" }
+
             val errorCode = KeycloakApiErrorCode.fromStatus(e.statusCode.value())
             KeycloakResponse.Error(
                 errorCode = errorCode.code,
                 errorMessage = "${errorCode.message}: ${e.statusText}"
             )
         }
+    }
 
     /**
      * 일반 예외 처리

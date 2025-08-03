@@ -161,14 +161,14 @@ class MigrationFacade(
             }
 
             is KeycloakResponse.Error -> {
-                logger.error { "마이그레이션용 Keycloak 사용자 생성 실패: email=${user.email}, error=${response.errorCode}" }
+                logger.error {
+                    "마이그레이션용 Keycloak 사용자 생성 실패: email=${user.email}, " +
+                            "keycloakError=${response.errorCode}, keycloakMessage=${response.errorMessage}"
+                }
 
+                // 간단한 에러 코드 매핑만
                 val errorCode = when (response.errorCode) {
-                    "USER_EXISTS" -> {
-                        logger.warn { "Keycloak에 이미 존재하는 사용자: email=${user.email}" }
-                        UserErrorCode.EMAIL_ALREADY_EXISTS
-                    }
-
+                    "USER_EXISTS", "CONFLICT" -> UserErrorCode.EMAIL_ALREADY_EXISTS
                     "TIMEOUT" -> KeycloakErrorCode.TIMEOUT
                     "SYSTEM_ERROR" -> KeycloakErrorCode.SYSTEM_ERROR
                     else -> KeycloakErrorCode.UNKNOWN

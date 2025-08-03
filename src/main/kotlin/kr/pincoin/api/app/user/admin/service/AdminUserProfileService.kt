@@ -53,7 +53,7 @@ class AdminUserProfileService(
             // 1. 사용자 정보 조회
             val user = userService.findUser(userId, UserSearchCriteria())
 
-            logger.info { "관리자 비밀번호 변경 요청: userId=$userId, email=${user.email}" }
+            logger.info { "관리자 비밀번호 변경 요청: userId=$userId, email=${user.email}, temporary=${request.temporary}" }
 
             // 2. Keycloak 사용자인지 확인
             if (user.keycloakId != null) {
@@ -61,10 +61,10 @@ class AdminUserProfileService(
                 when (val result = keycloakPasswordService.changePasswordByAdmin(
                     userId = user.keycloakId.toString(),
                     newPassword = request.newPassword,
-                    temporary = false
+                    temporary = request.temporary
                 )) {
                     is KeycloakResponse.Success -> {
-                        logger.info { "Keycloak 사용자 비밀번호 변경 성공: userId=$userId" }
+                        logger.info { "Keycloak 사용자 비밀번호 변경 성공: userId=$userId, temporary=${request.temporary}" }
                         true
                     }
 
@@ -83,6 +83,46 @@ class AdminUserProfileService(
             throw e
         } catch (e: Exception) {
             logger.error { "사용자 비밀번호 변경 중 예외 발생: userId=$userId, error=${e.message}" }
+            throw BusinessException(UserErrorCode.SYSTEM_ERROR)
+        }
+    }
+
+    /**
+     * 관리자가 사용자에게 비밀번호 재설정 강제 (Required Action)
+     * 현재 비밀번호는 유지하고, 다음 로그인 시 비밀번호 변경 화면만 표시
+     * Keycloak의 UPDATE_PASSWORD 액션을 사용
+     */
+    fun forcePasswordReset(userId: Int): Boolean = runBlocking {
+        try {
+            // 1. 사용자 정보 조회
+            val user = userService.findUser(userId, UserSearchCriteria())
+
+            logger.info { "관리자 비밀번호 재설정 강제 요청: userId=$userId, email=${user.email}" }
+
+            // 2. Keycloak 사용자인지 확인
+            if (user.keycloakId != null) {
+                // Keycloak 사용자: 비밀번호 재설정 액션 추가
+                when (val result = keycloakPasswordService.addPasswordResetAction(user.keycloakId.toString())) {
+                    is KeycloakResponse.Success -> {
+                        logger.info { "비밀번호 재설정 액션 추가 성공: userId=$userId" }
+                        true
+                    }
+
+                    is KeycloakResponse.Error -> {
+                        logger.error { "비밀번호 재설정 액션 추가 실패: userId=$userId, error=${result.errorCode}" }
+                        throw BusinessException(UserErrorCode.SYSTEM_ERROR)
+                    }
+                }
+            } else {
+                // 레거시 사용자는 지원하지 않음
+                logger.warn { "레거시 사용자 비밀번호 재설정 강제 시도: userId=$userId" }
+                throw BusinessException(UserErrorCode.LEGACY_USER_PASSWORD_CHANGE_NOT_SUPPORTED)
+            }
+        } catch (e: BusinessException) {
+            logger.error { "비밀번호 재설정 강제 실패: userId=$userId, error=${e.errorCode}" }
+            throw e
+        } catch (e: Exception) {
+            logger.error { "비밀번호 재설정 강제 중 예외 발생: userId=$userId, error=${e.message}" }
             throw BusinessException(UserErrorCode.SYSTEM_ERROR)
         }
     }

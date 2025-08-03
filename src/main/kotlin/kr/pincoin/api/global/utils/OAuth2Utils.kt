@@ -18,13 +18,6 @@ object OAuth2Utils {
 
     /**
      * OAuth2 Authorization URL 구성
-     *
-     * @param baseUrl Keycloak authorization 엔드포인트 기본 URL
-     * @param clientId OAuth2 클라이언트 ID
-     * @param redirectUri 콜백 URI
-     * @param state CSRF 방어용 상태값
-     * @param scope 요청할 스코프 (기본값: "openid profile email")
-     * @return 완성된 authorization URL
      */
     fun buildAuthorizationUrl(
         baseUrl: String,
@@ -52,11 +45,10 @@ object OAuth2Utils {
      * 보안 state 값 생성
      *
      * CSRF 공격을 방어하기 위한 랜덤 state 값을 생성합니다.
-     *
-     * @param lengthBytes 랜덤 바이트 길이 (기본값: 24바이트)
-     * @return URL-safe Base64 인코딩된 랜덤 문자열
      */
-    fun generateSecureState(lengthBytes: Int = 24): String {
+    fun generateSecureState(
+        lengthBytes: Int = 24,
+    ): String {
         val randomBytes = ByteArray(lengthBytes)
         secureRandom.nextBytes(randomBytes)
         return Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes)
@@ -64,11 +56,6 @@ object OAuth2Utils {
 
     /**
      * Redirect URI 보안 검증
-     *
-     * @param redirectUri 검증할 redirect URI
-     * @param allowedUris 허용된 URI 목록
-     * @param clientInfo 클라이언트 정보 (로깅용)
-     * @throws BusinessException 유효하지 않은 URI인 경우
      */
     fun validateRedirectUri(
         redirectUri: String,
@@ -214,9 +201,6 @@ object OAuth2Utils {
 
     /**
      * Authorization URL에서 파라미터 추출
-     *
-     * @param url Authorization URL
-     * @return 파라미터 맵
      */
     fun extractUrlParameters(url: String): Map<String, String> {
         return try {
@@ -241,11 +225,6 @@ object OAuth2Utils {
 
     /**
      * State 값 검증
-     *
-     * @param receivedState 받은 state 값
-     * @param expectedState 예상되는 state 값
-     * @param clientInfo 클라이언트 정보 (로깅용)
-     * @throws BusinessException state 불일치 시
      */
     fun validateState(
         receivedState: String?,

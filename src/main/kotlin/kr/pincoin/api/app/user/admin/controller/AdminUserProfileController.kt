@@ -68,4 +68,45 @@ class AdminUserProfileController(
                 )
             }
             .let { ResponseEntity.ok(it) }
+
+    /**
+     * 사용자 프로필 조회
+     *
+     * TODO: UserProfileFacade로 위임 예정
+     *
+     * **구현 계획:**
+     * - JWT 토큰에서 사용자 정보 추출
+     * - Keycloak 사용자 정보 조회
+     * - DB 사용자 정보와 병합
+     * - 개인정보는 마스킹 처리
+     */
+    // fun getUserProfile(accessToken: String): UserProfileResponse = userProfileFacade.getUserProfile(accessToken)
+
+    /**
+     * 사용자 프로필 수정
+     *
+     * TODO: UserProfileFacade로 위임 예정
+     *
+     * **구현 계획:**
+     * - JWT 토큰에서 사용자 정보 추출
+     * - 입력값 검증 및 권한 확인
+     * - Keycloak과 DB에서 동시 업데이트
+     * - 이메일 변경 시 재인증 프로세스
+     */
+    // fun updateUserProfile(accessToken: String, request: UpdateProfileRequest): UpdateProfileResponse = userProfileFacade.updateUserProfile(accessToken, request)
+
+    /**
+     * 계정 비활성화 (탈퇴)
+     *
+     * TODO: UserProfileFacade로 위임 예정
+     *
+     * **구현 계획:**
+     * - 비밀번호 재확인
+     * - Keycloak 계정 비활성화
+     * - DB에서 소프트 삭제 처리
+     * - 관련 세션 모두 무효화
+     * - 개인정보 보호를 위한 데이터 마스킹
+     * - redis에 해당 이메일 주소 재가입 금지 저장
+     */
+    // fun deactivateAccount(accessToken: String, password: String): DeactivateAccountResponse = userProfileFacade.deactivateAccount(accessToken, password)
 }

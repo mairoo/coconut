@@ -92,10 +92,22 @@ enum class UserErrorCode(
         "2FA 비활성화에 실패했습니다",
     ),
 
-    // 비밀번호 변경 관련 에러 코드 추가
+    // 비밀번호 변경 관련 에러 코드
     LEGACY_USER_PASSWORD_CHANGE_NOT_SUPPORTED(
         HttpStatus.BAD_REQUEST,
         "레거시 사용자는 비밀번호 변경이 지원되지 않습니다. Keycloak 마이그레이션 후 이용해주세요",
+    ),
+    INVALID_CURRENT_PASSWORD(
+        HttpStatus.BAD_REQUEST,
+        "현재 비밀번호가 올바르지 않습니다",
+    ),
+    PASSWORD_POLICY_VIOLATION(
+        HttpStatus.BAD_REQUEST,
+        "비밀번호가 정책 요구사항을 충족하지 않습니다",
+    ),
+    INVALID_USER_ID(
+        HttpStatus.BAD_REQUEST,
+        "유효하지 않은 사용자 ID입니다",
     ),
 
     // OAuth2 Authorization Code Flow 관련 에러 코드

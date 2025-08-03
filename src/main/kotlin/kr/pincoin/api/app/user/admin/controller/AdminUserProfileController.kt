@@ -32,7 +32,7 @@ class AdminUserProfileController(
      * 관리자가 사용자 비밀번호 강제 변경
      * temporary=true면 임시 비밀번호로 설정 (해당 비밀번호로 로그인 후 즉시 변경 필수)
      */
-    @PutMapping("/{userId}/password")
+    @PatchMapping("/{userId}/password")
     fun changeUserPassword(
         @PathVariable userId: Int,
         @Valid @RequestBody request: AdminPasswordChangeRequest,

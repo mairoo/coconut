@@ -3,10 +3,10 @@ package kr.pincoin.api.app.user.my.controller
 import jakarta.validation.Valid
 import kr.pincoin.api.app.user.my.request.MyPasswordChangeRequest
 import kr.pincoin.api.app.user.my.service.MyUserProfileService
-import kr.pincoin.api.domain.user.model.User
 import kr.pincoin.api.global.response.success.ApiResponse
-import kr.pincoin.api.global.security.annotation.CurrentUser
+import kr.pincoin.api.global.security.extension.getCurrentUser
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -20,10 +20,10 @@ class MyUserProfileController(
     @PatchMapping("/password")
     fun changeUserPassword(
         @Valid @RequestBody request: MyPasswordChangeRequest,
-        @CurrentUser user: User,
+        authentication: Authentication,
     ): ResponseEntity<ApiResponse<Nothing?>> =
         myUserProfileService.changeUserPassword(
-            user,
+            authentication.getCurrentUser(),
             request,
         )
             .let {

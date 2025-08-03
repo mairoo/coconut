@@ -43,7 +43,7 @@ class KeycloakTokenService(
     ): KeycloakResponse<Nothing> =
         KeycloakResponse.Error(
             errorCode = "TIMEOUT",
-            errorMessage = "$operation 요청 시간 초과"
+            errorMessage = "$operation 요청 시간 초과",
         )
 
     private fun handleError(
@@ -52,6 +52,6 @@ class KeycloakTokenService(
     ): KeycloakResponse<Nothing> =
         KeycloakResponse.Error(
             errorCode = "SYSTEM_ERROR",
-            errorMessage = "${operation} 중 오류 발생: ${error.message ?: "알 수 없는 오류"}"
+            errorMessage = "${operation} 중 오류 발생: ${error.message ?: "알 수 없는 오류"}",
         )
 }

@@ -161,28 +161,6 @@ class KeycloakApiClient(
         )
 
     // ========================================
-    // User Account API - 사용자 셀프 서비스
-    // ========================================
-
-    /**
-     * User Account API - 사용자 비밀번호 변경
-     */
-    suspend fun changeUserPassword(
-        accessToken: String,
-        currentPassword: String,
-        newPassword: String,
-    ): KeycloakResponse<KeycloakLogoutResponse> =
-        executePutWithoutResponse(
-            uri = "/realms/${keycloakProperties.realm}/account/credentials/password",
-            headers = mapOf(HttpHeaders.AUTHORIZATION to "Bearer $accessToken"),
-            request = mapOf(
-                "currentPassword" to currentPassword,
-                "newPassword" to newPassword,
-                "confirmation" to newPassword,
-            )
-        )
-
-    // ========================================
     // OpenID Connect API - 인증/토큰
     // ========================================
 
@@ -440,7 +418,6 @@ class KeycloakApiClient(
      */
     private fun handleHttpError(
         e: WebClientResponseException,
-        request: Any? = null,
     ): KeycloakResponse<Nothing> {
         val statusCode = e.statusCode.value()
         val responseBody = e.responseBodyAsString

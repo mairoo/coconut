@@ -28,8 +28,7 @@ class OAuth2Controller(
     /**
      * OAuth2 로그인 URL 생성
      *
-     * 클라이언트가 사용자를 Keycloak 로그인 페이지로 리다이렉트할 수 있는
-     * authorization URL을 생성하여 반환
+     * 클라이언트가 사용자를 Keycloak 로그인 페이지로 리다이렉트할 수 있는 authorization URL을 생성하여 반환
      */
     @GetMapping("/login-url")
     fun getOAuth2LoginUrl(
@@ -43,12 +42,7 @@ class OAuth2Controller(
     /**
      * OAuth2 콜백 처리 및 토큰 교환
      *
-     * 프론트엔드에서 Keycloak으로부터 받은 Authorization Code를
-     * Access Token으로 교환합니다.
-     *
-     * @param request Authorization Code와 state가 포함된 콜백 요청
-     * @param httpServletRequest HTTP 요청 정보 (로깅 및 보안 검증용)
-     * @return JWT 토큰들이 포함된 응답
+     * 프론트엔드에서 Keycloak으로부터 받은 Authorization Code를Access Token으로 교환
      */
     @PostMapping("/callback")
     fun handleOAuth2Callback(

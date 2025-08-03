@@ -162,9 +162,20 @@ class KeycloakTotpService(
             .take(32) // 32자리로 제한
     }
 
-    private fun handleTimeout(operation: String): KeycloakResponse.Error<Nothing> =
-        KeycloakResponse.Error("TIMEOUT", "$operation 요청 시간 초과")
+    private fun handleTimeout(
+        operation: String,
+    ): KeycloakResponse<Nothing> =
+        KeycloakResponse.Error(
+            errorCode = "TIMEOUT",
+            errorMessage = "$operation 요청 시간 초과",
+        )
 
-    private fun handleError(error: Throwable, operation: String): KeycloakResponse.Error<Nothing> =
-        KeycloakResponse.Error("SYSTEM_ERROR", "${operation} 중 오류 발생: ${error.message ?: "알 수 없는 오류"}")
+    private fun handleError(
+        error: Throwable,
+        operation: String,
+    ): KeycloakResponse<Nothing> =
+        KeycloakResponse.Error(
+            errorCode = "SYSTEM_ERROR",
+            errorMessage = "${operation} 중 오류 발생: ${error.message ?: "알 수 없는 오류"}",
+        )
 }

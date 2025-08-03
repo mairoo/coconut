@@ -59,27 +59,6 @@ class KeycloakPasswordService(
         }
 
     /**
-     * 사용자 자신이 비밀번호 변경 (User Account API)
-     * 현재 비밀번호 확인 필요
-     */
-    suspend fun changePasswordByUser(
-        accessToken: String,
-        currentPassword: String,
-        newPassword: String
-    ): KeycloakResponse<KeycloakLogoutResponse> =
-        withContext(Dispatchers.IO) {
-            try {
-                withTimeout(keycloakProperties.timeout) {
-                    keycloakApiClient.changeUserPassword(accessToken, currentPassword, newPassword)
-                }
-            } catch (_: TimeoutCancellationException) {
-                handleTimeout("사용자 비밀번호 변경")
-            } catch (e: Exception) {
-                handleError(e, "사용자 비밀번호 변경")
-            }
-        }
-
-    /**
      * 비밀번호 재설정 필수 액션 추가
      * 사용자가 다음 로그인 시 비밀번호 변경 화면 표시
      */
@@ -104,9 +83,20 @@ class KeycloakPasswordService(
             }
         }
 
-    private fun handleTimeout(operation: String): KeycloakResponse.Error<Nothing> =
-        KeycloakResponse.Error("TIMEOUT", "$operation 요청 시간 초과")
+    private fun handleTimeout(
+        operation: String,
+    ): KeycloakResponse<Nothing> =
+        KeycloakResponse.Error(
+            errorCode = "TIMEOUT",
+            errorMessage = "$operation 요청 시간 초과",
+        )
 
-    private fun handleError(error: Throwable, operation: String): KeycloakResponse.Error<Nothing> =
-        KeycloakResponse.Error("SYSTEM_ERROR", "${operation} 중 오류 발생: ${error.message ?: "알 수 없는 오류"}")
+    private fun handleError(
+        error: Throwable,
+        operation: String,
+    ): KeycloakResponse<Nothing> =
+        KeycloakResponse.Error(
+            errorCode = "SYSTEM_ERROR",
+            errorMessage = "$operation 중 오류 발생: ${error.message ?: "알 수 없는 오류"}",
+        )
 }

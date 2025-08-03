@@ -26,6 +26,8 @@ class AdminUserProfileController(
      * → 현재 비밀번호는 유지하되, UPDATE_PASSWORD Required Action 추가
      * → 다음 로그인 시 비밀번호 변경 화면 표시
      * → 사용 사례: 보안상 이유로 비밀번호 변경 필요하지만 기존 비밀번호는 알려진 경우
+     *
+     * ## 4. 사용자 직접 비밀번호 변경 불가
      */
 
     /**

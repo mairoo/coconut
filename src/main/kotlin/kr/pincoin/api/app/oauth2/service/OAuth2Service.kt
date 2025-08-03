@@ -45,7 +45,7 @@ class OAuth2Service(
         val state = OAuth2Utils.generateSecureState()
 
         // Keycloak authorization URL 구성
-        val baseUrl = "${keycloakProperties.serverUrl}/realms/${keycloakProperties.realm}/protocol/openid-connect/auth"
+        val baseUrl = "${keycloakProperties.publicUrl}/realms/${keycloakProperties.realm}/protocol/openid-connect/auth"
         val loginUrl = OAuth2Utils.buildAuthorizationUrl(
             baseUrl = baseUrl,
             clientId = keycloakProperties.clientId,

@@ -23,7 +23,7 @@ class KeycloakWebClientConfig(
     @Bean
     fun keycloakWebClient(): WebClient =
         WebClient.builder()
-            .baseUrl(keycloakProperties.serverUrl)
+            .baseUrl(keycloakProperties.internalUrl)
             .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE)
             .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
             .defaultHeader(HttpHeaders.ACCEPT_CHARSET, StandardCharsets.UTF_8.name())

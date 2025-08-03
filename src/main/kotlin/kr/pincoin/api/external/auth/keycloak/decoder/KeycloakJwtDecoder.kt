@@ -47,6 +47,6 @@ class KeycloakJwtDecoder(
 ) {
     fun createDecoder(): JwtDecoder =
         NimbusJwtDecoder
-            .withJwkSetUri("${keycloakProperties.serverUrl}/realms/${keycloakProperties.realm}/protocol/openid-connect/certs")
+            .withJwkSetUri("${keycloakProperties.publicUrl}/realms/${keycloakProperties.realm}/protocol/openid-connect/certs")
             .build()
 }

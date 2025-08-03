@@ -104,11 +104,23 @@ class MigrationFacade(
                 UserSearchCriteria(email = request.email, isActive = true)
             )
 
+            // 이미 마이그레이션된 사용자 체크 (빈 패스워드)
+            if (user.password.isBlank() || user.keycloakId != null) {
+                logger.warn { "이미 마이그레이션된 사용자" }
+                return null
+            }
+
             // 레거시 패스워드 검증 (PBKDF2)
-            if (djangoPasswordEncoder.matches(request.password, user.password)) {
-                user
-            } else {
-                logger.warn { "레거시 사용자 비밀번호 검증 실패: email=${request.email}" }
+            try {
+                if (djangoPasswordEncoder.matches(request.password, user.password)) {
+                    user
+                } else {
+                    logger.warn { "레거시 사용자 비밀번호 검증 실패" }
+                    null
+                }
+            } catch (e: Exception) {
+                // Django 패스워드 검증 자체에서 예외 발생 시 (잘못된 형식 등)
+                logger.warn(e) { "레거시 패스워드 검증 중 예외 발생" }
                 null
             }
 

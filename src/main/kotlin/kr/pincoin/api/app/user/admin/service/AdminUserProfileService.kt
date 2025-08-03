@@ -53,8 +53,6 @@ class AdminUserProfileService(
             // 1. 사용자 정보 조회
             val user = userService.findUser(userId, UserSearchCriteria())
 
-            logger.info { "관리자 비밀번호 변경 요청: userId=$userId, email=${user.email}, temporary=${request.temporary}" }
-
             // 2. Keycloak 사용자인지 확인
             if (user.keycloakId != null) {
                 // Keycloak 사용자: Keycloak에서 비밀번호 변경
@@ -64,7 +62,6 @@ class AdminUserProfileService(
                     temporary = request.temporary
                 )) {
                     is KeycloakResponse.Success -> {
-                        logger.info { "Keycloak 사용자 비밀번호 변경 성공: userId=$userId, temporary=${request.temporary}" }
                         true
                     }
 
@@ -97,14 +94,11 @@ class AdminUserProfileService(
             // 1. 사용자 정보 조회
             val user = userService.findUser(userId, UserSearchCriteria())
 
-            logger.info { "관리자 비밀번호 재설정 강제 요청: userId=$userId, email=${user.email}" }
-
             // 2. Keycloak 사용자인지 확인
             if (user.keycloakId != null) {
                 // Keycloak 사용자: 비밀번호 재설정 액션 추가
                 when (val result = keycloakPasswordService.addPasswordResetAction(user.keycloakId.toString())) {
                     is KeycloakResponse.Success -> {
-                        logger.info { "비밀번호 재설정 액션 추가 성공: userId=$userId" }
                         true
                     }
 

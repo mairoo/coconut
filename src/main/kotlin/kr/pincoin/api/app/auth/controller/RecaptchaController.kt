@@ -5,11 +5,8 @@ import kr.pincoin.api.app.auth.request.RecaptchaV2VerifyRequest
 import kr.pincoin.api.app.auth.request.RecaptchaV3VerifyRequest
 import kr.pincoin.api.app.auth.response.RecaptchaStatusResponse
 import kr.pincoin.api.app.auth.response.RecaptchaTestResponse
-import kr.pincoin.api.external.auth.recaptcha.api.response.RecaptchaResponse
-import kr.pincoin.api.external.auth.recaptcha.error.RecaptchaErrorCode
 import kr.pincoin.api.external.auth.recaptcha.properties.RecaptchaProperties
 import kr.pincoin.api.external.auth.recaptcha.service.RecaptchaService
-import kr.pincoin.api.global.exception.BusinessException
 import kr.pincoin.api.global.response.success.ApiResponse
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -27,23 +24,14 @@ class RecaptchaController(
     fun verifyV2(
         @Valid @RequestBody request: RecaptchaV2VerifyRequest
     ): ResponseEntity<ApiResponse<RecaptchaTestResponse>> {
-        val result = recaptchaService.verifyV2(request.token)
+        val data = recaptchaService.verifyV2(request.token)
 
-        return when (result) {
-            is RecaptchaResponse.Success -> ResponseEntity.ok(
-                ApiResponse.of(
-                    RecaptchaTestResponse(
-                        success = true,
-                        message = "reCAPTCHA v2 검증 성공",
-                        data = result.data,
-                    )
-                )
-            )
+        val response = RecaptchaTestResponse(
+            message = "reCAPTCHA v2 검증 성공",
+            data = data,
+        )
 
-            is RecaptchaResponse.Error -> throw BusinessException(
-                mapErrorCodeToRecaptchaErrorCode(result.errorCode)
-            )
-        }
+        return ResponseEntity.ok(ApiResponse.of(response))
     }
 
     /**
@@ -53,23 +41,14 @@ class RecaptchaController(
     fun verifyV3(
         @Valid @RequestBody request: RecaptchaV3VerifyRequest
     ): ResponseEntity<ApiResponse<RecaptchaTestResponse>> {
-        val result = recaptchaService.verifyV3(request.token, request.minScore)
+        val data = recaptchaService.verifyV3(request.token, request.minScore)
 
-        return when (result) {
-            is RecaptchaResponse.Success -> ResponseEntity.ok(
-                ApiResponse.of(
-                    RecaptchaTestResponse(
-                        success = true,
-                        message = "reCAPTCHA v3 검증 성공 (점수: ${result.data.score})",
-                        data = result.data,
-                    )
-                )
-            )
+        val response = RecaptchaTestResponse(
+            message = "reCAPTCHA v3 검증 성공 (점수: ${data.score})",
+            data = data,
+        )
 
-            is RecaptchaResponse.Error -> throw BusinessException(
-                mapErrorCodeToRecaptchaErrorCode(result.errorCode)
-            )
-        }
+        return ResponseEntity.ok(ApiResponse.of(response))
     }
 
     /**
@@ -87,21 +66,5 @@ class RecaptchaController(
         )
 
         return ResponseEntity.ok(ApiResponse.of(response))
-    }
-
-    /**
-     * 에러 코드 매핑
-     */
-    private fun mapErrorCodeToRecaptchaErrorCode(errorCode: String): RecaptchaErrorCode {
-        return when (errorCode) {
-            "VERIFICATION_FAILED" -> RecaptchaErrorCode.VERIFICATION_FAILED
-            "INVALID_TOKEN" -> RecaptchaErrorCode.INVALID_TOKEN
-            "TIMEOUT", "TIMEOUT_OR_DUPLICATE" -> RecaptchaErrorCode.TIMEOUT_OR_DUPLICATE
-            "HOSTNAME_MISMATCH" -> RecaptchaErrorCode.HOSTNAME_MISMATCH
-            "LOW_SCORE" -> RecaptchaErrorCode.LOW_SCORE
-            "NETWORK_ERROR", "CONNECTION_ERROR", "HTTP_ERROR" -> RecaptchaErrorCode.NETWORK_ERROR
-            "SYSTEM_ERROR", "PARSE_ERROR" -> RecaptchaErrorCode.SYSTEM_ERROR
-            else -> RecaptchaErrorCode.UNKNOWN
-        }
     }
 }

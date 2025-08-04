@@ -7,7 +7,6 @@ import kr.pincoin.api.domain.auth.properties.AuthProperties
 import kr.pincoin.api.domain.auth.utils.EmailUtils
 import kr.pincoin.api.domain.user.error.UserErrorCode
 import kr.pincoin.api.domain.user.service.UserService
-import kr.pincoin.api.external.auth.recaptcha.api.response.RecaptchaResponse
 import kr.pincoin.api.external.auth.recaptcha.service.RecaptchaService
 import kr.pincoin.api.global.exception.BusinessException
 import kr.pincoin.api.global.utils.ClientUtils
@@ -67,7 +66,7 @@ class SignUpValidator(
      * @param httpServletRequest HTTP 요청 정보 (클라이언트 정보 추출용)
      * @throws BusinessException 검증 실패 시 적절한 에러 코드와 함께 발생
      */
-    suspend fun validateSignUpRequest(
+    fun validateSignUpRequest(
         request: SignUpRequest,
         httpServletRequest: HttpServletRequest,
     ) {
@@ -99,31 +98,27 @@ class SignUpValidator(
      * **검증 과정:**
      * 1. 토큰 존재 여부 확인
      * 2. reCAPTCHA 서비스 호출
-     * 3. 최소 점수(기본 0.7) 이상인지 확인
+     * 3. 성공 시 로그 기록 및 정상 진행
      *
      * @param recaptchaToken 클라이언트에서 전송된 reCAPTCHA 토큰
      * @param minScore 최소 허용 점수 (0.0~1.0, 기본값 0.7)
      * @throws BusinessException 토큰 누락 또는 검증 실패 시
      */
-    private suspend fun validateRecaptcha(
+    private fun validateRecaptcha(
         recaptchaToken: String?,
         minScore: Double = 0.7,
     ) {
         // 토큰 존재 여부 확인
         if (recaptchaToken.isNullOrBlank()) {
-            logger.warn { "reCAPTCHA 토큰이 제공되지 않음" }
+            logger.warn { "회원가입 시 reCAPTCHA 토큰이 제공되지 않음" }
             throw BusinessException(UserErrorCode.RECAPTCHA_TOKEN_REQUIRED)
         }
 
         // reCAPTCHA 검증 수행
-        val result = recaptchaService.verifyV3(recaptchaToken, minScore)
+        val verifyData = recaptchaService.verifyV3(recaptchaToken, minScore)
 
-        if (result is RecaptchaResponse.Error) {
-            logger.warn { "reCAPTCHA 검증 실패 - 코드: ${result.errorCode}, 메시지: ${result.errorMessage}" }
-            throw BusinessException(UserErrorCode.RECAPTCHA_VERIFICATION_FAILED)
-        }
-
-        // 성공 시 아무것도 하지 않음
+        // 성공 시 로깅
+        logger.info { "회원가입 reCAPTCHA 검증 성공 - 점수: ${verifyData.score}" }
     }
 
     /**
@@ -219,7 +214,9 @@ class SignUpValidator(
      * @param email 가입하려는 이메일 주소
      * @throws BusinessException 동일 이메일로 이미 가입 진행 중인 경우
      */
-    private fun preventConcurrentSignup(email: String) {
+    private fun preventConcurrentSignup(
+        email: String,
+    ) {
         val lockKey = "${authProperties.signup.redis.emailLockPrefix}$email"
         val lockAcquired = redisTemplate.opsForValue()
             .setIfAbsent(

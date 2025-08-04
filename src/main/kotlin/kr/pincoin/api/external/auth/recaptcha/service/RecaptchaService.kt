@@ -1,10 +1,13 @@
 package kr.pincoin.api.external.auth.recaptcha.service
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.*
 import kr.pincoin.api.external.auth.recaptcha.api.request.RecaptchaVerifyRequest
 import kr.pincoin.api.external.auth.recaptcha.api.response.RecaptchaResponse
 import kr.pincoin.api.external.auth.recaptcha.api.response.RecaptchaVerifyData
+import kr.pincoin.api.external.auth.recaptcha.error.RecaptchaErrorCode
 import kr.pincoin.api.external.auth.recaptcha.properties.RecaptchaProperties
+import kr.pincoin.api.global.exception.BusinessException
 import org.springframework.stereotype.Service
 
 @Service
@@ -12,10 +15,12 @@ class RecaptchaService(
     private val recaptchaApiClient: RecaptchaApiClient,
     private val recaptchaProperties: RecaptchaProperties,
 ) {
+    private val logger = KotlinLogging.logger {}
+
     /**
      * reCAPTCHA v2 검증
      */
-    fun verifyV2(token: String): RecaptchaResponse<RecaptchaVerifyData> =
+    fun verifyV2(token: String): RecaptchaVerifyData =
         runBlocking {
             verifyV2Internal(token)
         }
@@ -26,7 +31,7 @@ class RecaptchaService(
     fun verifyV3(
         token: String,
         minScore: Double? = null,
-    ): RecaptchaResponse<RecaptchaVerifyData> =
+    ): RecaptchaVerifyData =
         runBlocking {
             verifyV3Internal(token, minScore)
         }
@@ -34,17 +39,15 @@ class RecaptchaService(
     /**
      * reCAPTCHA v2 검증 내부 로직
      */
-    private suspend fun verifyV2Internal(token: String): RecaptchaResponse<RecaptchaVerifyData> =
+    private suspend fun verifyV2Internal(token: String): RecaptchaVerifyData =
         withContext(Dispatchers.IO) {
             // enabled가 false인 경우 무조건 성공 반환
             if (!recaptchaProperties.enabled) {
-                return@withContext RecaptchaResponse.Success(
-                    RecaptchaVerifyData(
-                        success = true,
-                        hostname = null,
-                        challengeTs = null,
-                        errorCodes = null
-                    )
+                return@withContext RecaptchaVerifyData(
+                    success = true,
+                    hostname = null,
+                    challengeTs = null,
+                    errorCodes = null
                 )
             }
 
@@ -54,14 +57,25 @@ class RecaptchaService(
                     val result = recaptchaApiClient.verifyToken(request)
 
                     when (result) {
-                        is RecaptchaResponse.Success -> validateResponse(result.data)
-                        is RecaptchaResponse.Error -> result
+                        is RecaptchaResponse.Success -> {
+                            validateResponse(result.data)
+                            result.data
+                        }
+
+                        is RecaptchaResponse.Error -> {
+                            logger.warn { "reCAPTCHA v2 검증 실패: ${result.errorCode} - ${result.errorMessage}" }
+                            throw BusinessException(RecaptchaErrorCode.VERIFICATION_FAILED)
+                        }
                     }
                 }
             } catch (_: TimeoutCancellationException) {
-                RecaptchaResponse.Error("TIMEOUT", "reCAPTCHA v2 검증 요청 시간 초과")
+                logger.warn { "reCAPTCHA v2 검증 요청 시간 초과" }
+                throw BusinessException(RecaptchaErrorCode.VERIFICATION_FAILED)
+            } catch (e: BusinessException) {
+                throw e
             } catch (e: Exception) {
-                RecaptchaResponse.Error("SYSTEM_ERROR", "reCAPTCHA v2 검증 중 오류: ${e.message}")
+                logger.warn { "reCAPTCHA v2 검증 중 시스템 오류: ${e.message}" }
+                throw BusinessException(RecaptchaErrorCode.VERIFICATION_FAILED)
             }
         }
 
@@ -71,19 +85,17 @@ class RecaptchaService(
     private suspend fun verifyV3Internal(
         token: String,
         minScore: Double? = null,
-    ): RecaptchaResponse<RecaptchaVerifyData> =
+    ): RecaptchaVerifyData =
         withContext(Dispatchers.IO) {
             // enabled가 false인 경우 무조건 성공 반환
             if (!recaptchaProperties.enabled) {
-                return@withContext RecaptchaResponse.Success(
-                    RecaptchaVerifyData(
-                        success = true,
-                        score = 1.0, // v3의 경우 최고 점수로 설정
-                        action = null,
-                        hostname = null,
-                        challengeTs = null,
-                        errorCodes = null
-                    )
+                return@withContext RecaptchaVerifyData(
+                    success = true,
+                    score = 1.0, // v3의 경우 최고 점수로 설정
+                    action = null,
+                    hostname = null,
+                    challengeTs = null,
+                    errorCodes = null
                 )
             }
 
@@ -93,14 +105,25 @@ class RecaptchaService(
                     val result = recaptchaApiClient.verifyToken(request)
 
                     when (result) {
-                        is RecaptchaResponse.Success -> validateResponse(result.data, minScore)
-                        is RecaptchaResponse.Error -> result
+                        is RecaptchaResponse.Success -> {
+                            validateResponse(result.data, minScore)
+                            result.data
+                        }
+
+                        is RecaptchaResponse.Error -> {
+                            logger.warn { "reCAPTCHA v3 검증 실패: ${result.errorCode} - ${result.errorMessage}" }
+                            throw BusinessException(RecaptchaErrorCode.VERIFICATION_FAILED)
+                        }
                     }
                 }
             } catch (_: TimeoutCancellationException) {
-                RecaptchaResponse.Error("TIMEOUT", "reCAPTCHA v3 검증 요청 시간 초과")
+                logger.warn { "reCAPTCHA v3 검증 요청 시간 초과" }
+                throw BusinessException(RecaptchaErrorCode.VERIFICATION_FAILED)
+            } catch (e: BusinessException) {
+                throw e
             } catch (e: Exception) {
-                RecaptchaResponse.Error("SYSTEM_ERROR", "reCAPTCHA v3 검증 중 오류: ${e.message}")
+                logger.warn { "reCAPTCHA v3 검증 중 시스템 오류: ${e.message}" }
+                throw BusinessException(RecaptchaErrorCode.VERIFICATION_FAILED)
             }
         }
 
@@ -110,45 +133,20 @@ class RecaptchaService(
     private fun validateResponse(
         data: RecaptchaVerifyData,
         minScore: Double? = null,
-    ): RecaptchaResponse<RecaptchaVerifyData> {
+    ) {
         // 1. 성공 여부 확인 (가장 중요)
         if (!data.success) {
-            return RecaptchaResponse.Error(
-                "VERIFICATION_FAILED",
-                mapErrorCodes(data.errorCodes)
-            )
+            logger.warn { "reCAPTCHA 검증 실패 - errorCodes: ${data.errorCodes}" }
+            throw BusinessException(RecaptchaErrorCode.VERIFICATION_FAILED)
         }
 
         // 2. 점수 검증 (v3인 경우만)
         if (data.score != null) {
             val scoreThreshold = minScore ?: recaptchaProperties.minScore
             if (data.score < scoreThreshold) {
-                return RecaptchaResponse.Error(
-                    "LOW_SCORE",
-                    "점수 부족: ${data.score} < $scoreThreshold",
-                )
+                logger.warn { "reCAPTCHA 점수 부족: ${data.score} < $scoreThreshold" }
+                throw BusinessException(RecaptchaErrorCode.VERIFICATION_FAILED)
             }
-        }
-
-        return RecaptchaResponse.Success(data)
-    }
-
-    /**
-     * 에러 코드 매핑
-     */
-    private fun mapErrorCodes(errorCodes: List<String>?): String {
-        if (errorCodes.isNullOrEmpty()) {
-            return "reCAPTCHA 검증 실패: 알 수 없는 오류"
-        }
-
-        return when {
-            errorCodes.contains("missing-input-secret") -> "Secret key가 누락되었습니다"
-            errorCodes.contains("invalid-input-secret") -> "유효하지 않은 Secret key입니다"
-            errorCodes.contains("missing-input-response") -> "reCAPTCHA 응답이 누락되었습니다"
-            errorCodes.contains("invalid-input-response") -> "유효하지 않은 reCAPTCHA 응답입니다"
-            errorCodes.contains("bad-request") -> "잘못된 요청입니다"
-            errorCodes.contains("timeout-or-duplicate") -> "토큰이 만료되었거나 이미 사용되었습니다"
-            else -> "reCAPTCHA 검증 실패: ${errorCodes.joinToString(", ")}"
         }
     }
 }

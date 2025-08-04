@@ -4,7 +4,6 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.servlet.http.HttpServletRequest
 import kr.pincoin.api.app.auth.request.MigrationRequest
 import kr.pincoin.api.domain.user.error.UserErrorCode
-import kr.pincoin.api.external.auth.recaptcha.api.response.RecaptchaResponse
 import kr.pincoin.api.external.auth.recaptcha.service.RecaptchaService
 import kr.pincoin.api.global.exception.BusinessException
 import org.springframework.stereotype.Component
@@ -40,7 +39,7 @@ class MigrationValidator(
      * 2. IP별 마이그레이션 시도 제한 (브루트포스 방어)
      * 3. 계정별 연속 실패 제한 (계정 보호)
      */
-    suspend fun validateMigrationRequest(
+    fun validateMigrationRequest(
         request: MigrationRequest,
         httpServletRequest: HttpServletRequest,
     ) {
@@ -60,8 +59,17 @@ class MigrationValidator(
      *
      * Google reCAPTCHA v3를 사용하여 봇과 스팸 마이그레이션 시도를 차단합니다.
      * 로그인보다 약간 낮은 임계값을 사용합니다.
+     *
+     * **검증 과정:**
+     * 1. 토큰 존재 여부 확인
+     * 2. reCAPTCHA 서비스 호출
+     * 3. 성공 시 로그 기록 및 정상 진행
+     *
+     * @param recaptchaToken 클라이언트에서 전송된 reCAPTCHA 토큰
+     * @param minScore 최소 허용 점수 (0.0~1.0, 기본값 0.5)
+     * @throws BusinessException 토큰 누락 또는 검증 실패 시
      */
-    private suspend fun validateRecaptcha(
+    private fun validateRecaptcha(
         recaptchaToken: String?,
         minScore: Double = 0.5, // 마이그레이션은 로그인과 동일한 임계값 사용
     ) {
@@ -72,12 +80,10 @@ class MigrationValidator(
         }
 
         // reCAPTCHA 검증 수행
-        val result = recaptchaService.verifyV3(recaptchaToken, minScore)
+        val verifyData = recaptchaService.verifyV3(recaptchaToken, minScore)
 
-        if (result is RecaptchaResponse.Error) {
-            logger.warn { "마이그레이션 reCAPTCHA 검증 실패 - 코드: ${result.errorCode}, 메시지: ${result.errorMessage}" }
-            throw BusinessException(UserErrorCode.RECAPTCHA_VERIFICATION_FAILED)
-        }
+        // 성공 시 로깅
+        logger.info { "마이그레이션 reCAPTCHA 검증 성공 - 점수: ${verifyData.score}" }
     }
 
     // TODO: 향후 구현될 추가 검증 메서드들

@@ -11,32 +11,12 @@ enum class RecaptchaErrorCode(
         HttpStatus.BAD_REQUEST,
         "reCAPTCHA 검증에 실패했습니다",
     ),
-    INVALID_TOKEN(
-        HttpStatus.BAD_REQUEST,
-        "유효하지 않은 reCAPTCHA 토큰입니다",
-    ),
-    TIMEOUT_OR_DUPLICATE(
-        HttpStatus.BAD_REQUEST,
-        "reCAPTCHA 토큰이 만료되었거나 이미 사용되었습니다",
-    ),
-    HOSTNAME_MISMATCH(
-        HttpStatus.BAD_REQUEST,
-        "reCAPTCHA 호스트명이 일치하지 않습니다",
-    ),
-    LOW_SCORE(
-        HttpStatus.BAD_REQUEST,
-        "reCAPTCHA 점수가 기준점 미달입니다",
-    ),
-    NETWORK_ERROR(
-        HttpStatus.INTERNAL_SERVER_ERROR,
-        "reCAPTCHA 서버 연결에 실패했습니다",
-    ),
     SYSTEM_ERROR(
         HttpStatus.INTERNAL_SERVER_ERROR,
-        "reCAPTCHA 시스템 오류가 발생했습니다",
+        "reCAPTCHA 검증 중 시스템 오류가 발생했습니다",
     ),
-    UNKNOWN(
-        HttpStatus.INTERNAL_SERVER_ERROR,
-        "reCAPTCHA 알 수 없는 오류가 발생했습니다",
+    TIMEOUT(
+        HttpStatus.REQUEST_TIMEOUT,
+        "reCAPTCHA 검증 요청 시간이 초과되었습니다",
     ),
 }

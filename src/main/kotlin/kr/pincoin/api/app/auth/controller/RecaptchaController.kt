@@ -23,16 +23,13 @@ class RecaptchaController(
     @PostMapping("/v2/verify")
     fun verifyV2(
         @Valid @RequestBody request: RecaptchaV2VerifyRequest
-    ): ResponseEntity<ApiResponse<RecaptchaTestResponse>> {
-        val data = recaptchaService.verifyV2(request.token)
-
-        val response = RecaptchaTestResponse(
+    ): ResponseEntity<ApiResponse<RecaptchaTestResponse>> =
+        RecaptchaTestResponse(
             message = "reCAPTCHA v2 검증 성공",
-            data = data,
+            data = recaptchaService.verifyV2(request.token),
         )
-
-        return ResponseEntity.ok(ApiResponse.of(response))
-    }
+            .let { ApiResponse.of(it) }
+            .let { ResponseEntity.ok(it) }
 
     /**
      * reCAPTCHA v3 검증 테스트
@@ -40,23 +37,23 @@ class RecaptchaController(
     @PostMapping("/v3/verify")
     fun verifyV3(
         @Valid @RequestBody request: RecaptchaV3VerifyRequest
-    ): ResponseEntity<ApiResponse<RecaptchaTestResponse>> {
-        val data = recaptchaService.verifyV3(request.token, request.minScore)
-
-        val response = RecaptchaTestResponse(
-            message = "reCAPTCHA v3 검증 성공 (점수: ${data.score})",
-            data = data,
-        )
-
-        return ResponseEntity.ok(ApiResponse.of(response))
-    }
+    ): ResponseEntity<ApiResponse<RecaptchaTestResponse>> =
+        recaptchaService.verifyV3(request.token, request.minScore)
+            .let { data ->
+                RecaptchaTestResponse(
+                    message = "reCAPTCHA v3 검증 성공 (점수: ${data.score})",
+                    data = data,
+                )
+            }
+            .let { ApiResponse.of(it) }
+            .let { ResponseEntity.ok(it) }
 
     /**
      * reCAPTCHA 상태 확인
      */
     @GetMapping("/status")
-    fun getStatus(): ResponseEntity<ApiResponse<RecaptchaStatusResponse>> {
-        val response = RecaptchaStatusResponse(
+    fun getStatus(): ResponseEntity<ApiResponse<RecaptchaStatusResponse>> =
+        RecaptchaStatusResponse(
             enabled = recaptchaProperties.enabled,
             message = if (recaptchaProperties.enabled) {
                 "reCAPTCHA 서비스가 활성화되어 있습니다"
@@ -64,7 +61,6 @@ class RecaptchaController(
                 "reCAPTCHA 서비스가 비활성화되어 있습니다 (개발/테스트 모드)"
             }
         )
-
-        return ResponseEntity.ok(ApiResponse.of(response))
-    }
+            .let { ApiResponse.of(it) }
+            .let { ResponseEntity.ok(it) }
 }

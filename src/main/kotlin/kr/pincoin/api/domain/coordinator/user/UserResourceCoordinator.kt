@@ -125,7 +125,6 @@ class UserResourceCoordinator(
         try {
             when (val response = keycloakUserService.deleteUser(keycloakUserId)) {
                 is KeycloakResponse.Success -> {
-                    logger.info { "보상 트랜잭션 성공: Keycloak 사용자 삭제 완료 - userId=$keycloakUserId" }
                 }
 
                 is KeycloakResponse.Error -> {

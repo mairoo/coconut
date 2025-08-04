@@ -71,7 +71,7 @@ class MigrationFacade(
 
                 // 3. 이미 마이그레이션된 사용자 확인
                 if (legacyUser.keycloakId != null) {
-                    logger.info { "이미 마이그레이션 완료된 사용자: email=${request.email}" }
+                    logger.warn { "이미 마이그레이션 완료된 사용자: email=${request.email}" }
                     throw BusinessException(UserErrorCode.ALREADY_MIGRATED)
                 }
 
@@ -168,7 +168,6 @@ class MigrationFacade(
             enabled = true,
         )) {
             is KeycloakResponse.Success -> {
-                logger.info { "마이그레이션용 Keycloak 사용자 생성 성공: email=${user.email}" }
                 response.data.userId
             }
 

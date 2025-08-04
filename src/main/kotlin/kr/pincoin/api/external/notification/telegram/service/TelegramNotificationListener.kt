@@ -59,9 +59,7 @@ class TelegramNotificationListener(
             telegramMessageApiClient.sendMessage(payload)
                 .subscribe(
                     { success ->
-                        if (success) {
-                            logger.info("텔레그램 알림 전송 성공")
-                        } else {
+                        if (!success) {
                             logger.warn("텔레그램 알림 전송 실패")
                         }
                     },

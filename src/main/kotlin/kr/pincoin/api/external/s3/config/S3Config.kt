@@ -1,6 +1,5 @@
 package kr.pincoin.api.external.s3.config
 
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kr.pincoin.api.external.s3.properties.S3Properties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -18,8 +17,6 @@ import java.time.Duration
 class S3Config(
     private val s3Properties: S3Properties,
 ) {
-    private val logger = KotlinLogging.logger {}
-
     @Bean
     fun s3Client(): S3Client {
         val credentialsProvider = StaticCredentialsProvider.create(
@@ -31,7 +28,6 @@ class S3Config(
             .credentialsProvider(credentialsProvider)
 
         s3Properties.endpoint?.let { endpoint ->
-            logger.info { "Using custom S3 endpoint: $endpoint" }
             builder.endpointOverride(URI.create(endpoint))
             builder.forcePathStyle(true)
         }
@@ -57,7 +53,6 @@ class S3Config(
             .httpClient(httpClient)
 
         s3Properties.endpoint?.let { endpoint ->
-            logger.info { "Using custom S3 endpoint (async): $endpoint" }
             builder.endpointOverride(URI.create(endpoint))
             builder.forcePathStyle(true)
         }
@@ -76,7 +71,6 @@ class S3Config(
             .credentialsProvider(credentialsProvider)
 
         s3Properties.endpoint?.let { endpoint ->
-            logger.info { "Using custom S3 endpoint (presigner): $endpoint" }
             builder.endpointOverride(URI.create(endpoint))
         }
 

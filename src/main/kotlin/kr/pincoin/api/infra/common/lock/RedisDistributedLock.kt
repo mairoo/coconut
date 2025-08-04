@@ -5,7 +5,7 @@ import org.springframework.data.redis.connection.ReturnType
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.stereotype.Component
 import java.time.Duration
-import java.util.UUID
+import java.util.*
 
 /**
  * Redis를 이용한 분산 락 유틸리티 클래스
@@ -19,12 +19,11 @@ class RedisDistributedLock(
 
     /**
      * 분산 락을 획득합니다.
-     *
-     * @param lockKey 락 키 이름
-     * @param timeout 락 유지 시간
-     * @return Pair(획득 성공 여부, 락 식별 값)
      */
-    fun acquire(lockKey: String, timeout: Duration): Pair<Boolean, String> {
+    fun acquire(
+        lockKey: String,
+        timeout: Duration,
+    ): Pair<Boolean, String> {
         val lockValue = UUID.randomUUID().toString()
 
         try {
@@ -41,12 +40,11 @@ class RedisDistributedLock(
     /**
      * 분산 락을 해제합니다.
      * 자신이 획득한 락만 해제할 수 있도록 lockValue를 확인합니다.
-     *
-     * @param lockKey 락 키 이름
-     * @param lockValue 락 획득 시 반환된 락 식별 값
-     * @return 락 해제 성공 여부
      */
-    fun release(lockKey: String, lockValue: String): Boolean {
+    fun release(
+        lockKey: String,
+        lockValue: String,
+    ): Boolean {
         if (lockValue.isEmpty()) {
             return false
         }
@@ -72,9 +70,7 @@ class RedisDistributedLock(
             }
 
             val success = result == 1L
-            if (success) {
-                logger.debug { "분산 락 해제 완료: $lockKey" }
-            } else {
+            if (!success) {
                 logger.warn { "분산 락 해제 실패: $lockKey (락이 이미 해제되었거나 다른 인스턴스에 의해 획득됨)" }
             }
 
@@ -98,12 +94,11 @@ class RedisDistributedLock(
 
     /**
      * 작업 완료 상태를 설정합니다.
-     *
-     * @param taskKey 작업 식별 키
-     * @param ttl 완료 상태 유지 시간
-     * @return 설정 성공 여부
      */
-    fun markTaskAsCompleted(taskKey: String, ttl: Duration): Boolean {
+    fun markTaskAsCompleted(
+        taskKey: String,
+        ttl: Duration,
+    ): Boolean {
         val completionKey = "$taskKey:completed"
         return try {
             redisTemplate.opsForValue().set(completionKey, "true", ttl)
@@ -117,22 +112,16 @@ class RedisDistributedLock(
     /**
      * 작업 완료 상태를 확인하고, 완료되지 않은 경우에만 락을 획득하여 작업을 실행합니다.
      * 작업 완료 후 완료 상태를 설정합니다.
-     *
-     * @param taskKey 작업 식별 키
-     * @param lockTimeout 락 유지 시간
-     * @param completionTtl 완료 상태 유지 시간
-     * @param action 실행할 작업
-     * @return 작업 실행 여부와 결과
      */
     fun <T> withCompletionTracking(
         taskKey: String,
         lockTimeout: Duration,
         completionTtl: Duration,
-        action: () -> T
+        action: () -> T,
     ): Pair<Boolean, T?> {
         // 1. 먼저 작업 완료 상태 확인
         if (isTaskCompleted(taskKey)) {
-            logger.info { "작업 [$taskKey]이(가) 이미 완료되었습니다." }
+            logger.warn { "작업 [$taskKey]이(가) 이미 완료되었습니다." }
             return false to null
         }
 
@@ -140,16 +129,14 @@ class RedisDistributedLock(
         val (acquired, lockValue) = acquire(taskKey, lockTimeout)
 
         if (!acquired) {
-            logger.info { "분산 락 획득 실패: $taskKey" }
+            logger.warn { "분산 락 획득 실패: $taskKey" }
             return false to null
         }
 
         return try {
-            logger.info { "분산 락 획득 성공: $taskKey" }
-
             // 3. 락 획득 후 다시 한번 완료 상태 확인 (경합 상태 방지)
             if (isTaskCompleted(taskKey)) {
-                logger.info { "락 획득 후 확인 결과, 작업 [$taskKey]이(가) 이미 완료되었습니다." }
+                logger.warn { "락 획득 후 확인 결과, 작업 [$taskKey]이(가) 이미 완료되었습니다." }
                 return false to null
             }
 

@@ -1,4 +1,10 @@
 package kr.pincoin.api.app.inventory.open.service
 
-class OpenProductService {
+import kr.pincoin.api.domain.inventory.service.ProductService
+import org.springframework.stereotype.Service
+
+@Service
+class OpenProductService(
+    private val productService: ProductService,
+) {
 }

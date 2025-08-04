@@ -7,8 +7,10 @@ import kr.pincoin.api.app.auth.response.RecaptchaStatusResponse
 import kr.pincoin.api.app.auth.response.RecaptchaTestResponse
 import kr.pincoin.api.external.auth.recaptcha.api.response.RecaptchaResponse
 import kr.pincoin.api.external.auth.recaptcha.error.RecaptchaErrorCode
+import kr.pincoin.api.external.auth.recaptcha.properties.RecaptchaProperties
 import kr.pincoin.api.external.auth.recaptcha.service.RecaptchaService
 import kr.pincoin.api.global.exception.BusinessException
+import kr.pincoin.api.global.response.success.ApiResponse
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
@@ -16,22 +18,25 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/open/recaptcha")
 class RecaptchaController(
     private val recaptchaService: RecaptchaService,
+    private val recaptchaProperties: RecaptchaProperties,
 ) {
     /**
      * reCAPTCHA v2 검증 테스트
      */
     @PostMapping("/v2/verify")
-    suspend fun verifyV2(
+    fun verifyV2(
         @Valid @RequestBody request: RecaptchaV2VerifyRequest
-    ): ResponseEntity<RecaptchaTestResponse> {
+    ): ResponseEntity<ApiResponse<RecaptchaTestResponse>> {
         val result = recaptchaService.verifyV2(request.token)
 
         return when (result) {
             is RecaptchaResponse.Success -> ResponseEntity.ok(
-                RecaptchaTestResponse(
-                    success = true,
-                    message = "reCAPTCHA v2 검증 성공",
-                    data = result.data,
+                ApiResponse.of(
+                    RecaptchaTestResponse(
+                        success = true,
+                        message = "reCAPTCHA v2 검증 성공",
+                        data = result.data,
+                    )
                 )
             )
 
@@ -45,17 +50,19 @@ class RecaptchaController(
      * reCAPTCHA v3 검증 테스트
      */
     @PostMapping("/v3/verify")
-    suspend fun verifyV3(
+    fun verifyV3(
         @Valid @RequestBody request: RecaptchaV3VerifyRequest
-    ): ResponseEntity<RecaptchaTestResponse> {
+    ): ResponseEntity<ApiResponse<RecaptchaTestResponse>> {
         val result = recaptchaService.verifyV3(request.token, request.minScore)
 
         return when (result) {
             is RecaptchaResponse.Success -> ResponseEntity.ok(
-                RecaptchaTestResponse(
-                    success = true,
-                    message = "reCAPTCHA v3 검증 성공 (점수: ${result.data.score})",
-                    data = result.data,
+                ApiResponse.of(
+                    RecaptchaTestResponse(
+                        success = true,
+                        message = "reCAPTCHA v3 검증 성공 (점수: ${result.data.score})",
+                        data = result.data,
+                    )
                 )
             )
 
@@ -69,13 +76,17 @@ class RecaptchaController(
      * reCAPTCHA 상태 확인
      */
     @GetMapping("/status")
-    fun getStatus(): ResponseEntity<RecaptchaStatusResponse> {
-        return ResponseEntity.ok(
-            RecaptchaStatusResponse(
-                enabled = true, // RecaptchaProperties에서 가져올 수 있지만 테스트용으로 하드코딩
-                message = "reCAPTCHA 서비스가 활성화되어 있습니다"
-            )
+    fun getStatus(): ResponseEntity<ApiResponse<RecaptchaStatusResponse>> {
+        val response = RecaptchaStatusResponse(
+            enabled = recaptchaProperties.enabled,
+            message = if (recaptchaProperties.enabled) {
+                "reCAPTCHA 서비스가 활성화되어 있습니다"
+            } else {
+                "reCAPTCHA 서비스가 비활성화되어 있습니다 (개발/테스트 모드)"
+            }
         )
+
+        return ResponseEntity.ok(ApiResponse.of(response))
     }
 
     /**

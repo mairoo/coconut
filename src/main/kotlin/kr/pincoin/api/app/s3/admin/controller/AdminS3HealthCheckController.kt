@@ -18,7 +18,7 @@ class AdminS3HealthCheckController(
      * 기본적인 버킷 접근 가능 여부만 확인
      */
     @GetMapping()
-    suspend fun quickHealthCheck(): ResponseEntity<ApiResponse<HealthCheckResponse>> =
+    fun quickHealthCheck(): ResponseEntity<ApiResponse<HealthCheckResponse>> =
         adminS3HealthCheckService.quickHealthCheck()
             .let { ApiResponse.of(it, message = "S3 연결이 정상입니다") }
             .let { ResponseEntity.ok(it) }
@@ -29,7 +29,7 @@ class AdminS3HealthCheckController(
      * 문제 발생시 상세한 진단 정보 제공
      */
     @GetMapping("/full")
-    suspend fun fullHealthCheck(): ResponseEntity<ApiResponse<HealthCheckResponse>> =
+    fun fullHealthCheck(): ResponseEntity<ApiResponse<HealthCheckResponse>> =
         adminS3HealthCheckService.performHealthCheck()
             .let { ApiResponse.of(it, message = "S3 전체 헬스체크가 성공적으로 완료되었습니다") }
             .let { ResponseEntity.ok(it) }

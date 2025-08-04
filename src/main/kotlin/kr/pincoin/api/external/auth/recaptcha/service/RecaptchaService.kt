@@ -1,9 +1,6 @@
 package kr.pincoin.api.external.auth.recaptcha.service
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.TimeoutCancellationException
-import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.*
 import kr.pincoin.api.external.auth.recaptcha.api.request.RecaptchaVerifyRequest
 import kr.pincoin.api.external.auth.recaptcha.api.response.RecaptchaResponse
 import kr.pincoin.api.external.auth.recaptcha.api.response.RecaptchaVerifyData
@@ -18,7 +15,26 @@ class RecaptchaService(
     /**
      * reCAPTCHA v2 검증
      */
-    suspend fun verifyV2(token: String): RecaptchaResponse<RecaptchaVerifyData> =
+    fun verifyV2(token: String): RecaptchaResponse<RecaptchaVerifyData> =
+        runBlocking {
+            verifyV2Internal(token)
+        }
+
+    /**
+     * reCAPTCHA v3 검증
+     */
+    fun verifyV3(
+        token: String,
+        minScore: Double? = null,
+    ): RecaptchaResponse<RecaptchaVerifyData> =
+        runBlocking {
+            verifyV3Internal(token, minScore)
+        }
+
+    /**
+     * reCAPTCHA v2 검증 내부 로직
+     */
+    private suspend fun verifyV2Internal(token: String): RecaptchaResponse<RecaptchaVerifyData> =
         withContext(Dispatchers.IO) {
             // enabled가 false인 경우 무조건 성공 반환
             if (!recaptchaProperties.enabled) {
@@ -50,9 +66,9 @@ class RecaptchaService(
         }
 
     /**
-     * reCAPTCHA v3 검증
+     * reCAPTCHA v3 검증 내부 로직
      */
-    suspend fun verifyV3(
+    private suspend fun verifyV3Internal(
         token: String,
         minScore: Double? = null,
     ): RecaptchaResponse<RecaptchaVerifyData> =

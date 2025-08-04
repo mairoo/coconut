@@ -16,10 +16,10 @@ class AdminS3FileController(
 ) {
     /**
      * 파일 정보 조회
-     * GET /open/s3/files/info?key=media/blog/2018-12-06/file.jpg
+     * GET /admin/s3/files/info?key=media/blog/2018-12-06/file.jpg
      */
     @GetMapping("/info")
-    suspend fun getFileInfo(
+    fun getFileInfo(
         @RequestParam("key") fileKey: String,
     ): ResponseEntity<ApiResponse<S3FileInfoResponse>> =
         adminS3FileService.getFileInfo(fileKey)

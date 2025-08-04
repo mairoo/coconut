@@ -11,24 +11,33 @@ import org.springframework.web.bind.annotation.*
 class AdminTotpController(
     private val adminTotpService: AdminTotpService,
 ) {
+    /**
+     * 특정 사용자의 2FA 상태 조회
+     */
     @GetMapping("/users/{targetUserEmail}/status")
-    suspend fun getUserTotpStatus(
+    fun getUserTotpStatus(
         @PathVariable targetUserEmail: String
     ): ResponseEntity<ApiResponse<TotpStatusResponse>> =
         adminTotpService.getTotpStatus(targetUserEmail)
             .let { ApiResponse.of(it) }
             .let { ResponseEntity.ok(it) }
 
+    /**
+     * 특정 사용자에게 2FA 설정 강제
+     */
     @PostMapping("/users/{targetUserEmail}/force-setup")
-    suspend fun forceUserTotpSetup(
+    fun forceUserTotpSetup(
         @PathVariable targetUserEmail: String,
     ): ResponseEntity<ApiResponse<String>> =
         adminTotpService.forceUserTotpSetup(targetUserEmail)
             .let { ApiResponse.of(it) }
             .let { ResponseEntity.ok(it) }
 
+    /**
+     * 특정 사용자의 2FA 강제 비활성화
+     */
     @DeleteMapping("/users/{targetUserEmail}/force-disable")
-    suspend fun forceDisableUserTotp(
+    fun forceDisableUserTotp(
         @PathVariable targetUserEmail: String,
     ): ResponseEntity<ApiResponse<String>> =
         adminTotpService.disableTotp(targetUserEmail)

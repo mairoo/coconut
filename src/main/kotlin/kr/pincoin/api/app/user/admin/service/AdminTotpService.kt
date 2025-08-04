@@ -1,5 +1,6 @@
 package kr.pincoin.api.app.user.admin.service
 
+import kotlinx.coroutines.runBlocking
 import kr.pincoin.api.app.user.common.response.TotpStatusResponse
 import kr.pincoin.api.domain.coordinator.user.TotpResourceCoordinator
 import org.springframework.security.access.prepost.PreAuthorize
@@ -21,10 +22,12 @@ class AdminTotpService(
      * - 사용자 지원 요청 시 상태 확인
      * - 보안 감사 및 리포팅
      */
-    suspend fun getTotpStatus(
+    fun getTotpStatus(
         targetUserEmail: String,
     ): TotpStatusResponse =
-        totpResourceCoordinator.getTotpStatus(targetUserEmail)
+        runBlocking {
+            totpResourceCoordinator.getTotpStatus(targetUserEmail)
+        }
 
     /**
      * 특정 사용자에게 2FA 설정 강제
@@ -48,10 +51,12 @@ class AdminTotpService(
      * - 설정 완료 전까지는 서비스 이용 불가
      * - 중요한 결정이므로 충분한 사전 안내 권장
      */
-    suspend fun forceUserTotpSetup(
+    fun forceUserTotpSetup(
         targetUserEmail: String,
     ): String =
-        totpResourceCoordinator.forceUserTotpSetup(targetUserEmail)
+        runBlocking {
+            totpResourceCoordinator.forceUserTotpSetup(targetUserEmail)
+        }
 
     /**
      * 특정 사용자의 2FA 강제 비활성화 (긴급 지원)
@@ -78,8 +83,10 @@ class AdminTotpService(
      * - 정당한 사유 없이 사용 금지
      * - 사용자에게 사전/사후 알림 필수
      */
-    suspend fun disableTotp(
+    fun disableTotp(
         targetUserEmail: String,
     ): String =
-        totpResourceCoordinator.disableTotp(targetUserEmail)
+        runBlocking {
+            totpResourceCoordinator.disableTotp(targetUserEmail)
+        }
 }

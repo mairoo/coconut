@@ -62,7 +62,9 @@ class KeycloakPasswordService(
      * 비밀번호 재설정 필수 액션 추가
      * 사용자가 다음 로그인 시 비밀번호 변경 화면 표시
      */
-    suspend fun addPasswordResetAction(userId: String): KeycloakResponse<KeycloakLogoutResponse> =
+    suspend fun addPasswordResetAction(
+        userId: String,
+    ): KeycloakResponse<KeycloakLogoutResponse> =
         withContext(Dispatchers.IO) {
             try {
                 withTimeout(keycloakProperties.timeout) {
@@ -89,7 +91,7 @@ class KeycloakPasswordService(
      */
     suspend fun validateCurrentPassword(
         email: String,
-        password: String
+        password: String,
     ): KeycloakResponse<KeycloakLogoutResponse> =
         withContext(Dispatchers.IO) {
             try {

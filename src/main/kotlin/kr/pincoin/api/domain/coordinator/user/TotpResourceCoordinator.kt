@@ -22,7 +22,7 @@ class TotpResourceCoordinator(
      */
     suspend fun forceUserTotpSetup(
         userEmail: String,
-    ) =
+    ): String =
         try {
             // 1. 사용자 조회
             val user = userService.findUser(UserSearchCriteria(email = userEmail, isActive = true))
@@ -34,7 +34,7 @@ class TotpResourceCoordinator(
             // 3. Keycloak에서 TOTP 필수 액션 추가
             when (val result = keycloakTotpService.addTotpRequiredAction(keycloakId)) {
                 is KeycloakResponse.Success -> {
-                    logger.info { "사용자 2FA 강제 설정 완료: email=$userEmail, keycloakId=$keycloakId" }
+                    "사용자 '$userEmail'에게 2FA 설정이 강제되었습니다. 해당 사용자는 다음 로그인 시 2FA 설정이 필요합니다."
                 }
 
                 is KeycloakResponse.Error -> {
@@ -103,7 +103,7 @@ class TotpResourceCoordinator(
             // 3. Keycloak에서 TOTP 인증정보 삭제
             when (val result = keycloakTotpService.deleteTotpCredential(keycloakId)) {
                 is KeycloakResponse.Success -> {
-                    logger.info { "사용자 2FA 비활성화 완료: email=$userEmail, keycloakId=$keycloakId" }
+                    "관리자에 의해 사용자 '$userEmail'의 2FA가 비활성화되었습니다. 보안을 위해 즉시 비밀번호 변경을 권장합니다."
                 }
 
                 is KeycloakResponse.Error -> {

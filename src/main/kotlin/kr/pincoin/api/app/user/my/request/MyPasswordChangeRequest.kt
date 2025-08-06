@@ -1,5 +1,6 @@
 package kr.pincoin.api.app.user.my.request
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Pattern
 
@@ -9,6 +10,7 @@ data class MyPasswordChangeRequest(
         regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*#?&])[A-Za-z\\d@$!%*#?&]{8,30}$",
         message = "비밀번호는 8~30자리이면서 영문, 숫자, 특수문자를 포함해야 합니다"
     )
+    @field:JsonProperty("currentPassword")
     val currentPassword: String,
 
 
@@ -17,5 +19,6 @@ data class MyPasswordChangeRequest(
         regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*#?&])[A-Za-z\\d@$!%*#?&]{8,30}$",
         message = "비밀번호는 8~30자리이면서 영문, 숫자, 특수문자를 포함해야 합니다"
     )
+    @field:JsonProperty("newPassword")
     val newPassword: String,
 )

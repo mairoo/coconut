@@ -6,13 +6,13 @@ import java.time.LocalDateTime
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class MigrationResponse(
-    @JsonProperty("message")
+    @field:JsonProperty("message")
     val message: String,
 
-    @JsonProperty("migratedAt")
+    @field:JsonProperty("migratedAt")
     val migratedAt: LocalDateTime? = null,
 
-    @JsonProperty("email")
+    @field:JsonProperty("email")
     val email: String? = null,
 ) {
     companion object {

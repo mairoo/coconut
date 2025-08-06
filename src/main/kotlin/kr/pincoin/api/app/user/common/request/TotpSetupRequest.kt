@@ -1,5 +1,6 @@
 package kr.pincoin.api.app.user.common.request
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Pattern
 
@@ -21,5 +22,6 @@ data class TotpSetupRequest(
         regexp = "^[0-9]{6}$",
         message = "OTP 코드는 6자리 숫자여야 합니다"
     )
+    @field:JsonProperty("otpCode")
     val otpCode: String
 )

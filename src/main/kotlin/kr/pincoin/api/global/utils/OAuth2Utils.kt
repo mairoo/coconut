@@ -198,45 +198,4 @@ object OAuth2Utils {
      */
     fun urlEncode(value: String): String =
         URLEncoder.encode(value, StandardCharsets.UTF_8)
-
-    /**
-     * Authorization URL에서 파라미터 추출
-     */
-    fun extractUrlParameters(url: String): Map<String, String> {
-        return try {
-            val uri = URI(url)
-            val query = uri.query ?: return emptyMap()
-
-            query.split("&")
-                .mapNotNull { param ->
-                    val parts = param.split("=", limit = 2)
-                    if (parts.size == 2) {
-                        parts[0] to parts[1]
-                    } else {
-                        null
-                    }
-                }
-                .toMap()
-        } catch (e: Exception) {
-            logger.warn { "URL 파라미터 추출 실패: $url - ${e.message}" }
-            emptyMap()
-        }
-    }
-
-    /**
-     * State 값 검증
-     */
-    fun validateState(
-        receivedState: String?,
-        expectedState: String,
-        clientInfo: ClientUtils.ClientInfo,
-    ) {
-        if (receivedState != expectedState) {
-            logger.warn {
-                "State 불일치 감지: received=$receivedState, expected=$expectedState, " +
-                        "ip=${clientInfo.ipAddress}, userAgent=${clientInfo.userAgent}"
-            }
-            throw BusinessException(UserErrorCode.INVALID_STATE_PARAMETER)
-        }
-    }
 }

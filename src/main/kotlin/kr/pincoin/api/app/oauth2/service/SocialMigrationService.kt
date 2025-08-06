@@ -76,6 +76,10 @@ class SocialMigrationService(
 
                 // 케이스 4: password(X) + keycloakId(X) → 소셜 전용 사용자 Keycloak 연동
                 !existingUser.hasPassword() && !existingUser.hasKeycloakId() -> {
+                    // Keycloak 연동 이외 별도 소셜 계정 데이터 저장 없음 = Keycloak 책임
+                    // - socialaccount_socialaccount
+                    // - socialaccount_socialtoken
+                    // - socialaccount_socialapp
                     handleSocialOnlyUserLink(existingUser, keycloakUserInfo)
                 }
 

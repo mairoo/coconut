@@ -12,6 +12,7 @@ import kr.pincoin.api.domain.user.error.UserErrorCode
 import kr.pincoin.api.external.auth.keycloak.api.response.KeycloakResponse
 import kr.pincoin.api.external.auth.keycloak.properties.KeycloakProperties
 import kr.pincoin.api.external.auth.keycloak.service.KeycloakTokenService
+import kr.pincoin.api.external.auth.keycloak.service.KeycloakUserService
 import kr.pincoin.api.global.exception.BusinessException
 import kr.pincoin.api.global.utils.ClientUtils
 import kr.pincoin.api.global.utils.OAuth2Utils
@@ -24,12 +25,11 @@ import java.util.concurrent.TimeUnit
 class OAuth2Service(
     private val keycloakProperties: KeycloakProperties,
     private val keycloakTokenService: KeycloakTokenService,
+    private val keycloakUserService: KeycloakUserService,
+    private val socialMigrationService: SocialMigrationService,
     private val authProperties: AuthProperties,
     private val redisTemplate: RedisTemplate<String, String>,
     private val objectMapper: ObjectMapper,
-    // TODO: 마이그레이션 서비스 의존성 추가
-    // private val socialMigrationService: SocialMigrationService,
-    // private val keycloakUserService: KeycloakUserService,
 ) {
     private val logger = KotlinLogging.logger {}
 
@@ -68,7 +68,7 @@ class OAuth2Service(
     }
 
     /**
-     * Authorization Code를 Access Token으로 교환 및 마이그레이션 처리
+     * Authorization Code를 Access Token으로 교환 및 소셜 마이그레이션 처리
      */
     fun exchangeCodeForToken(
         request: OAuth2CallbackRequest,
@@ -105,23 +105,24 @@ class OAuth2Service(
             }
         }
 
-        // TODO: Access Token으로 Keycloak 사용자 정보 조회
-        // val keycloakUserInfo = runBlocking {
-        //     keycloakUserService.getUserInfo(tokenResponse.accessToken)
-        // }
+        // Access Token으로 Keycloak 사용자 정보 조회
+        val keycloakUserInfo = runBlocking {
+            when (val result = keycloakUserService.getUserInfo(tokenResponse.accessToken)) {
+                is KeycloakResponse.Success -> result.data
+                is KeycloakResponse.Error -> {
+                    logger.error {
+                        "Keycloak 사용자 정보 조회 실패: ${result.errorCode} - ${result.errorMessage}"
+                    }
+                    throw BusinessException(UserErrorCode.USER_INFO_RETRIEVAL_FAILED)
+                }
+            }
+        }
 
-        // TODO: 소셜 로그인 마이그레이션 처리
-        // val migrationResult = socialMigrationService.handleUserMigration(
-        //     keycloakUserInfo = keycloakUserInfo,
-        //     tokenResponse = tokenResponse
-        // )
-
-        // TODO: 마이그레이션 상태에 따른 응답 구성
-        // return when (migrationResult.type) {
-        //     EXISTING_USER_MIGRATED -> OAuth2TokenResponse.from(tokenResponse, "COMPLETED", "계정이 안전하게 통합되었습니다")
-        //     NEW_USER_CREATED -> OAuth2TokenResponse.from(tokenResponse, "NEW_USER", "환영합니다! 새 계정이 생성되었습니다")
-        //     ALREADY_MIGRATED -> OAuth2TokenResponse.from(tokenResponse, "EXISTING", null)
-        // }
+        // 소셜 로그인 마이그레이션 처리
+        val migrationResult = socialMigrationService.handleUserMigration(
+            keycloakUserInfo = keycloakUserInfo,
+            tokenResponse = tokenResponse
+        )
 
         return OAuth2TokenResponse.from(tokenResponse)
     }

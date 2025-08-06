@@ -8,17 +8,12 @@ data class AuthProperties(
     val crypto: CryptoProperties = CryptoProperties(),
     val email: EmailProperties = EmailProperties(),
     val signup: SignupProperties = SignupProperties(),
+    val oauth2: OAuth2Properties = OAuth2Properties(),
 ) {
-    /**
-     * 암호화 관련 설정
-     */
     data class CryptoProperties(
         val secretKey: String = ""
     )
 
-    /**
-     * 이메일 관련 설정
-     */
     data class EmailProperties(
         val allowedDomains: List<String> = emptyList(),
         val blockedDomains: List<String> = emptyList()
@@ -54,9 +49,6 @@ data class AuthProperties(
         }
     }
 
-    /**
-     * 회원가입 관련 설정
-     */
     data class SignupProperties(
         val redis: SignupRedisProperties = SignupRedisProperties(),
         val limits: SignupLimitsProperties = SignupLimitsProperties(),
@@ -72,6 +64,15 @@ data class AuthProperties(
             val maxDailySignupsPerIp: Int = 3,
             val emailLockDuration: Duration = Duration.ofMinutes(5),
             val ipLimitResetDuration: Duration = Duration.ofHours(24),
+        )
+    }
+
+    data class OAuth2Properties(
+        val redis: OAuth2RedisProperties = OAuth2RedisProperties(),
+        val stateTtl: Duration = Duration.ofMinutes(10),
+    ) {
+        data class OAuth2RedisProperties(
+            val statePrefix: String = "oauth2:state:",
         )
     }
 }

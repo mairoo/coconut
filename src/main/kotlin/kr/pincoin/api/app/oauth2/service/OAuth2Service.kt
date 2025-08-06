@@ -119,10 +119,7 @@ class OAuth2Service(
         }
 
         // 소셜 로그인 마이그레이션 처리
-        val migrationResult = socialMigrationService.handleUserMigration(
-            keycloakUserInfo = keycloakUserInfo,
-            tokenResponse = tokenResponse
-        )
+        socialMigrationService.handleUserMigration(keycloakUserInfo = keycloakUserInfo)
 
         return OAuth2TokenResponse.from(tokenResponse)
     }
@@ -141,7 +138,7 @@ class OAuth2Service(
         val stateData = mapOf(
             "ipAddress" to clientInfo.ipAddress,
             "userAgent" to clientInfo.userAgent,
-            "createdAt" to LocalDateTime.now().toString()
+            "createdAt" to LocalDateTime.now().toString(),
         )
 
         val jsonData = objectMapper.writeValueAsString(stateData)
@@ -150,7 +147,7 @@ class OAuth2Service(
             key,
             jsonData,
             authProperties.oauth2.stateTtl.toMinutes(),
-            TimeUnit.MINUTES
+            TimeUnit.MINUTES,
         )
     }
 

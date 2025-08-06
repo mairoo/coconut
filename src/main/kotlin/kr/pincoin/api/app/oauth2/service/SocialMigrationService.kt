@@ -2,11 +2,9 @@ package kr.pincoin.api.app.oauth2.service
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kr.pincoin.api.app.auth.request.SignUpRequest
-import kr.pincoin.api.app.oauth2.vo.SocialMigrationResult
 import kr.pincoin.api.domain.user.error.UserErrorCode
 import kr.pincoin.api.domain.user.model.User
 import kr.pincoin.api.domain.user.service.UserService
-import kr.pincoin.api.external.auth.keycloak.api.response.KeycloakTokenResponse
 import kr.pincoin.api.external.auth.keycloak.api.response.KeycloakUserInfoResponse
 import kr.pincoin.api.global.exception.BusinessException
 import kr.pincoin.api.infra.user.repository.criteria.UserSearchCriteria
@@ -38,16 +36,13 @@ class SocialMigrationService(
     private val logger = KotlinLogging.logger {}
 
     /**
-     * 소셜 로그인 사용자 마이그레이션 처리
-     *
-     * 케이스별로 세분화된 처리 로직을 통해 다양한 사용자 상태를 안전하게 처리합니다.
+     * 소셜 로그인 사용자 마이그레이션 (필요 시)
      */
     @Transactional
     fun handleUserMigration(
         keycloakUserInfo: KeycloakUserInfoResponse,
-        tokenResponse: KeycloakTokenResponse,
-    ): SocialMigrationResult {
-        return try {
+    ) =
+        try {
             // 0. 사전 검증
             val email = validateAndExtractEmail(keycloakUserInfo)
 
@@ -76,7 +71,7 @@ class SocialMigrationService(
 
                 // 케이스 3: password(X) + keycloakId(O) → 정상 로그인
                 !existingUser.hasPassword() && existingUser.hasKeycloakId() -> {
-                    SocialMigrationResult.alreadyMigrated(existingUser)
+                    // 별도 처리 불필요, 이미 마이그레이션 완료된 상태
                 }
 
                 // 케이스 4: password(X) + keycloakId(X) → 소셜 전용 사용자 Keycloak 연동
@@ -90,7 +85,6 @@ class SocialMigrationService(
                     throw BusinessException(UserErrorCode.SYSTEM_ERROR)
                 }
             }
-
         } catch (e: BusinessException) {
             val email = keycloakUserInfo.email ?: "unknown"
             logger.error { "소셜 마이그레이션 오류: email=$email, error=${e.errorCode}" }
@@ -100,20 +94,21 @@ class SocialMigrationService(
             logger.error { "소셜 마이그레이션 예기치 못한 오류: email=$email, error=${e.message}" }
             throw BusinessException(UserErrorCode.SYSTEM_ERROR)
         }
-    }
 
     /**
      * 이메일 검증 및 추출
      *
      * 소셜 로그인을 통한 마이그레이션은 이메일이 검증된 계정만 허용합니다.
      */
-    private fun validateAndExtractEmail(keycloakUserInfo: KeycloakUserInfoResponse): String {
+    private fun validateAndExtractEmail(
+        keycloakUserInfo: KeycloakUserInfoResponse,
+    ): String {
         // 이메일 존재 여부 확인
         val email = keycloakUserInfo.email
             ?: throw BusinessException(UserErrorCode.EMAIL_NOT_PROVIDED)
 
         // 이메일 검증 상태 확인
-        if (keycloakUserInfo.emailVerified != true) {
+        if (!keycloakUserInfo.emailVerified) {
             logger.warn { "이메일 미검증 소셜 계정 마이그레이션 시도: email=$email" }
             throw BusinessException(UserErrorCode.EMAIL_NOT_VERIFIED)
         }
@@ -124,8 +119,10 @@ class SocialMigrationService(
     /**
      * 기존 사용자 조회
      */
-    private fun findExistingUser(email: String): User? {
-        return try {
+    private fun findExistingUser(
+        email: String,
+    ): User? =
+        try {
             userService.findUser(
                 UserSearchCriteria(email = email, isActive = true)
             )
@@ -135,7 +132,6 @@ class SocialMigrationService(
                 else -> throw e
             }
         }
-    }
 
     /**
      * 케이스 5: 신규 사용자 생성
@@ -144,20 +140,14 @@ class SocialMigrationService(
      */
     private fun handleNewUser(
         keycloakUserInfo: KeycloakUserInfoResponse,
-        email: String
-    ): SocialMigrationResult {
+        email: String,
+    ) {
         val keycloakId = UUID.fromString(keycloakUserInfo.sub)
 
-        val newUser = userService.createUser(
+        userService.createUser(
             request = createSignUpRequestFromKeycloak(keycloakUserInfo, email),
-            keycloakId = keycloakId
+            keycloakId = keycloakId,
         )
-
-        logger.info {
-            "신규 소셜 사용자 생성 완료: userId=${newUser.id}, email=${newUser.email}"
-        }
-
-        return SocialMigrationResult.newUserCreated(newUser)
     }
 
     /**
@@ -168,16 +158,14 @@ class SocialMigrationService(
     private fun handleSocialOnlyUserLink(
         existingUser: User,
         keycloakUserInfo: KeycloakUserInfoResponse
-    ): SocialMigrationResult {
+    ) {
         val keycloakId = UUID.fromString(keycloakUserInfo.sub)
 
-        val linkedUser = userService.linkKeycloak(
+        userService.linkKeycloak(
             userId = existingUser.id!!,
             keycloakId = keycloakId,
             clearPassword = false, // 이미 패스워드가 없으므로 clearPassword 불필요
         )
-
-        return SocialMigrationResult.existingUserMigrated(linkedUser)
     }
 
     /**
@@ -199,7 +187,11 @@ class SocialMigrationService(
     /**
      * User 엔티티 확장 함수들
      */
-    private fun User.hasPassword(): Boolean = password.isNotBlank()
+    private fun User.hasPassword(
+    ): Boolean =
+        password.isNotBlank()
 
-    private fun User.hasKeycloakId(): Boolean = keycloakId != null
+    private fun User.hasKeycloakId(
+    ): Boolean =
+        keycloakId != null
 }

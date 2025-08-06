@@ -8,18 +8,8 @@ import kr.pincoin.api.app.oauth2.response.OAuth2TokenResponse
 import kr.pincoin.api.app.oauth2.service.OAuth2Service
 import kr.pincoin.api.global.response.success.ApiResponse
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
-/**
- * OAuth2 Authorization Code Flow 인증 컨트롤러
- *
- * Keycloak의 OAuth2 로그인 URL을 생성하고
- * Authorization Code를 Access Token으로 교환하는 엔드포인트를 제공합니다.
- */
 @RestController
 @RequestMapping("/oauth2")
 class OAuth2Controller(
@@ -28,7 +18,11 @@ class OAuth2Controller(
     /**
      * OAuth2 로그인 URL 생성
      *
-     * 클라이언트가 사용자를 Keycloak 로그인 페이지로 리다이렉트할 수 있는 authorization URL을 생성하여 반환
+     * **주요 작업:**
+     * - Keycloak Authorization Server의 로그인 URL 생성
+     * - CSRF 방지를 위한 state 파라미터 생성 및 세션 저장
+     * - PKCE(Proof Key for Code Exchange) code_challenge 생성
+     * - 클라이언트 리다이렉션용 authorization URL 반환
      */
     @GetMapping("/login-url")
     fun getOAuth2LoginUrl(
@@ -42,7 +36,12 @@ class OAuth2Controller(
     /**
      * OAuth2 콜백 처리 및 토큰 교환
      *
-     * 프론트엔드에서 Keycloak으로부터 받은 Authorization Code를Access Token으로 교환
+     * **주요 작업:**
+     * 1. **보안 검증**: Authorization Code, state 파라미터 검증
+     * 2. **토큰 교환**: Authorization Code → Access Token + Refresh Token
+     * 3. **사용자 정보 획득**: Access Token으로 Keycloak에서 사용자 프로필 조회
+     * 4. **마이그레이션 처리**: 기존 레거시 사용자 계정을 Keycloak과 통합
+     * 5. **토큰 응답**: 클라이언트에 JWT 토큰 및 마이그레이션 상태 반환
      */
     @PostMapping("/callback")
     fun handleOAuth2Callback(

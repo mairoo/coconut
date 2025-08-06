@@ -15,13 +15,13 @@ import kr.pincoin.api.global.utils.ClientUtils
 import kr.pincoin.api.global.utils.OAuth2Utils
 import org.springframework.stereotype.Service
 
-/**
- * OAuth2 Authorization Code Flow 서비스
- */
 @Service
 class OAuth2Service(
     private val keycloakProperties: KeycloakProperties,
     private val keycloakTokenService: KeycloakTokenService,
+    // TODO: 마이그레이션 서비스 의존성 추가
+    // private val socialMigrationService: SocialMigrationService,
+    // private val keycloakUserService: KeycloakUserService,
 ) {
     private val logger = KotlinLogging.logger {}
 
@@ -57,7 +57,7 @@ class OAuth2Service(
     }
 
     /**
-     * Authorization Code를 Access Token으로 교환
+     * Authorization Code를 Access Token으로 교환 및 마이그레이션 처리
      */
     fun exchangeCodeForToken(
         request: OAuth2CallbackRequest,
@@ -75,7 +75,7 @@ class OAuth2Service(
         // TODO: state 검증 로직 추가 필요
         // OAuth2Utils.validateState(request.state, expectedState, clientInfo)
 
-        // KeycloakTokenService를 사용하여 토큰 교환
+        // Keycloak에서 토큰 교환
         val tokenResponse = runBlocking {
             when (val result = keycloakTokenService.exchangeAuthorizationCode(
                 code = request.code,
@@ -93,6 +93,24 @@ class OAuth2Service(
                 }
             }
         }
+
+        // TODO: Access Token으로 Keycloak 사용자 정보 조회
+        // val keycloakUserInfo = runBlocking {
+        //     keycloakUserService.getUserInfo(tokenResponse.accessToken)
+        // }
+
+        // TODO: 소셜 로그인 마이그레이션 처리
+        // val migrationResult = socialMigrationService.handleUserMigration(
+        //     keycloakUserInfo = keycloakUserInfo,
+        //     tokenResponse = tokenResponse
+        // )
+
+        // TODO: 마이그레이션 상태에 따른 응답 구성
+        // return when (migrationResult.type) {
+        //     EXISTING_USER_MIGRATED -> OAuth2TokenResponse.from(tokenResponse, "COMPLETED", "계정이 안전하게 통합되었습니다")
+        //     NEW_USER_CREATED -> OAuth2TokenResponse.from(tokenResponse, "NEW_USER", "환영합니다! 새 계정이 생성되었습니다")
+        //     ALREADY_MIGRATED -> OAuth2TokenResponse.from(tokenResponse, "EXISTING", null)
+        // }
 
         return OAuth2TokenResponse.from(tokenResponse)
     }

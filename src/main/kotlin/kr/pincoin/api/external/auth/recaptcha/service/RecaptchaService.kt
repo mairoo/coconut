@@ -2,6 +2,7 @@ package kr.pincoin.api.external.auth.recaptcha.service
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.*
+import kr.pincoin.api.app.auth.response.RecaptchaStatusResponse
 import kr.pincoin.api.external.auth.recaptcha.api.request.RecaptchaVerifyRequest
 import kr.pincoin.api.external.auth.recaptcha.api.response.RecaptchaResponse
 import kr.pincoin.api.external.auth.recaptcha.api.response.RecaptchaVerifyData
@@ -16,6 +17,19 @@ class RecaptchaService(
     private val recaptchaProperties: RecaptchaProperties,
 ) {
     private val logger = KotlinLogging.logger {}
+
+    /**
+     * reCAPTCHA 서비스 상태 조회
+     */
+    fun getStatus(): RecaptchaStatusResponse =
+        RecaptchaStatusResponse(
+            enabled = recaptchaProperties.enabled,
+            message = if (recaptchaProperties.enabled) {
+                "reCAPTCHA 서비스가 활성화되어 있습니다"
+            } else {
+                "reCAPTCHA 서비스가 비활성화되어 있습니다 (개발/테스트 모드)"
+            }
+        )
 
     /**
      * reCAPTCHA v2 검증

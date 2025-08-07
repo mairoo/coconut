@@ -12,28 +12,86 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.stereotype.Component
 
 /**
- * Keycloak JWT 토큰 검증을 위한 디코더
+ * Keycloak JWT를 Spring Security 인증 토큰으로 변환하는 컨버터
  *
  * ## 필요성
- * - Keycloak에서 발급한 JWT 토큰의 서명을 검증하여 토큰의 무결성과 신뢰성을 보장
- * - 위조되거나 변조된 토큰을 차단하여 애플리케이션 보안 강화
+ * - Keycloak의 JWT 구조와 Spring Security의 인증 토큰 구조가 다르므로 중간 변환 계층이 필요
+ * - 외부 시스템(Keycloak)과 내부 시스템(Spring Security) 간의 호환성을 제공
+ * - JWT의 클레임 정보를 기반으로 애플리케이션별 권한을 동적으로 부여
+ * - 일반 사용자와 Bot Service Account를 구분하여 각각에 적합한 권한 매핑 수행
  *
  * ## 주요 역할
- * 1. **서명 검증**: Keycloak의 공개키로 JWT 서명을 검증하여 토큰이 신뢰할 수 있는 발급처에서 생성되었는지 확인
- * 2. **토큰 파싱**: JWT 헤더, 페이로드, 서명을 분리하여 클레임 정보를 추출 가능한 형태로 변환
- * 3. **만료 검증**: 토큰의 유효기간(exp)을 확인하여 만료된 토큰을 거부
- * 4. **표준 검증**: JWT 표준에 따른 기본 검증 수행 (iss, aud, iat 등)
+ * 1. **사용자 식별**: JWT의 preferred_username, email, subject 클레임에서 사용자 정보 추출
+ * 2. **인증 토큰 타입 구분**: 일반 사용자 토큰 vs Service Account 토큰 구분
+ * 3. **권한 매핑**:
+ *    - 일반 사용자: 데이터베이스에서 사용자 역할 정보를 조회하여 권한 부여
+ *    - Service Account: clientId 기반으로 사전 정의된 Bot 권한 부여
+ * 4. **인증 토큰 생성**: JwtAuthenticationToken 객체로 변환하여 Spring Security Context에서 사용 가능하도록 함
+ * 5. **예외 처리**: 사용자 조회 실패나 알 수 없는 Service Account 시 기본 권한 부여하여 시스템 안정성 보장
  *
  * ## 적용된 패턴
- * - **Factory Pattern**: JwtDecoder 인스턴스 생성을 캡슐화하여 생성 로직을 분리
- * - **Builder Pattern**: NimbusJwtDecoder.withJwkSetUri()를 통해 단계적으로 디코더를 구성
+ * - **Adapter Pattern**: Keycloak JWT 구조를 Spring Security가 요구하는 인터페이스로 적응
+ *   - Target Interface: AbstractAuthenticationToken (Spring Security가 기대하는 인터페이스)
+ *   - Adaptee: Jwt (Keycloak이 제공하는 JWT 객체)
+ *   - Adapter: KeycloakJwtAuthenticationConverter (두 시스템을 연결하는 어댑터)
+ * - **Strategy Pattern**: 일반 사용자와 Service Account에 대해 서로 다른 권한 부여 전략 적용
+ * - **Template Method Pattern**: Spring의 Converter<Jwt, AbstractAuthenticationToken> 인터페이스 구현
  *
- * ## 동작 원리
+ * ## 동작 흐름
  * ```
- * 1. Keycloak JWKS 엔드포인트에서 공개키 정보 획득
- * 2. 클라이언트가 전송한 JWT 토큰의 서명을 공개키로 검증
- * 3. 서명이 유효하면 토큰을 파싱하여 Spring Security가 사용할 수 있는 형태로 변환
- * 4. 서명이 무효하면 JwtException 발생
+ * 1. JwtDecoder가 검증한 JWT 토큰을 입력으로 받음
+ * 2. JWT 클레임을 분석하여 Service Account인지 일반 사용자인지 구분
+ *    - Service Account 판별 조건: typ="Bearer" && preferred_username.endsWith("-service-account")
+ * 3-A. 일반 사용자의 경우:
+ *      - JWT 클레임에서 사용자 이메일 추출 (우선순위: preferred_username > email > subject)
+ *      - 이메일을 기반으로 데이터베이스에서 사용자 정보와 역할 조회
+ *      - 조회된 역할을 Spring Security의 GrantedAuthority로 변환
+ * 3-B. Service Account의 경우:
+ *      - JWT의 azp(Authorized Party) 클레임에서 clientId 추출
+ *      - clientId를 기반으로 사전 정의된 Bot 권한 매핑
+ * 4. JwtAuthenticationToken 생성하여 반환 (JWT 원본 + 권한 + 사용자명/clientId 포함)
+ * ```
+ *
+ * ## 권한 부여 전략
+ *
+ * ### 일반 사용자
+ * - **성공 시**: 데이터베이스의 실제 사용자 역할을 권한으로 부여 (ROLE_USER, ROLE_ADMIN)
+ * - **사용자 없음**: ROLE_USER 기본 권한 부여 (신규 사용자 고려)
+ * - **조회 실패**: ROLE_USER 기본 권한 부여 (시스템 안정성 우선)
+ *
+ * ### Service Account (Bot)
+ * - **api-bot-service**: ROLE_BOT + ROLE_API_READ + ROLE_API_WRITE (데이터 처리 Bot)
+ * - **monitoring-bot**: ROLE_BOT + ROLE_API_READ (모니터링 전용 Bot)
+ * - **admin-bot**: ROLE_BOT + ROLE_ADMIN (관리 작업 Bot)
+ * - **기타**: ROLE_BOT 기본 권한 (알 수 없는 Bot)
+ *
+ * ## Keycloak Service Account 설정 가이드
+ * ```
+ * Clients → Create Client
+ * ├── Client ID: api-bot-service (또는 monitoring-bot, admin-bot)
+ * ├── Client Authentication: ON
+ * ├── Service Accounts Roles: ON
+ * ├── Authentication flow: Service account roles만 체크
+ * └── Valid Redirect URIs: (비워둠, service account이므로 불필요)
+ * ```
+ *
+ * ## 주의사항
+ * - Service Account Roles는 자동으로 JWT에 포함되지 않으므로 clientId 기반 매핑 사용
+ * - Bot 권한은 코드에 하드코딩되어 있어 새로운 Bot 추가 시 getServiceAccountAuthorities() 메서드 수정 필요
+ * - 보안을 위해 알 수 없는 clientId는 최소 권한(ROLE_BOT)만 부여
+ * - Service Account 토큰 발급 시 client_credentials grant type 사용 필수
+ *
+ * ## 사용 예시
+ * ```kotlin
+ * // Controller에서 권한 체크
+ * @PreAuthorize("hasRole('USER')") // 일반 사용자
+ * fun userApi() { }
+ *
+ * @PreAuthorize("hasRole('BOT') and hasRole('API_WRITE')") // Bot 전용
+ * fun botApi() { }
+ *
+ * @PreAuthorize("hasRole('ADMIN')") // 관리자나 admin-bot
+ * fun adminApi() { }
  * ```
  */
 @Component
@@ -47,10 +105,73 @@ class KeycloakJwtAuthenticationConverter(
             ?: jwt.getClaimAsString("email")
             ?: jwt.subject
 
-        val authorities = getUserAuthorities(email)
+        val clientId = jwt.getClaimAsString("azp") // Authorized party (client)
 
-        return JwtAuthenticationToken(jwt, authorities, email)
+        val authorities = if (isServiceAccount(jwt)) {
+            getServiceAccountAuthorities(clientId)
+        } else {
+            getUserAuthorities(email)
+        }
+
+        return JwtAuthenticationToken(jwt, authorities, email ?: clientId)
     }
+
+    /**
+     * JWT 토큰이 Service Account(Bot)인지 판별
+     *
+     * ## 판별 조건
+     * - typ 클레임이 "Bearer"
+     * - preferred_username이 "-service-account"로 종료
+     *
+     * ## 토큰 예시
+     *
+     * ### 일반 사용자 토큰 (false 반환)
+     * ```json
+     * {
+     *   "typ": "Bearer",
+     *   "preferred_username": "user@example.com",
+     *   "email": "user@example.com",
+     *   "azp": "frontend-app"
+     * }
+     * ```
+     *
+     * ### Service Account 토큰 (true 반환)
+     * ```json
+     * {
+     *   "typ": "Bearer",
+     *   "preferred_username": "api-bot-service-service-account",
+     *   "azp": "api-bot-service"
+     * }
+     * ```
+     */
+    private fun isServiceAccount(
+        jwt: Jwt,
+    ): Boolean =
+        jwt.getClaimAsString("typ") == "Bearer" &&
+                jwt.getClaimAsString("preferred_username")?.endsWith("-service-account") == true
+
+    private fun getServiceAccountAuthorities(
+        clientId: String?,
+    ): Collection<GrantedAuthority> =
+        when (clientId) {
+            "api-bot-service" -> listOf(
+                SimpleGrantedAuthority("ROLE_BOT"),
+                SimpleGrantedAuthority("ROLE_API_READ"),
+                SimpleGrantedAuthority("ROLE_API_WRITE")
+            )
+
+            "monitoring-bot" -> listOf(
+                SimpleGrantedAuthority("ROLE_BOT"),
+                SimpleGrantedAuthority("ROLE_API_READ")
+            )
+
+            "admin-bot" -> listOf(
+                SimpleGrantedAuthority("ROLE_BOT"),
+                SimpleGrantedAuthority("ROLE_ADMIN")
+            )
+
+            else -> listOf(SimpleGrantedAuthority("ROLE_BOT"))
+        }
 
     private fun getUserAuthorities(email: String?): Collection<GrantedAuthority> {
         if (email.isNullOrBlank()) {

@@ -8,37 +8,37 @@ import java.util.*
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class UserResponse(
-    @JsonProperty("id")
+    @field:JsonProperty("id")
     val id: Int,
 
-    @JsonProperty("username")
+    @field:JsonProperty("username")
     val username: String,
 
-    @JsonProperty("firstName")
+    @field:JsonProperty("firstName")
     val firstName: String,
 
-    @JsonProperty("lastName")
+    @field:JsonProperty("lastName")
     val lastName: String,
 
-    @JsonProperty("email")
+    @field:JsonProperty("email")
     val email: String,
 
-    @JsonProperty("isActive")
+    @field:JsonProperty("isActive")
     val isActive: Boolean,
 
-    @JsonProperty("isStaff")
+    @field:JsonProperty("isStaff")
     val isStaff: Boolean,
 
-    @JsonProperty("isSuperuser")
+    @field:JsonProperty("isSuperuser")
     val isSuperuser: Boolean,
 
-    @JsonProperty("dateJoined")
+    @field:JsonProperty("dateJoined")
     val dateJoined: LocalDateTime,
 
-    @JsonProperty("lastLogin")
+    @field:JsonProperty("lastLogin")
     val lastLogin: LocalDateTime?,
 
-    @JsonProperty("keycloakId")
+    @field:JsonProperty("keycloakId")
     val keycloakId: UUID?,
 ) {
     companion object {

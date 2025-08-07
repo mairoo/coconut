@@ -1,5 +1,6 @@
 package kr.pincoin.api.app.user.admin.request
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Pattern
 
@@ -9,6 +10,7 @@ data class AdminPasswordChangeRequest(
         regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*#?&])[A-Za-z\\d@$!%*#?&]{8,30}$",
         message = "비밀번호는 8~30자리이면서 영문, 숫자, 특수문자를 포함해야 합니다"
     )
+    @field:JsonProperty("newPassword")
     val newPassword: String,
 
     /**
@@ -16,5 +18,6 @@ data class AdminPasswordChangeRequest(
      * true: 사용자가 다음 로그인 시 비밀번호 변경 필수
      * false: 영구 비밀번호로 설정
      */
+    @field:JsonProperty("temporary")
     val temporary: Boolean = false,
 )

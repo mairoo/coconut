@@ -12,37 +12,37 @@ data class OAuth2TokenResponse(
     /**
      * JWT Access Token
      */
-    @JsonProperty("accessToken")
+    @field:JsonProperty("accessToken")
     val accessToken: String,
 
     /**
      * JWT Refresh Token
      */
-    @JsonProperty("refreshToken")
+    @field:JsonProperty("refreshToken")
     val refreshToken: String,
 
     /**
      * ID Token (사용자 정보 포함)
      */
-    @JsonProperty("idToken")
+    @field:JsonProperty("idToken")
     val idToken: String,
 
     /**
      * 토큰 타입 (보통 "Bearer")
      */
-    @JsonProperty("tokenType")
+    @field:JsonProperty("tokenType")
     val tokenType: String = "Bearer",
 
     /**
      * Access Token 만료 시간 (초)
      */
-    @JsonProperty("expiresIn")
+    @field:JsonProperty("expiresIn")
     val expiresIn: Long,
 
     /**
      * 토큰 스코프
      */
-    @JsonProperty("scope")
+    @field:JsonProperty("scope")
     val scope: String,
 ) {
     companion object {

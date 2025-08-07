@@ -10,92 +10,92 @@ import java.time.LocalDateTime
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class MyUserProfileResponse(
     // User 필드
-    @JsonProperty("userId")
+    @field:JsonProperty("userId")
     val userId: Int,
 
-    @JsonProperty("username")
+    @field:JsonProperty("username")
     val username: String,
 
-    @JsonProperty("firstName")
+    @field:JsonProperty("firstName")
     val firstName: String,
 
-    @JsonProperty("lastName")
+    @field:JsonProperty("lastName")
     val lastName: String,
 
-    @JsonProperty("email")
+    @field:JsonProperty("email")
     val email: String,
 
-    @JsonProperty("isActive")
+    @field:JsonProperty("isActive")
     val isActive: Boolean,
 
-    @JsonProperty("dateJoined")
+    @field:JsonProperty("dateJoined")
     val dateJoined: LocalDateTime,
 
-    @JsonProperty("lastLogin")
+    @field:JsonProperty("lastLogin")
     val lastLogin: LocalDateTime?,
 
     // Profile 필드
-    @JsonProperty("address")
+    @field:JsonProperty("address")
     val address: String,
 
-    @JsonProperty("phone")
+    @field:JsonProperty("phone")
     val phone: String?,
 
-    @JsonProperty("phoneVerified")
+    @field:JsonProperty("phoneVerified")
     val phoneVerified: Boolean,
 
-    @JsonProperty("phoneVerifiedStatus")
+    @field:JsonProperty("phoneVerifiedStatus")
     val phoneVerifiedStatus: Int,
 
-    @JsonProperty("dateOfBirth")
+    @field:JsonProperty("dateOfBirth")
     val dateOfBirth: LocalDate?,
 
-    @JsonProperty("domestic")
+    @field:JsonProperty("domestic")
     val domestic: Int,
 
-    @JsonProperty("gender")
+    @field:JsonProperty("gender")
     val gender: Int,
 
-    @JsonProperty("telecom")
+    @field:JsonProperty("telecom")
     val telecom: String,
 
-    @JsonProperty("documentVerified")
+    @field:JsonProperty("documentVerified")
     val documentVerified: Boolean,
 
-    @JsonProperty("totalOrderCount")
+    @field:JsonProperty("totalOrderCount")
     val totalOrderCount: Int,
 
-    @JsonProperty("firstPurchased")
+    @field:JsonProperty("firstPurchased")
     val firstPurchased: LocalDateTime?,
 
-    @JsonProperty("lastPurchased")
+    @field:JsonProperty("lastPurchased")
     val lastPurchased: LocalDateTime?,
 
-    @JsonProperty("maxPrice")
+    @field:JsonProperty("maxPrice")
     val maxPrice: BigDecimal,
 
-    @JsonProperty("averagePrice")
+    @field:JsonProperty("averagePrice")
     val averagePrice: BigDecimal,
 
-    @JsonProperty("totalListPrice")
+    @field:JsonProperty("totalListPrice")
     val totalListPrice: BigDecimal,
 
-    @JsonProperty("totalSellingPrice")
+    @field:JsonProperty("totalSellingPrice")
     val totalSellingPrice: BigDecimal,
 
-    @JsonProperty("notPurchasedMonths")
+    @field:JsonProperty("notPurchasedMonths")
     val notPurchasedMonths: Boolean,
 
-    @JsonProperty("repurchased")
+    @field:JsonProperty("repurchased")
     val repurchased: LocalDateTime?,
 
-    @JsonProperty("memo")
+    @field:JsonProperty("memo")
     val memo: String,
 
-    @JsonProperty("mileage")
+    @field:JsonProperty("mileage")
     val mileage: BigDecimal,
 
-    @JsonProperty("allowOrder")
+    @field:JsonProperty("allowOrder")
     val allowOrder: Boolean,
 ) {
     companion object {

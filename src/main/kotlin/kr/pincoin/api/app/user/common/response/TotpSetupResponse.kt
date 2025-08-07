@@ -1,5 +1,7 @@
 package kr.pincoin.api.app.user.common.response
 
+import com.fasterxml.jackson.annotation.JsonProperty
+
 /**
  * TOTP 설정 시작 응답
  *
@@ -15,6 +17,7 @@ data class TotpSetupResponse(
      * 사용자가 Google Authenticator 등의 앱에서 QR 코드를 스캔할 때 사용됩니다.
      * 이 URL을 QR 코드로 변환하여 클라이언트에서 표시해야 합니다.
      */
+    @field:JsonProperty("qrCodeUrl")
     val qrCodeUrl: String,
 
     /**
@@ -24,6 +27,7 @@ data class TotpSetupResponse(
      * 일반적으로 4자리씩 띄어쓰기로 구분된 형태로 제공됩니다.
      * 예: "JBSW Y3DP EHPK 3PXP"
      */
+    @field:JsonProperty("manualEntryKey")
     val manualEntryKey: String,
 
     /**
@@ -33,6 +37,7 @@ data class TotpSetupResponse(
      * 각 코드는 한 번만 사용 가능하며, 사용자가 안전한 곳에 보관해야 합니다.
      * 일반적으로 8-10개의 코드를 제공합니다.
      */
+    @field:JsonProperty("backupCodes")
     val backupCodes: List<String>,
 
     /**
@@ -41,12 +46,14 @@ data class TotpSetupResponse(
      * 이 설정 세션이 만료되는 시간입니다.
      * 이 시간 이후에는 새로운 설정을 시작해야 합니다.
      */
+    @field:JsonProperty("expiresAt")
     val expiresAt: Long = System.currentTimeMillis() + (10 * 60 * 1000), // 10분 후
 
     /**
      * 발급자 이름
      * Google Authenticator 앱에서 표시될 서비스 이름입니다.
      */
+    @field:JsonProperty("issuer")
     val issuer: String = "PincoinAPI",
 ) {
     companion object {

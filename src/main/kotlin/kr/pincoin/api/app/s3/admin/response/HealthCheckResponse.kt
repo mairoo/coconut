@@ -6,19 +6,19 @@ import java.time.LocalDateTime
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class HealthCheckResponse(
-    @JsonProperty("status")
+    @field:JsonProperty("status")
     val status: String,
 
-    @JsonProperty("healthy")
+    @field:JsonProperty("healthy")
     val healthy: Boolean,
 
-    @JsonProperty("timestamp")
+    @field:JsonProperty("timestamp")
     val timestamp: String,
 
-    @JsonProperty("service")
+    @field:JsonProperty("service")
     val service: String,
 
-    @JsonProperty("checks")
+    @field:JsonProperty("checks")
     val checks: List<String>? = null,
 ) {
     companion object {

@@ -9,19 +9,19 @@ data class OAuth2LoginUrlResponse(
     /**
      * Keycloak authorization URL
      */
-    @JsonProperty("loginUrl")
+    @field:JsonProperty("loginUrl")
     val loginUrl: String,
 
     /**
      * CSRF 공격 방어용 state 값
      */
-    @JsonProperty("state")
+    @field:JsonProperty("state")
     val state: String,
 
     /**
      * 세션 만료 시간 (초 단위)
      */
-    @JsonProperty("expiresIn")
+    @field:JsonProperty("expiresIn")
     val expiresIn: Long = 600L,
 ) {
     companion object {

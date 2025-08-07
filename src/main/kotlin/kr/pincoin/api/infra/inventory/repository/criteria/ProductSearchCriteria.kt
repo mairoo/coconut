@@ -1,5 +1,7 @@
 package kr.pincoin.api.infra.inventory.repository.criteria
 
+import kr.pincoin.api.app.inventory.admin.request.AdminProductSearchRequest
+import kr.pincoin.api.app.inventory.open.request.OpenProductSearchRequest
 import java.math.BigDecimal
 
 data class ProductSearchCriteria(
@@ -27,4 +29,52 @@ data class ProductSearchCriteria(
     val maximumStockLevel: Int? = null,
     val stockQuantity: Int? = null,
     val isRemoved: Boolean? = null,
-)
+) {
+    companion object {
+        fun from(request: AdminProductSearchRequest) = ProductSearchCriteria(
+            productId = request.productId,
+            name = request.name,
+            subtitle = request.subtitle,
+            code = request.code,
+            listPrice = request.listPrice,
+            sellingPrice = request.sellingPrice,
+            description = request.description,
+            position = request.position,
+            status = request.status,
+            stock = request.stock,
+            categoryId = request.categoryId,
+            reviewCount = request.reviewCount,
+            naverPartner = request.naverPartner,
+            naverPartnerTitle = request.naverPartnerTitle,
+            minimumStockLevel = request.minimumStockLevel,
+            pg = request.pg,
+            pgSellingPrice = request.pgSellingPrice,
+            naverAttribute = request.naverAttribute,
+            naverPartnerTitlePg = request.naverPartnerTitlePg,
+            reviewCountPg = request.reviewCountPg,
+            maximumStockLevel = request.maximumStockLevel,
+            stockQuantity = request.stockQuantity,
+            isRemoved = request.isRemoved,
+        )
+
+        fun from(request: OpenProductSearchRequest) = ProductSearchCriteria(
+            productId = request.productId,
+            name = request.name,
+            subtitle = request.subtitle,
+            code = request.code,
+            description = request.description,
+            position = request.position,
+            status = request.status,
+            categoryId = request.categoryId,
+            reviewCount = request.reviewCount,
+            naverPartner = request.naverPartner,
+            naverPartnerTitle = request.naverPartnerTitle,
+            pg = request.pg,
+            pgSellingPrice = request.pgSellingPrice,
+            naverAttribute = request.naverAttribute,
+            naverPartnerTitlePg = request.naverPartnerTitlePg,
+            reviewCountPg = request.reviewCountPg,
+            isRemoved = request.isRemoved,
+        )
+    }
+}

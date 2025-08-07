@@ -2,7 +2,7 @@ package kr.pincoin.api.app.inventory.admin.response
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
-import kr.pincoin.api.infra.inventory.entity.ProductEntity
+import kr.pincoin.api.domain.inventory.model.Product
 import java.math.BigDecimal
 import java.time.LocalDateTime
 
@@ -12,10 +12,10 @@ data class AdminProductResponse(
     val id: Long,
 
     @field:JsonProperty("created")
-    val created: LocalDateTime,
+    val created: LocalDateTime?,
 
     @field:JsonProperty("modified")
-    val modified: LocalDateTime,
+    val modified: LocalDateTime?,
 
     @field:JsonProperty("isRemoved")
     val isRemoved: Boolean,
@@ -87,12 +87,12 @@ data class AdminProductResponse(
     val stockQuantity: Int,
 ) {
     companion object {
-        fun from(product: ProductEntity) = with(product) {
+        fun from(product: Product) = with(product) {
             AdminProductResponse(
                 id = id ?: throw IllegalStateException("상품 ID는 필수 입력값입니다"),
-                created = dateTimeFields.created,
-                modified = dateTimeFields.modified,
-                isRemoved = removalFields.isRemoved,
+                created = created,
+                modified = modified,
+                isRemoved = isRemoved,
                 name = name,
                 subtitle = subtitle.takeIf { it.isNotBlank() },
                 code = code,

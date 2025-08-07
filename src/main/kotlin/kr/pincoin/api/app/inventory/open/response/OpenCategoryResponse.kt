@@ -2,7 +2,7 @@ package kr.pincoin.api.app.inventory.open.response
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
-import kr.pincoin.api.infra.inventory.entity.CategoryEntity
+import kr.pincoin.api.domain.inventory.model.Category
 import java.math.BigDecimal
 import java.time.LocalDateTime
 
@@ -12,10 +12,10 @@ data class OpenCategoryResponse(
     val id: Long,
 
     @field:JsonProperty("created")
-    val created: LocalDateTime,
+    val created: LocalDateTime?,
 
     @field:JsonProperty("modified")
-    val modified: LocalDateTime,
+    val modified: LocalDateTime?,
 
     @field:JsonProperty("title")
     val title: String,
@@ -48,11 +48,11 @@ data class OpenCategoryResponse(
     val pgDiscountRate: BigDecimal,
 ) {
     companion object {
-        fun from(category: CategoryEntity) = with(category) {
+        fun from(category: Category) = with(category) {
             OpenCategoryResponse(
                 id = id ?: throw IllegalStateException("카테고리 ID는 필수 입력값입니다"),
-                created = dateTimeFields.created,
-                modified = dateTimeFields.modified,
+                created = created,
+                modified = modified,
                 title = title,
                 slug = slug,
                 thumbnail = thumbnail.takeIf { it.isNotBlank() },

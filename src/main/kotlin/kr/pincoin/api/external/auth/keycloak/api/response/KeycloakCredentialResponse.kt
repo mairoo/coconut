@@ -6,21 +6,21 @@ import com.fasterxml.jackson.annotation.JsonProperty
  * 사용자 인증정보 조회 응답
  */
 data class KeycloakCredentialResponse(
-    @JsonProperty("id")
+    @field:JsonProperty("id")
     val id: String,
 
-    @JsonProperty("type")
+    @field:JsonProperty("type")
     val type: String,
 
-    @JsonProperty("userLabel")
+    @field:JsonProperty("userLabel")
     val userLabel: String? = null,
 
-    @JsonProperty("createdDate")
+    @field:JsonProperty("createdDate")
     val createdDate: Long? = null,
 
-    @JsonProperty("secretData")
+    @field:JsonProperty("secretData")
     val secretData: String? = null,
 
-    @JsonProperty("credentialData")
+    @field:JsonProperty("credentialData")
     val credentialData: String? = null,
 )

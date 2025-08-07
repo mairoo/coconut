@@ -3,24 +3,24 @@ package kr.pincoin.api.app.inventory.open.request
 import com.fasterxml.jackson.annotation.JsonProperty
 
 data class OpenProductSearchRequest(
-    @JsonProperty("name")
+    @field:JsonProperty("name")
     val name: String? = null,
 
-    @JsonProperty("subtitle")
+    @field:JsonProperty("subtitle")
     val subtitle: String? = null,
 
-    @JsonProperty("code")
+    @field:JsonProperty("code")
     val code: String? = null,
 
-    @JsonProperty("position")
+    @field:JsonProperty("position")
     val position: Int? = null,
 
-    @JsonProperty("status")
+    @field:JsonProperty("status")
     val status: Int? = null,
 
-    @JsonProperty("stock")
+    @field:JsonProperty("stock")
     val stock: Int? = null,
 
-    @JsonProperty("isRemoved")
+    @field:JsonProperty("isRemoved")
     var isRemoved: Boolean? = null,
 )

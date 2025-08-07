@@ -3,15 +3,15 @@ package kr.pincoin.api.app.inventory.open.request
 import com.fasterxml.jackson.annotation.JsonProperty
 
 data class OpenCategorySearchRequest(
-    @JsonProperty("title")
+    @field:JsonProperty("title")
     var title: String? = null,
 
-    @JsonProperty("slug")
+    @field:JsonProperty("slug")
     val slug: String? = null,
 
-    @JsonProperty("parentId")
+    @field:JsonProperty("parentId")
     val parentId: Int? = null,
 
-    @JsonProperty("level")
+    @field:JsonProperty("level")
     val level: Int? = null,
 )

@@ -6,21 +6,21 @@ import com.fasterxml.jackson.annotation.JsonProperty
  * TOTP 설정 요청
  */
 data class KeycloakTotpSetupRequest(
-    @JsonProperty("type")
+    @field:JsonProperty("type")
     val type: String = "totp",
 
-    @JsonProperty("algorithm")
+    @field:JsonProperty("algorithm")
     val algorithm: String = "HmacSHA1",
 
-    @JsonProperty("digits")
+    @field:JsonProperty("digits")
     val digits: Int = 6,
 
-    @JsonProperty("period")
+    @field:JsonProperty("period")
     val period: Int = 30,
 
-    @JsonProperty("secretData")
+    @field:JsonProperty("secretData")
     val secretData: String, // JSON 문자열: {"value":"BASE32_SECRET"}
 
-    @JsonProperty("credentialData")
+    @field:JsonProperty("credentialData")
     val credentialData: String, // JSON 문자열: {"subType":"totp","digits":6,"period":30,"algorithm":"HmacSHA1"}
 )

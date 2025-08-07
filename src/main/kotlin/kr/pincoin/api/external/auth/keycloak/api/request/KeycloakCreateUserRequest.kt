@@ -13,38 +13,38 @@ import jakarta.validation.constraints.NotBlank
 data class KeycloakCreateUserRequest(
     // 필수 필드
     @field:NotBlank(message = "사용자명은 필수입니다")
-    @JsonProperty("username")
+    @field:JsonProperty("username")
     val username: String,
 
     // 선택 필드
     @field:Email(message = "올바른 이메일 형식이어야 합니다")
-    @JsonProperty("email")
+    @field:JsonProperty("email")
     val email: String,
 
-    @JsonProperty("firstName")
+    @field:JsonProperty("firstName")
     val firstName: String,
 
-    @JsonProperty("lastName")
+    @field:JsonProperty("lastName")
     val lastName: String? = null,
 
-    @JsonProperty("enabled")
+    @field:JsonProperty("enabled")
     val enabled: Boolean = true,
 
-    @JsonProperty("emailVerified")
+    @field:JsonProperty("emailVerified")
     val emailVerified: Boolean = false,
 
-    @JsonProperty("credentials")
+    @field:JsonProperty("credentials")
     val credentials: List<KeycloakCredential>? = null
 ) {
     data class KeycloakCredential(
-        @JsonProperty("type")
+        @field:JsonProperty("type")
         val type: String = "password",
 
-        @JsonProperty("value")
+        @field:JsonProperty("value")
         val value: String,
 
-        @JsonProperty("temporary")
-        val temporary: Boolean = false
+        @field:JsonProperty("temporary")
+        val temporary: Boolean = false,
     )
 
     companion object {

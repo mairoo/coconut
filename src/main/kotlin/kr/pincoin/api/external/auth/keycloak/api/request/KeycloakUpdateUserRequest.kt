@@ -5,22 +5,22 @@ import jakarta.validation.constraints.Email
 
 // 사용자 정보 수정
 data class KeycloakUpdateUserRequest(
-    @JsonProperty("firstName")
+    @field:JsonProperty("firstName")
     val firstName: String? = null,
 
-    @JsonProperty("lastName")
+    @field:JsonProperty("lastName")
     val lastName: String? = null,
 
     @field:Email(message = "올바른 이메일 형식이어야 합니다")
-    @JsonProperty("email")
+    @field:JsonProperty("email")
     val email: String? = null,
 
-    @JsonProperty("enabled")
+    @field:JsonProperty("enabled")
     val enabled: Boolean? = null,
 
-    @JsonProperty("emailVerified")
+    @field:JsonProperty("emailVerified")
     val emailVerified: Boolean? = null,
 
-    @JsonProperty("credentials")
+    @field:JsonProperty("credentials")
     val credentials: List<KeycloakCreateUserRequest.KeycloakCredential>? = null,
 )

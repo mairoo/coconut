@@ -7,31 +7,31 @@ import com.fasterxml.jackson.annotation.JsonProperty
  * 토큰 관련 데이터
  */
 data class KeycloakTokenResponse(
-    @JsonProperty("access_token")
+    @field:JsonProperty("access_token")
     val accessToken: String,
 
-    @JsonProperty("expires_in")
+    @field:JsonProperty("expires_in")
     val expiresIn: Long,
 
-    @JsonProperty("refresh_expires_in")
+    @field:JsonProperty("refresh_expires_in")
     val refreshExpiresIn: Long,
 
-    @JsonProperty("refresh_token")
+    @field:JsonProperty("refresh_token")
     val refreshToken: String? = null,
 
-    @JsonProperty("token_type")
+    @field:JsonProperty("token_type")
     val tokenType: String,
 
-    @JsonProperty("id_token")
+    @field:JsonProperty("id_token")
     val idToken: String? = null,
 
-    @JsonProperty("not_before_policy")
-    @JsonAlias("not-before-policy")
+    @field:JsonProperty("not_before_policy")
+    @field:JsonAlias("not-before-policy")
     val notBeforePolicy: Long? = null,
 
-    @JsonProperty("session_state")
+    @field:JsonProperty("session_state")
     val sessionState: String? = null,
 
-    @JsonProperty("scope")
+    @field:JsonProperty("scope")
     val scope: String? = null,
 )

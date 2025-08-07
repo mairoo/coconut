@@ -5,18 +5,18 @@ import com.fasterxml.jackson.annotation.JsonProperty
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class TelegramMessageResponse(
-    @JsonProperty("message_id")
+    @field:JsonProperty("message_id")
     val messageId: Long,
 
-    @JsonProperty("sender_chat")
+    @field:JsonProperty("sender_chat")
     val senderChat: TelegramChatResponse,
 
-    @JsonProperty("chat")
+    @field:JsonProperty("chat")
     val chat: TelegramChatResponse,
 
-    @JsonProperty("date")
+    @field:JsonProperty("date")
     val date: Long,
 
-    @JsonProperty("text")
-    val text: String
+    @field:JsonProperty("text")
+    val text: String,
 )

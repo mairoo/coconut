@@ -11,12 +11,12 @@ import com.fasterxml.jackson.annotation.JsonProperty
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class SlackMessageResponse(
-    @JsonProperty("ts")
+    @field:JsonProperty("ts")
     val ts: String,
 
-    @JsonProperty("channel")
+    @field:JsonProperty("channel")
     val channel: String,
 
-    @JsonProperty("message")
+    @field:JsonProperty("message")
     val message: SlackMessageDetail? = null
 )

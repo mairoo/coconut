@@ -6,21 +6,21 @@ import com.fasterxml.jackson.annotation.JsonProperty
  * Google reCAPTCHA API 응답
  */
 data class RecaptchaVerifyResponse(
-    @JsonProperty("success")
+    @field:JsonProperty("success")
     val success: Boolean,
 
-    @JsonProperty("challenge_ts")
+    @field:JsonProperty("challenge_ts")
     val challengeTs: String? = null,
 
-    @JsonProperty("hostname")
+    @field:JsonProperty("hostname")
     val hostname: String? = null,
 
-    @JsonProperty("error-codes")
+    @field:JsonProperty("error-codes")
     val errorCodes: List<String>? = null,
 
-    @JsonProperty("score")
+    @field:JsonProperty("score")
     val score: Double? = null, // v3용
 
-    @JsonProperty("action")
+    @field:JsonProperty("action")
     val action: String? = null, // v3용
 )

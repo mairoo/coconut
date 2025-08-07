@@ -5,12 +5,12 @@ import com.fasterxml.jackson.annotation.JsonProperty
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class MailgunResponse(
-    @JsonProperty("id")
+    @field:JsonProperty("id")
     val id: String? = null,
 
-    @JsonProperty("message")
+    @field:JsonProperty("message")
     val message: String? = null,
 
-    @JsonProperty("status")
-    val status: Int? = null
+    @field:JsonProperty("status")
+    val status: Int? = null,
 )

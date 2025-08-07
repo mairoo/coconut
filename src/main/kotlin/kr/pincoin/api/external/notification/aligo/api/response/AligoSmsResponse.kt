@@ -5,21 +5,21 @@ import com.fasterxml.jackson.annotation.JsonProperty
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class AligoSmsResponse(
-    @JsonProperty("result_code")
+    @field:JsonProperty("result_code")
     val resultCode: String,
 
-    @JsonProperty("message")
+    @field:JsonProperty("message")
     val message: String,
 
-    @JsonProperty("msg_id")
+    @field:JsonProperty("msg_id")
     val msgId: String,
 
-    @JsonProperty("success_cnt")
+    @field:JsonProperty("success_cnt")
     val successCount: String,
 
-    @JsonProperty("error_cnt")
+    @field:JsonProperty("error_cnt")
     val errorCount: String,
 
-    @JsonProperty("msg_type")
-    val msgType: String
+    @field:JsonProperty("msg_type")
+    val msgType: String,
 )

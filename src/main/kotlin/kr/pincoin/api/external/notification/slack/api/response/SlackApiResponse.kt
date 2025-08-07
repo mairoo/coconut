@@ -12,15 +12,15 @@ import com.fasterxml.jackson.annotation.JsonProperty
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class SlackApiResponse<T>(
-    @JsonProperty("ok")
+    @field:JsonProperty("ok")
     val ok: Boolean,
 
-    @JsonProperty("error")
+    @field:JsonProperty("error")
     val error: String? = null,
 
-    @JsonProperty("warning")
+    @field:JsonProperty("warning")
     val warning: String? = null,
 
-    @JsonProperty("result")
-    val result: T? = null
+    @field:JsonProperty("result")
+    val result: T? = null,
 )

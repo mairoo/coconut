@@ -14,21 +14,21 @@ import com.fasterxml.jackson.annotation.JsonProperty
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class SlackMessageDetail(
-    @JsonProperty("type")
+    @field:JsonProperty("type")
     val type: String = "message",
 
-    @JsonProperty("text")
+    @field:JsonProperty("text")
     val text: String,
 
-    @JsonProperty("user")
+    @field:JsonProperty("user")
     val user: String? = null,
 
-    @JsonProperty("team")
+    @field:JsonProperty("team")
     val team: String? = null,
 
-    @JsonProperty("bot_id")
+    @field:JsonProperty("bot_id")
     val botId: String? = null,
 
-    @JsonProperty("ts")
+    @field:JsonProperty("ts")
     val ts: String
 )

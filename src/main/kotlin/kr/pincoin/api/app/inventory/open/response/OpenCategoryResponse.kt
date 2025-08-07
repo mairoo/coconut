@@ -7,63 +7,63 @@ import java.time.LocalDateTime
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class OpenCategoryResponse(
-    @JsonProperty("id")
+    @field:JsonProperty("id")
     val id: Long?,
 
-    @JsonProperty("created")
+    @field:JsonProperty("created")
     val created: LocalDateTime?,
 
-    @JsonProperty("modified")
+    @field:JsonProperty("modified")
     val modified: LocalDateTime?,
 
-    @JsonProperty("title")
+    @field:JsonProperty("title")
     val title: String,
 
-    @JsonProperty("slug")
+    @field:JsonProperty("slug")
     val slug: String,
 
-    @JsonProperty("thumbnail")
+    @field:JsonProperty("thumbnail")
     val thumbnail: String,
 
-    @JsonProperty("description")
+    @field:JsonProperty("description")
     val description: String,
 
-    @JsonProperty("description1")
+    @field:JsonProperty("description1")
     val description1: String,
 
-    @JsonProperty("lft")
+    @field:JsonProperty("lft")
     val lft: Int,
 
-    @JsonProperty("rght")
+    @field:JsonProperty("rght")
     val rght: Int,
 
-    @JsonProperty("treeId")
+    @field:JsonProperty("treeId")
     val treeId: Int,
 
-    @JsonProperty("level")
+    @field:JsonProperty("level")
     val level: Int,
 
-    @JsonProperty("parentId")
+    @field:JsonProperty("parentId")
     val parentId: Long?,
 
-    @JsonProperty("storeId")
+    @field:JsonProperty("storeId")
     val storeId: Long,
 
-    @JsonProperty("discountRate")
+    @field:JsonProperty("discountRate")
     val discountRate: BigDecimal,
 
-    @JsonProperty("pg")
+    @field:JsonProperty("pg")
     val pg: Boolean,
 
-    @JsonProperty("pgDiscountRate")
+    @field:JsonProperty("pgDiscountRate")
     val pgDiscountRate: BigDecimal,
 
-    @JsonProperty("naverSearchTag")
+    @field:JsonProperty("naverSearchTag")
     val naverSearchTag: String,
 
-    @JsonProperty("naverBrandName")
+    @field:JsonProperty("naverBrandName")
     val naverBrandName: String,
 
-    @JsonProperty("naverMakerName")
+    @field:JsonProperty("naverMakerName")
     val naverMakerName: String,
 )

@@ -6,27 +6,27 @@ import com.fasterxml.jackson.annotation.JsonProperty
  * 사용자 정보 데이터
  */
 data class KeycloakUserResponse(
-    @JsonProperty("id")
+    @field:JsonProperty("id")
     val id: String,
 
-    @JsonProperty("username")
+    @field:JsonProperty("username")
     val username: String,
 
-    @JsonProperty("enabled")
+    @field:JsonProperty("enabled")
     val enabled: Boolean,
 
-    @JsonProperty("emailVerified")
+    @field:JsonProperty("emailVerified")
     val emailVerified: Boolean,
 
-    @JsonProperty("firstName")
+    @field:JsonProperty("firstName")
     val firstName: String? = null,
 
-    @JsonProperty("lastName")
+    @field:JsonProperty("lastName")
     val lastName: String? = null,
 
-    @JsonProperty("email")
+    @field:JsonProperty("email")
     val email: String? = null,
 
-    @JsonProperty("createdTimestamp")
+    @field:JsonProperty("createdTimestamp")
     val createdTimestamp: Long? = null,
 )

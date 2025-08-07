@@ -5,9 +5,9 @@ import com.fasterxml.jackson.annotation.JsonProperty
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class TelegramApiResponse<T>(
-    @JsonProperty("ok")
+    @field:JsonProperty("ok")
     val ok: Boolean,
 
-    @JsonProperty("result")
-    val result: T
+    @field:JsonProperty("result")
+    val result: T,
 )

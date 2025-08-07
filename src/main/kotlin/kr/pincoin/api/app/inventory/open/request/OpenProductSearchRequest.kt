@@ -1,8 +1,12 @@
 package kr.pincoin.api.app.inventory.open.request
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import java.math.BigDecimal
 
 data class OpenProductSearchRequest(
+    @field:JsonProperty("productId")
+    val productId: Long? = null,
+
     @field:JsonProperty("name")
     val name: String? = null,
 
@@ -12,15 +16,42 @@ data class OpenProductSearchRequest(
     @field:JsonProperty("code")
     val code: String? = null,
 
+    @field:JsonProperty("description")
+    val description: String? = null,
+
     @field:JsonProperty("position")
     val position: Int? = null,
 
     @field:JsonProperty("status")
     val status: Int? = null,
 
-    @field:JsonProperty("stock")
-    val stock: Int? = null,
+    @field:JsonProperty("categoryId")
+    val categoryId: Long? = null,
+
+    @field:JsonProperty("reviewCount")
+    val reviewCount: Int? = null,
+
+    @field:JsonProperty("naverPartner")
+    val naverPartner: Boolean? = null,
+
+    @field:JsonProperty("naverPartnerTitle")
+    val naverPartnerTitle: String? = null,
+
+    @field:JsonProperty("pg")
+    val pg: Boolean? = null,
+
+    @field:JsonProperty("pgSellingPrice")
+    val pgSellingPrice: BigDecimal? = null,
+
+    @field:JsonProperty("naverAttribute")
+    val naverAttribute: String? = null,
+
+    @field:JsonProperty("naverPartnerTitlePg")
+    val naverPartnerTitlePg: String? = null,
+
+    @field:JsonProperty("reviewCountPg")
+    val reviewCountPg: Int? = null,
 
     @field:JsonProperty("isRemoved")
-    var isRemoved: Boolean? = null,
+    val isRemoved: Boolean? = null,
 )

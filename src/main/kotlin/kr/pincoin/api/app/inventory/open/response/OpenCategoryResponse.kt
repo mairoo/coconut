@@ -2,19 +2,20 @@ package kr.pincoin.api.app.inventory.open.response
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
+import kr.pincoin.api.infra.inventory.entity.CategoryEntity
 import java.math.BigDecimal
 import java.time.LocalDateTime
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class OpenCategoryResponse(
     @field:JsonProperty("id")
-    val id: Long?,
+    val id: Long,
 
     @field:JsonProperty("created")
-    val created: LocalDateTime?,
+    val created: LocalDateTime,
 
     @field:JsonProperty("modified")
-    val modified: LocalDateTime?,
+    val modified: LocalDateTime,
 
     @field:JsonProperty("title")
     val title: String,
@@ -23,31 +24,19 @@ data class OpenCategoryResponse(
     val slug: String,
 
     @field:JsonProperty("thumbnail")
-    val thumbnail: String,
+    val thumbnail: String?,
 
     @field:JsonProperty("description")
-    val description: String,
+    val description: String?,
 
     @field:JsonProperty("description1")
-    val description1: String,
-
-    @field:JsonProperty("lft")
-    val lft: Int,
-
-    @field:JsonProperty("rght")
-    val rght: Int,
-
-    @field:JsonProperty("treeId")
-    val treeId: Int,
+    val description1: String?,
 
     @field:JsonProperty("level")
     val level: Int,
 
     @field:JsonProperty("parentId")
     val parentId: Long?,
-
-    @field:JsonProperty("storeId")
-    val storeId: Long,
 
     @field:JsonProperty("discountRate")
     val discountRate: BigDecimal,
@@ -57,13 +46,24 @@ data class OpenCategoryResponse(
 
     @field:JsonProperty("pgDiscountRate")
     val pgDiscountRate: BigDecimal,
-
-    @field:JsonProperty("naverSearchTag")
-    val naverSearchTag: String,
-
-    @field:JsonProperty("naverBrandName")
-    val naverBrandName: String,
-
-    @field:JsonProperty("naverMakerName")
-    val naverMakerName: String,
-)
+) {
+    companion object {
+        fun from(category: CategoryEntity) = with(category) {
+            OpenCategoryResponse(
+                id = id ?: throw IllegalStateException("카테고리 ID는 필수 입력값입니다"),
+                created = dateTimeFields.created,
+                modified = dateTimeFields.modified,
+                title = title,
+                slug = slug,
+                thumbnail = thumbnail.takeIf { it.isNotBlank() },
+                description = description.takeIf { it.isNotBlank() },
+                description1 = description1.takeIf { it.isNotBlank() },
+                level = level,
+                parentId = parentId,
+                discountRate = discountRate,
+                pg = pg,
+                pgDiscountRate = pgDiscountRate,
+            )
+        }
+    }
+}

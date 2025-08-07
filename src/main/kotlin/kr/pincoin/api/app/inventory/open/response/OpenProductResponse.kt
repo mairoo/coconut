@@ -2,19 +2,20 @@ package kr.pincoin.api.app.inventory.open.response
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
+import kr.pincoin.api.infra.inventory.entity.ProductEntity
 import java.math.BigDecimal
 import java.time.LocalDateTime
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class OpenProductResponse(
     @field:JsonProperty("id")
-    val id: Long?,
+    val id: Long,
 
     @field:JsonProperty("created")
-    val created: LocalDateTime?,
+    val created: LocalDateTime,
 
     @field:JsonProperty("modified")
-    val modified: LocalDateTime?,
+    val modified: LocalDateTime,
 
     @field:JsonProperty("isRemoved")
     val isRemoved: Boolean,
@@ -23,7 +24,7 @@ data class OpenProductResponse(
     val name: String,
 
     @field:JsonProperty("subtitle")
-    val subtitle: String,
+    val subtitle: String?,
 
     @field:JsonProperty("code")
     val code: String,
@@ -35,7 +36,7 @@ data class OpenProductResponse(
     val sellingPrice: BigDecimal,
 
     @field:JsonProperty("description")
-    val description: String,
+    val description: String?,
 
     @field:JsonProperty("position")
     val position: Int,
@@ -49,9 +50,6 @@ data class OpenProductResponse(
     @field:JsonProperty("categoryId")
     val categoryId: Long,
 
-    @field:JsonProperty("storeId")
-    val storeId: Long,
-
     @field:JsonProperty("reviewCount")
     val reviewCount: Int,
 
@@ -59,10 +57,13 @@ data class OpenProductResponse(
     val naverPartner: Boolean,
 
     @field:JsonProperty("naverPartnerTitle")
-    val naverPartnerTitle: String,
+    val naverPartnerTitle: String?,
 
-    @field:JsonProperty("minimumStockLevel")
-    val minimumStockLevel: Int,
+    @field:JsonProperty("naverAttribute")
+    val naverAttribute: String?,
+
+    @field:JsonProperty("naverPartnerTitlePg")
+    val naverPartnerTitlePg: String?,
 
     @field:JsonProperty("pg")
     val pg: Boolean,
@@ -70,18 +71,35 @@ data class OpenProductResponse(
     @field:JsonProperty("pgSellingPrice")
     val pgSellingPrice: BigDecimal,
 
-    @field:JsonProperty("naverAttribute")
-    val naverAttribute: String,
-
-    @field:JsonProperty("naverPartnerTitlePg")
-    val naverPartnerTitlePg: String,
-
     @field:JsonProperty("reviewCountPg")
     val reviewCountPg: Int,
-
-    @field:JsonProperty("maximumStockLevel")
-    val maximumStockLevel: Int,
-
-    @field:JsonProperty("stockQuantity")
-    val stockQuantity: Int,
-)
+) {
+    companion object {
+        fun from(product: ProductEntity) = with(product) {
+            OpenProductResponse(
+                id = id ?: throw IllegalStateException("상품 ID는 필수 입력값입니다"),
+                created = dateTimeFields.created,
+                modified = dateTimeFields.modified,
+                isRemoved = removalFields.isRemoved,
+                name = name,
+                subtitle = subtitle.takeIf { it.isNotBlank() },
+                code = code,
+                listPrice = listPrice,
+                sellingPrice = sellingPrice,
+                description = description.takeIf { it.isNotBlank() },
+                position = position,
+                status = status,
+                stock = stock,
+                categoryId = categoryId,
+                reviewCount = reviewCount,
+                naverPartner = naverPartner,
+                naverPartnerTitle = naverPartnerTitle.takeIf { it.isNotBlank() },
+                naverAttribute = naverAttribute.takeIf { it.isNotBlank() },
+                naverPartnerTitlePg = naverPartnerTitlePg.takeIf { it.isNotBlank() },
+                pg = pg,
+                pgSellingPrice = pgSellingPrice,
+                reviewCountPg = reviewCountPg,
+            )
+        }
+    }
+}

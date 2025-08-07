@@ -8,6 +8,7 @@ import kr.pincoin.api.global.security.handler.ApiAccessDeniedHandler
 import kr.pincoin.api.global.security.handler.ApiAuthenticationEntryPoint
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.core.annotation.Order
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
@@ -27,11 +28,20 @@ class SecurityConfig(
     private val keycloakJwtDecoder: KeycloakJwtDecoder,
     private val keycloakJwtAuthenticationConverter: KeycloakJwtAuthenticationConverter,
 ) {
-
+    // 공개 API용 SecurityFilterChain (JWT 검증 없음)
     @Bean
-    fun filterChain(http: HttpSecurity): SecurityFilterChain {
+    @Order(1)
+    fun publicApiFilterChain(http: HttpSecurity): SecurityFilterChain {
         return http
-            // 1. 기본 설정
+            .securityMatcher(
+                "/auth/**",
+                "/oauth2/**",
+                "/open/**",
+                "/webhooks/**",
+                "/actuator/health",
+                "/actuator/prometheus",
+                "/actuator/info"
+            )
             .cors { cors ->
                 cors.configurationSource(corsConfigurationSource())
             }
@@ -54,7 +64,40 @@ class SecurityConfig(
             .sessionManagement { session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             }
-            // 2. OAuth2 Resource Server 설정
+            .authorizeHttpRequests { auth ->
+                auth.anyRequest().permitAll()
+            }
+            .build()
+    }
+
+    // 보호된 API용 SecurityFilterChain (JWT 검증 포함)
+    @Bean
+    @Order(2)
+    fun protectedApiFilterChain(http: HttpSecurity): SecurityFilterChain {
+        return http
+            .cors { cors ->
+                cors.configurationSource(corsConfigurationSource())
+            }
+            .headers { headers ->
+                headers.defaultsDisabled()
+                headers.httpStrictTransportSecurity { hstsConfig ->
+                    hstsConfig
+                        .includeSubDomains(true)
+                        .maxAgeInSeconds(31536000)
+                        .preload(true)
+                }
+                headers.contentTypeOptions { }
+                headers.cacheControl { }
+            }
+            .csrf { it.disable() }
+            .formLogin { it.disable() }
+            .httpBasic { it.disable() }
+            .rememberMe { it.disable() }
+            .anonymous { it.disable() }
+            .sessionManagement { session ->
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            }
+            // OAuth2 Resource Server 설정 (보호된 경로만)
             .oauth2ResourceServer { oauth2 ->
                 oauth2.jwt { jwt ->
                     jwt.decoder(keycloakJwtDecoder.createDecoder())
@@ -63,24 +106,11 @@ class SecurityConfig(
                 oauth2.authenticationEntryPoint(authenticationEntryPoint)
                 oauth2.accessDeniedHandler(accessDeniedHandler)
             }
-            // 3. 권한 설정
             .authorizeHttpRequests { auth ->
                 auth
-                    .requestMatchers(
-                        "/actuator/health",
-                        "/actuator/prometheus",
-                        "/actuator/info"
-                    ).permitAll()
                     .requestMatchers("/actuator/**").denyAll()
-                    .requestMatchers(
-                        "/auth/**",
-                        "/oauth2/**",
-                        "/open/**",
-                        "/webhooks/**",
-                    ).permitAll()
                     .anyRequest().authenticated()
             }
-            // 4. 예외 처리
             .exceptionHandling { exception ->
                 exception
                     .authenticationEntryPoint(authenticationEntryPoint)

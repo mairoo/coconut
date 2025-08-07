@@ -28,11 +28,40 @@ class SecurityConfig(
     private val keycloakJwtDecoder: KeycloakJwtDecoder,
     private val keycloakJwtAuthenticationConverter: KeycloakJwtAuthenticationConverter,
 ) {
+    // 공통 설정 적용 함수
+    private fun HttpSecurity.applyCommonConfig(
+    ): HttpSecurity =
+        this
+            .cors { cors ->
+                cors.configurationSource(corsConfigurationSource())
+            }
+            .headers { headers ->
+                headers.defaultsDisabled()
+                headers.httpStrictTransportSecurity { hstsConfig ->
+                    hstsConfig
+                        .includeSubDomains(true)
+                        .maxAgeInSeconds(31536000)
+                        .preload(true)
+                }
+                headers.contentTypeOptions { }
+                headers.cacheControl { }
+            }
+            .csrf { it.disable() }
+            .formLogin { it.disable() }
+            .httpBasic { it.disable() }
+            .rememberMe { it.disable() }
+            .anonymous { it.disable() }
+            .sessionManagement { session ->
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            }
+
     // 공개 API용 SecurityFilterChain (JWT 검증 없음)
     @Bean
     @Order(1)
-    fun publicApiFilterChain(http: HttpSecurity): SecurityFilterChain {
-        return http
+    fun publicApiFilterChain(
+        http: HttpSecurity,
+    ): SecurityFilterChain =
+        http
             .securityMatcher(
                 "/auth/**",
                 "/oauth2/**",
@@ -42,62 +71,20 @@ class SecurityConfig(
                 "/actuator/prometheus",
                 "/actuator/info"
             )
-            .cors { cors ->
-                cors.configurationSource(corsConfigurationSource())
-            }
-            .headers { headers ->
-                headers.defaultsDisabled()
-                headers.httpStrictTransportSecurity { hstsConfig ->
-                    hstsConfig
-                        .includeSubDomains(true)
-                        .maxAgeInSeconds(31536000)
-                        .preload(true)
-                }
-                headers.contentTypeOptions { }
-                headers.cacheControl { }
-            }
-            .csrf { it.disable() }
-            .formLogin { it.disable() }
-            .httpBasic { it.disable() }
-            .rememberMe { it.disable() }
-            .anonymous { it.disable() }
-            .sessionManagement { session ->
-                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            }
+            .applyCommonConfig()
             .authorizeHttpRequests { auth ->
                 auth.anyRequest().permitAll()
             }
             .build()
-    }
 
     // 보호된 API용 SecurityFilterChain (JWT 검증 포함)
     @Bean
     @Order(2)
-    fun protectedApiFilterChain(http: HttpSecurity): SecurityFilterChain {
-        return http
-            .cors { cors ->
-                cors.configurationSource(corsConfigurationSource())
-            }
-            .headers { headers ->
-                headers.defaultsDisabled()
-                headers.httpStrictTransportSecurity { hstsConfig ->
-                    hstsConfig
-                        .includeSubDomains(true)
-                        .maxAgeInSeconds(31536000)
-                        .preload(true)
-                }
-                headers.contentTypeOptions { }
-                headers.cacheControl { }
-            }
-            .csrf { it.disable() }
-            .formLogin { it.disable() }
-            .httpBasic { it.disable() }
-            .rememberMe { it.disable() }
-            .anonymous { it.disable() }
-            .sessionManagement { session ->
-                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            }
-            // OAuth2 Resource Server 설정 (보호된 경로만)
+    fun protectedApiFilterChain(
+        http: HttpSecurity,
+    ): SecurityFilterChain =
+        http
+            .applyCommonConfig()
             .oauth2ResourceServer { oauth2 ->
                 oauth2.jwt { jwt ->
                     jwt.decoder(keycloakJwtDecoder.createDecoder())
@@ -117,7 +104,6 @@ class SecurityConfig(
                     .accessDeniedHandler(accessDeniedHandler)
             }
             .build()
-    }
 
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {

@@ -11,8 +11,8 @@ data class ErrorResponse(
     val error: String,
     val message: String,
     val path: String,
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    val errors: List<ValidationError>? = null
+    @field:JsonInclude(JsonInclude.Include.NON_NULL)
+    val errors: List<ValidationError>? = null,
 ) {
     data class ValidationError(
         val field: String,

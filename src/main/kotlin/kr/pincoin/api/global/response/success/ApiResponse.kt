@@ -8,7 +8,7 @@ data class ApiResponse<T>(
     val timestamp: Long = System.currentTimeMillis(),
     val status: Int,
     val message: String,
-    val data: T
+    val data: T,
 ) {
     companion object {
         fun <T> of(
@@ -18,7 +18,7 @@ data class ApiResponse<T>(
         ) = ApiResponse(
             status = status.value(),
             message = message,
-            data = data
+            data = data,
         )
     }
 }

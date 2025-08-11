@@ -16,7 +16,9 @@ class OAuth2Controller(
     private val oauth2Service: OAuth2Service,
 ) {
     /**
-     * OAuth2 로그인 URL 생성
+     * 범용 OAuth2 로그인 URL 생성
+     * **주의**
+     * - Next.js + NextAuth.js 연동에서는 불필요한 엔드포인트
      *
      * **주요 작업:**
      * - Keycloak Authorization Server의 로그인 URL 생성
@@ -35,6 +37,8 @@ class OAuth2Controller(
 
     /**
      * OAuth2 콜백 처리 및 토큰 교환
+     * **주의**
+     * - Next.js + NextAuth.js 연동에서는 불필요한 엔드포인트
      *
      * **주요 작업:**
      * 1. **보안 검증**: Authorization Code, state 파라미터 검증

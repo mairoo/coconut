@@ -12,7 +12,6 @@ import kr.pincoin.api.domain.user.error.UserErrorCode
 import kr.pincoin.api.external.auth.keycloak.api.response.KeycloakResponse
 import kr.pincoin.api.external.auth.keycloak.properties.KeycloakProperties
 import kr.pincoin.api.external.auth.keycloak.service.KeycloakTokenService
-import kr.pincoin.api.external.auth.keycloak.service.KeycloakUserService
 import kr.pincoin.api.global.exception.BusinessException
 import kr.pincoin.api.global.utils.ClientUtils
 import kr.pincoin.api.global.utils.OAuth2Utils
@@ -25,8 +24,6 @@ import java.util.concurrent.TimeUnit
 class OAuth2Service(
     private val keycloakProperties: KeycloakProperties,
     private val keycloakTokenService: KeycloakTokenService,
-    private val keycloakUserService: KeycloakUserService,
-    private val socialMigrationService: SocialMigrationService,
     private val authProperties: AuthProperties,
     private val redisTemplate: RedisTemplate<String, String>,
     private val objectMapper: ObjectMapper,
@@ -104,22 +101,6 @@ class OAuth2Service(
                 }
             }
         }
-
-        // Access Token으로 Keycloak 사용자 정보 조회
-        val keycloakUserInfo = runBlocking {
-            when (val result = keycloakUserService.getUserInfo(tokenResponse.accessToken)) {
-                is KeycloakResponse.Success -> result.data
-                is KeycloakResponse.Error -> {
-                    logger.error {
-                        "Keycloak 사용자 정보 조회 실패: ${result.errorCode} - ${result.errorMessage}"
-                    }
-                    throw BusinessException(UserErrorCode.USER_INFO_RETRIEVAL_FAILED)
-                }
-            }
-        }
-
-        // 소셜 로그인 마이그레이션 처리
-        socialMigrationService.handleUserMigration(keycloakUserInfo = keycloakUserInfo)
 
         return OAuth2TokenResponse.from(tokenResponse)
     }

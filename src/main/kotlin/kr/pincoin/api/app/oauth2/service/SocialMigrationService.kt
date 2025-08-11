@@ -2,14 +2,18 @@ package kr.pincoin.api.app.oauth2.service
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kr.pincoin.api.app.auth.request.SignUpRequest
+import kr.pincoin.api.app.oauth2.response.SocialMigrationResponse
 import kr.pincoin.api.domain.user.error.UserErrorCode
 import kr.pincoin.api.domain.user.model.User
 import kr.pincoin.api.domain.user.service.UserService
 import kr.pincoin.api.external.auth.keycloak.api.response.KeycloakUserInfoResponse
 import kr.pincoin.api.global.exception.BusinessException
 import kr.pincoin.api.infra.user.repository.criteria.UserSearchCriteria
+import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDateTime
 import java.util.*
 
 /**
@@ -198,4 +202,103 @@ class SocialMigrationService(
     private fun User.hasKeycloakId(
     ): Boolean =
         keycloakId != null
+
+    // SocialMigrationService.kt에 추가할 메소드들
+
+    /**
+     * JWT 토큰에서 사용자 정보 추출하여 마이그레이션 처리
+     *
+     * NextAuth.js에서 받은 Keycloak JWT 토큰을 기반으로 마이그레이션을 수행합니다.
+     */
+    @PreAuthorize("hasAuthority('SCOPE_openid')")
+    @Transactional
+    fun handleUserMigrationFromJwt(
+        jwt: Jwt
+    ): SocialMigrationResponse {
+        // JWT에서 Keycloak 사용자 정보 추출
+        val keycloakUserInfo = extractKeycloakUserInfoFromJwt(jwt)
+
+        try {
+            // 기존 마이그레이션 로직 재사용
+            handleUserMigration(keycloakUserInfo)
+
+            // 성공적인 마이그레이션 후 응답 생성
+            return createMigrationResponse(keycloakUserInfo)
+
+        } catch (e: BusinessException) {
+            when (e.errorCode) {
+                UserErrorCode.MIGRATION_REQUIRED -> {
+                    // 케이스 2: 수동 마이그레이션 필요
+                    val existingUser = findExistingUser(keycloakUserInfo.email!!)
+                    return SocialMigrationResponse.migrationRequired(
+                        userId = existingUser!!.id!!,
+                        email = existingUser.email
+                    )
+                }
+
+                else -> throw e
+            }
+        }
+    }
+
+    /**
+     * JWT 토큰에서 Keycloak 사용자 정보 추출
+     */
+    private fun extractKeycloakUserInfoFromJwt(
+        jwt: Jwt
+    ): KeycloakUserInfoResponse {
+        return KeycloakUserInfoResponse(
+            sub = jwt.getClaimAsString("sub")
+                ?: throw BusinessException(UserErrorCode.USER_INFO_RETRIEVAL_FAILED),
+            email = jwt.getClaimAsString("email"),
+            emailVerified = jwt.getClaimAsBoolean("email_verified") ?: false,
+            preferredUsername = jwt.getClaimAsString("preferred_username")
+                ?: jwt.getClaimAsString("username"),
+            givenName = jwt.getClaimAsString("given_name"),
+            familyName = jwt.getClaimAsString("family_name"),
+            name = jwt.getClaimAsString("name")
+        )
+    }
+
+    /**
+     * 마이그레이션 완료 후 응답 생성
+     */
+    private fun createMigrationResponse(
+        keycloakUserInfo: KeycloakUserInfoResponse
+    ): SocialMigrationResponse {
+        val email = keycloakUserInfo.email!!
+        val user = findExistingUser(email)!!
+        val keycloakId = keycloakUserInfo.sub
+
+        return when {
+            // 신규 사용자인 경우 (방금 생성됨)
+            user.keycloakId.toString() == keycloakId && user.dateJoined.isAfter(
+                LocalDateTime.now().minusMinutes(1)
+            ) -> {
+                SocialMigrationResponse.newUser(
+                    userId = user.id!!,
+                    email = email,
+                    keycloakId = keycloakId
+                )
+            }
+
+            // 기존 소셜 전용 사용자와 연동된 경우
+            user.keycloakId.toString() == keycloakId && !user.hasPassword() -> {
+                SocialMigrationResponse.linked(
+                    userId = user.id!!,
+                    email = email,
+                    keycloakId = keycloakId
+                )
+            }
+
+            // 이미 연동된 사용자
+            else -> {
+                SocialMigrationResponse.alreadyLinked(
+                    userId = user.id!!,
+                    email = email,
+                    keycloakId = keycloakId
+                )
+            }
+        }
+    }
 }

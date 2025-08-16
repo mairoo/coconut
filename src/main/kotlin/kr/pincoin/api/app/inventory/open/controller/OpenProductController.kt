@@ -51,7 +51,7 @@ class OpenProductController(
         request: OpenProductSearchRequest,
     ): ResponseEntity<ApiResponse<List<OpenProductResponse>>> =
         openProductService.getProductList(
-            request.copy(categoryId = categoryId)
+            request.copy(categoryId = categoryId, status = 0)
         )
             .map(OpenProductResponse::from)
             .let { ApiResponse.of(it) }

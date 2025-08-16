@@ -38,4 +38,16 @@ class OpenCategoryController(
             .let { OpenCategoryResponse.from(it) }
             .let { ApiResponse.of(it) }
             .let { ResponseEntity.ok(it) }
+
+    /**
+     * slug로 카테고리 상세 정보를 조회합니다.
+     */
+    @GetMapping("/slug/{slug}")
+    fun getCategoryBySlug(
+        @PathVariable slug: String,
+    ): ResponseEntity<ApiResponse<OpenCategoryResponse>> =
+        openCategoryService.getCategory(slug)
+            .let { OpenCategoryResponse.from(it) }
+            .let { ApiResponse.of(it) }
+            .let { ResponseEntity.ok(it) }
 }

@@ -35,9 +35,13 @@ class OpenCategoryService(
      * 조건에 맞는 카테고리 정보를 조회합니다.
      */
     fun getCategory(
-        request: OpenCategorySearchRequest,
+        slug: String,
     ): Category =
         categoryService.findCategory(
-            CategorySearchCriteria.from(request)
+            CategorySearchCriteria.from(
+                OpenCategorySearchRequest(
+                    slug = slug,
+                )
+            )
         )
 }

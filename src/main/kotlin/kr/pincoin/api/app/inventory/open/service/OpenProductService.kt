@@ -1,6 +1,7 @@
 package kr.pincoin.api.app.inventory.open.service
 
 import kr.pincoin.api.app.inventory.open.request.OpenProductSearchRequest
+import kr.pincoin.api.domain.inventory.enums.ProductStatus
 import kr.pincoin.api.domain.inventory.model.Product
 import kr.pincoin.api.domain.inventory.service.ProductService
 import kr.pincoin.api.infra.inventory.repository.criteria.ProductSearchCriteria
@@ -20,6 +21,19 @@ class OpenProductService(
             ProductSearchCriteria.from(request)
         )
 
+    fun getProductList(
+        categoryId: Long,
+        request: OpenProductSearchRequest,
+    ): List<Product> =
+        productService.findProducts(
+            ProductSearchCriteria.from(
+                request.copy(
+                    categoryId = categoryId,
+                    status = ProductStatus.ENABLED,
+                ),
+            )
+        )
+
     /**
      * 상품의 상세 정보를 조회합니다.
      */
@@ -29,15 +43,5 @@ class OpenProductService(
         productService.findProduct(
             productId,
             ProductSearchCriteria(),
-        )
-
-    /**
-     * 조건에 맞는 상품 정보를 조회합니다.
-     */
-    fun getProduct(
-        request: OpenProductSearchRequest,
-    ): Product =
-        productService.findProduct(
-            ProductSearchCriteria.from(request)
         )
 }

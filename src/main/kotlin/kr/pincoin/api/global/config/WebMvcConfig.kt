@@ -9,8 +9,13 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 class WebMvcConfig(
     private val currentUserArgumentResolver: CurrentUserArgumentResolver
 ) : WebMvcConfigurer {
-
+    /**
+     * 커스텀 메소드 파라미터 해석기 등록
+     */
     override fun addArgumentResolvers(resolvers: MutableList<HandlerMethodArgumentResolver>) {
+
+        // @CurrentUser 애노테이션이 붙은 파라미터에 현재 인증된 사용자 정보를 자동으로 주입
+        // 컨트롤러에서 SecurityContextHolder에서 직접 인증 정보를 가져오는 보일러플레이트 코드 제거
         resolvers.add(currentUserArgumentResolver)
     }
 }

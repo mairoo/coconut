@@ -1,7 +1,6 @@
 package kr.pincoin.api.app.auth.service
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import jakarta.servlet.http.HttpServletRequest
 import kr.pincoin.api.app.auth.request.SignUpRequest
 import kr.pincoin.api.domain.auth.properties.AuthProperties
 import kr.pincoin.api.domain.auth.utils.EmailUtils
@@ -61,17 +60,11 @@ class SignUpValidator(
      * 3. 이메일 중복 검증 (이미 가입된 이메일 차단) ← 추가
      * 4. IP별 가입 빈도 제한 검증 (브루트포스 공격 방어)
      * 5. 동시 가입 시도 방지 (같은 이메일로 중복 요청 차단)
-     *
-     * @param request 회원가입 요청 정보
-     * @param httpServletRequest HTTP 요청 정보 (클라이언트 정보 추출용)
-     * @throws BusinessException 검증 실패 시 적절한 에러 코드와 함께 발생
      */
     fun validateSignUpRequest(
         request: SignUpRequest,
-        httpServletRequest: HttpServletRequest,
+        clientInfo: ClientUtils.ClientInfo,
     ) {
-        val clientInfo = ClientUtils.getClientInfo(httpServletRequest)
-
         // 1. 무작위 회원 가입 공격 대응
         // 1-1. reCAPTCHA 검증
         validateRecaptcha(request.recaptchaToken)
@@ -99,10 +92,6 @@ class SignUpValidator(
      * 1. 토큰 존재 여부 확인
      * 2. reCAPTCHA 서비스 호출
      * 3. 성공 시 로그 기록 및 정상 진행
-     *
-     * @param recaptchaToken 클라이언트에서 전송된 reCAPTCHA 토큰
-     * @param minScore 최소 허용 점수 (0.0~1.0, 기본값 0.7)
-     * @throws BusinessException 토큰 누락 또는 검증 실패 시
      */
     private fun validateRecaptcha(
         recaptchaToken: String?,
@@ -210,9 +199,6 @@ class SignUpValidator(
      * **동시성 시나리오:**
      * - 첫 번째 요청: 락 획득 성공 → 프로세스 진행
      * - 두 번째 요청: 락 획득 실패 → SIGNUP_IN_PROGRESS 오류
-     *
-     * @param email 가입하려는 이메일 주소
-     * @throws BusinessException 동일 이메일로 이미 가입 진행 중인 경우
      */
     private fun preventConcurrentSignup(
         email: String,

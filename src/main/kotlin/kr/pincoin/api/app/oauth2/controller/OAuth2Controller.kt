@@ -1,12 +1,13 @@
 package kr.pincoin.api.app.oauth2.controller
 
-import jakarta.servlet.http.HttpServletRequest
 import kr.pincoin.api.app.oauth2.request.OAuth2CallbackRequest
 import kr.pincoin.api.app.oauth2.request.OAuth2LoginUrlRequest
 import kr.pincoin.api.app.oauth2.response.OAuth2LoginUrlResponse
 import kr.pincoin.api.app.oauth2.response.OAuth2TokenResponse
 import kr.pincoin.api.app.oauth2.service.OAuth2Service
 import kr.pincoin.api.global.response.success.ApiResponse
+import kr.pincoin.api.global.security.annotation.ClientInfo
+import kr.pincoin.api.global.utils.ClientUtils
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
@@ -29,9 +30,9 @@ class OAuth2Controller(
     @GetMapping("/login-url")
     fun getOAuth2LoginUrl(
         request: OAuth2LoginUrlRequest,
-        httpServletRequest: HttpServletRequest,
+        @ClientInfo clientInfo: ClientUtils.ClientInfo,
     ): ResponseEntity<ApiResponse<OAuth2LoginUrlResponse>> =
-        oauth2Service.generateLoginUrl(request.redirectUri, httpServletRequest)
+        oauth2Service.generateLoginUrl(request.redirectUri, clientInfo)
             .let { ApiResponse.of(it) }
             .let { ResponseEntity.ok(it) }
 
@@ -50,9 +51,9 @@ class OAuth2Controller(
     @PostMapping("/callback")
     fun handleOAuth2Callback(
         @RequestBody request: OAuth2CallbackRequest,
-        httpServletRequest: HttpServletRequest,
+        @ClientInfo clientInfo: ClientUtils.ClientInfo,
     ): ResponseEntity<ApiResponse<OAuth2TokenResponse>> =
-        oauth2Service.exchangeCodeForToken(request, httpServletRequest)
+        oauth2Service.exchangeCodeForToken(request, clientInfo)
             .let { ApiResponse.of(it) }
             .let { ResponseEntity.ok(it) }
 }

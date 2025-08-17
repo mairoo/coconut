@@ -1,7 +1,6 @@
 package kr.pincoin.api.app.auth.service
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import jakarta.servlet.http.HttpServletRequest
 import kotlinx.coroutines.runBlocking
 import kr.pincoin.api.app.auth.request.SignUpRequest
 import kr.pincoin.api.app.auth.response.SignUpCompletedResponse
@@ -12,6 +11,7 @@ import kr.pincoin.api.domain.coordinator.user.UserResourceCoordinator
 import kr.pincoin.api.domain.user.error.UserErrorCode
 import kr.pincoin.api.domain.user.service.UserService
 import kr.pincoin.api.global.exception.BusinessException
+import kr.pincoin.api.global.utils.ClientUtils
 import kr.pincoin.api.infra.user.repository.criteria.UserSearchCriteria
 import org.springframework.stereotype.Component
 import java.time.LocalDateTime
@@ -77,15 +77,10 @@ class SignUpFacade(
      *    - TTL 설정 (24시간)
      *
      * 4. IP별 가입 횟수 증가
-     *
-     * @param request 회원가입 요청 정보 (email, username, firstName, lastName, password, recaptchaToken)
-     * @param httpServletRequest HTTP 요청 정보 (IP, User-Agent, Accept-Language 추출용)
-     * @return 이메일 인증 안내 응답 (마스킹된 이메일, 만료시간 포함)
-     * @throws BusinessException 검증 실패, 이메일 발송 실패, 동시 요청 등의 경우
      */
     fun processSignUpRequest(
         request: SignUpRequest,
-        httpServletRequest: HttpServletRequest,
+        clientInfo: ClientUtils.ClientInfo,
     ): SignUpRequestedResponse {
         return runBlocking {
             try {
@@ -95,7 +90,7 @@ class SignUpFacade(
                 // 1-3. IP별 가입 빈도 제한 검증 (예, 3회/일)
                 // 1-4. 이메일 중복 검증 (이미 가입된 이메일 차단)
                 // 1-5. 동시 가입 시도 방지 (이메일 기준) - Redis 기반 중복 검증, 후진입은 conflict 오류 반환
-                signUpValidator.validateSignUpRequest(request, httpServletRequest)
+                signUpValidator.validateSignUpRequest(request, clientInfo)
 
                 // 2. 인증 이메일 발송
                 // 2-1. 이메일 검증 UUID 토큰 생성
@@ -106,7 +101,7 @@ class SignUpFacade(
                 signUpEmailService.sendVerificationEmail(
                     request.email,
                     verificationToken,
-                    httpServletRequest
+                    clientInfo,
                 )
 
                 // 3. Redis에 임시 데이터 저장
@@ -114,10 +109,10 @@ class SignUpFacade(
                 // 3-2. Redis에 임시 데이터 저장
                 // - 입력받은 회원정보(email, username, firstname, lastname, password)
                 // - TTL 설정 (예, 24시간)
-                signUpDataManager.saveTemporaryData(verificationToken, request, httpServletRequest)
+                signUpDataManager.saveTemporaryData(verificationToken, request, clientInfo)
 
                 // 4. IP별 가입 횟수 증가
-                signUpDataManager.incrementIpSignupCount(httpServletRequest)
+                signUpDataManager.incrementIpSignupCount(clientInfo)
 
                 SignUpRequestedResponse(
                     message = "인증 이메일이 발송되었습니다. 이메일을 확인해주세요.",
@@ -164,10 +159,6 @@ class SignUpFacade(
      * **데이터 일관성 보장:**
      * - 트랜잭션 경계: Keycloak 생성과 RDBMS 저장 간 분산 트랜잭션 관리
      * - 보상 트랜잭션: Keycloak 사용자 생성 성공 후 RDBMS 실패 시 Keycloak 사용자 삭제
-     *
-     * @param token 이메일 인증 토큰 (UUID)
-     * @return 회원가입 완료 응답 (실제 이메일, 사용자명, 완료시간 포함)
-     * @throws BusinessException 토큰 무효, 이메일 중복, Keycloak 연동 실패, DB 저장 실패 등의 경우
      */
     fun completeSignUp(token: String): SignUpCompletedResponse {
         return runBlocking {

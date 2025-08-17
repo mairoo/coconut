@@ -1,12 +1,13 @@
 package kr.pincoin.api.app.auth.controller
 
-import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import kr.pincoin.api.app.auth.request.SignUpRequest
 import kr.pincoin.api.app.auth.response.SignUpCompletedResponse
 import kr.pincoin.api.app.auth.response.SignUpRequestedResponse
 import kr.pincoin.api.app.auth.service.SignUpFacade
 import kr.pincoin.api.global.response.success.ApiResponse
+import kr.pincoin.api.global.security.annotation.ClientInfo
+import kr.pincoin.api.global.utils.ClientUtils
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
@@ -14,8 +15,7 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/auth")
 class AuthController(
     private val signUpFacade: SignUpFacade,
-
-    ) {
+) {
     /**
      * 1. 회원가입 요청 처리
      *
@@ -28,9 +28,9 @@ class AuthController(
     @PostMapping("/sign-up")
     fun signUp(
         @Valid @RequestBody request: SignUpRequest,
-        httpServletRequest: HttpServletRequest,
+        @ClientInfo clientInfo: ClientUtils.ClientInfo,
     ): ResponseEntity<ApiResponse<SignUpRequestedResponse>> =
-        signUpFacade.processSignUpRequest(request, httpServletRequest)
+        signUpFacade.processSignUpRequest(request, clientInfo)
             .let { ApiResponse.of(it) }
             .let { ResponseEntity.ok(it) }
 

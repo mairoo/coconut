@@ -2,7 +2,6 @@ package kr.pincoin.api.app.oauth2.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.github.oshai.kotlinlogging.KotlinLogging
-import jakarta.servlet.http.HttpServletRequest
 import kotlinx.coroutines.runBlocking
 import kr.pincoin.api.app.oauth2.request.OAuth2CallbackRequest
 import kr.pincoin.api.app.oauth2.response.OAuth2LoginUrlResponse
@@ -35,10 +34,8 @@ class OAuth2Service(
      */
     fun generateLoginUrl(
         redirectUri: String,
-        httpServletRequest: HttpServletRequest,
+        clientInfo: ClientUtils.ClientInfo,
     ): OAuth2LoginUrlResponse {
-        val clientInfo = ClientUtils.getClientInfo(httpServletRequest)
-
         // redirect_uri 보안 검증
         OAuth2Utils.validateRedirectUri(
             redirectUri = redirectUri,
@@ -69,10 +66,8 @@ class OAuth2Service(
      */
     fun exchangeCodeForToken(
         request: OAuth2CallbackRequest,
-        httpServletRequest: HttpServletRequest,
+        clientInfo: ClientUtils.ClientInfo,
     ): OAuth2TokenResponse {
-        val clientInfo = ClientUtils.getClientInfo(httpServletRequest)
-
         // redirect_uri 재검증
         OAuth2Utils.validateRedirectUri(
             redirectUri = request.redirectUri,

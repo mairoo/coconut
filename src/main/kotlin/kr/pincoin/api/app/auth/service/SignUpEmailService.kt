@@ -1,14 +1,13 @@
 package kr.pincoin.api.app.auth.service
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import jakarta.servlet.http.HttpServletRequest
 import kr.pincoin.api.app.auth.vo.EmailContent
 import kr.pincoin.api.domain.auth.properties.AuthProperties
 import kr.pincoin.api.domain.user.error.UserErrorCode
 import kr.pincoin.api.external.notification.mailgun.api.request.MailgunRequest
 import kr.pincoin.api.external.notification.mailgun.service.MailgunApiClient
 import kr.pincoin.api.global.exception.BusinessException
-import kr.pincoin.api.global.utils.DomainUtils
+import kr.pincoin.api.global.utils.ClientUtils
 import org.springframework.stereotype.Component
 
 /**
@@ -61,18 +60,13 @@ class SignUpEmailService(
      * - HTTP/HTTPS 자동 감지
      * - 요청 도메인 기반 동적 URL 생성
      * - 멀티 도메인 지원 (개발/스테이징/프로덕션)
-     *
-     * @param email 인증 이메일을 받을 주소
-     * @param token UUID 형태의 인증 토큰
-     * @param httpServletRequest HTTP 요청 정보 (도메인 추출용)
-     * @throws BusinessException 이메일 발송 실패 시 (회원가입 프로세스 중단)
      */
     suspend fun sendVerificationEmail(
         email: String,
         token: String,
-        httpServletRequest: HttpServletRequest,
+        clientInfo: ClientUtils.ClientInfo,
     ) {
-        val verificationUrl = buildVerificationUrl(token, httpServletRequest)
+        val verificationUrl = buildVerificationUrl(token, clientInfo)
         val emailContent = buildVerificationEmailContent(verificationUrl)
 
         val mailgunRequest = MailgunRequest(
@@ -107,9 +101,6 @@ class SignUpEmailService(
      * - 환영 이메일 실패는 회원가입 완료를 방해하지 않음
      * - 실패 시 경고 로그만 기록하고 계속 진행
      * - 향후 재발송 로직 구현 가능
-     *
-     * @param email 환영 이메일을 받을 주소
-     * @param firstName 개인화된 인사말에 사용할 이름
      */
     suspend fun sendWelcomeEmail(email: String, firstName: String) {
         val emailContent = buildWelcomeEmailContent(firstName)
@@ -133,24 +124,34 @@ class SignUpEmailService(
     /**
      * 인증 URL 생성
      *
-     * 요청 정보를 기반으로 이메일 인증 URL을 동적으로 생성합니다.
-     * 개발/스테이징/프로덕션 환경에 따라 적절한 도메인과 스키마를 사용합니다.
+     * 클라이언트 정보를 기반으로 이메일 인증 URL을 동적으로 생성합니다.
+     *
+     * **URL 생성 우선순위:**
+     * 1. 실제 요청 도메인 기반 URL (동적 생성)
+     * 2. 환경별 기본 URL (fallback)
      *
      * **URL 형식:**
      * - 개발: http://localhost:8080/auth/verify-email/{token}
      * - 프로덕션: https://api.example.com/auth/verify-email/{token}
-     *
-     * @param token 인증 토큰
-     * @param httpServletRequest HTTP 요청 정보
-     * @return 완전한 인증 URL
      */
     private fun buildVerificationUrl(
         token: String,
-        httpServletRequest: HttpServletRequest,
+        clientInfo: ClientUtils.ClientInfo,
     ): String {
-        val scheme = if (httpServletRequest.isSecure) "https" else "http"
-        val domain = DomainUtils.getRequestDomain(httpServletRequest)
-        return "$scheme://$domain/auth/verify-email/$token"
+        val baseUrl = when {
+            // 1. 실제 요청 도메인 기반 URL 생성 (가장 실용적)
+            clientInfo.requestDomain.isNotBlank() -> {
+                val dynamicUrl = clientInfo.getBaseUrl()
+                dynamicUrl
+            }
+
+            // 2. 최종 기본값 (프로덕션)
+            else -> {
+                "https://api.example.com"
+            }
+        }
+
+        return "$baseUrl/auth/verify-email/$token"
     }
 
     /**
@@ -165,9 +166,6 @@ class SignUpEmailService(
      * - 대체 링크 제공 (버튼 작동 안 할 경우)
      * - 보안 안내 (본인이 요청하지 않은 경우)
      * - 모바일 친화적 HTML 디자인
-     *
-     * @param verificationUrl 인증 URL
-     * @return 텍스트와 HTML 버전을 포함한 이메일 콘텐츠
      */
     private fun buildVerificationEmailContent(
         verificationUrl: String,
@@ -231,9 +229,6 @@ class SignUpEmailService(
      * - 서비스 이용 가능 안내
      * - 문의 연락처 제공
      * - 브랜드 일관성 있는 디자인
-     *
-     * @param firstName 사용자 이름
-     * @return 텍스트와 HTML 버전을 포함한 환영 이메일 콘텐츠
      */
     private fun buildWelcomeEmailContent(firstName: String): EmailContent {
         val text = """

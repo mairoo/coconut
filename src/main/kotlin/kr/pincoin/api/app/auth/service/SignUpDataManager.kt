@@ -2,7 +2,6 @@ package kr.pincoin.api.app.auth.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.github.oshai.kotlinlogging.KotlinLogging
-import jakarta.servlet.http.HttpServletRequest
 import kr.pincoin.api.app.auth.request.SignUpRequest
 import kr.pincoin.api.app.auth.vo.TemporarySignUpData
 import kr.pincoin.api.domain.auth.properties.AuthProperties
@@ -66,18 +65,12 @@ class SignUpDataManager(
      * - 비밀번호 AES 암호화 (스프링부트 백엔드 application.yaml 정의 암호화 키 사용)
      * - TTL 설정을 통한 자동 만료 (예, 24시간)
      * - JSON 직렬화를 통한 구조화된 저장
-     *
-     * @param token 이메일 인증 토큰 (UUID)
-     * @param request 회원가입 요청 정보 (이미 암호화된 비밀번호 포함)
-     * @param httpServletRequest HTTP 요청 정보 (클라이언트 정보 추출용)
      */
     fun saveTemporaryData(
         token: String,
         request: SignUpRequest,
-        httpServletRequest: HttpServletRequest,
+        clientInfo: ClientUtils.ClientInfo,
     ) {
-        val clientInfo = ClientUtils.getClientInfo(httpServletRequest)
-
         // 3-1. 비밀번호 AES 암호화 (스프링부트 백엔드 application.yaml 정의 암호화 키 사용)
         val encryptedPassword = cryptoUtils.encrypt(request.password)
 
@@ -112,10 +105,6 @@ class SignUpDataManager(
      *
      * 이메일 인증 토큰을 통해 임시 저장된 회원가입 데이터를 조회합니다.
      * 토큰 유효성과 데이터 무결성을 검증합니다.
-     *
-     * @param token 이메일 인증 토큰
-     * @return 임시 회원가입 데이터
-     * @throws BusinessException 토큰이 무효하거나 데이터 파싱 실패 시
      */
     fun getAndValidateTemporaryData(
         token: String,
@@ -145,9 +134,6 @@ class SignUpDataManager(
      * **정리 작업:**
      * 1. Redis에서 임시 데이터 즉시 삭제 (토큰 무효화)
      * 2. 동시 가입 시도 방지 락 해제
-     *
-     * @param token 이메일 인증 토큰
-     * @param email 가입 완료된 이메일 주소
      */
     fun cleanupAfterSignUp(token: String, email: String) {
         // 6. Redis에서 임시 데이터 즉시 삭제 (토큰 무효화)
@@ -167,11 +153,8 @@ class SignUpDataManager(
      * 1. IP별 카운터 증가 (Redis INCR)
      * 2. 첫 가입 시 TTL 설정 (24시간 후 자동 리셋)
      * 3. 기존 가입 시 TTL 연장하지 않음 (일일 리셋 유지)
-     *
-     * @param httpServletRequest HTTP 요청 정보 (IP 추출용)
      */
-    fun incrementIpSignupCount(httpServletRequest: HttpServletRequest) {
-        val clientInfo = ClientUtils.getClientInfo(httpServletRequest)
+    fun incrementIpSignupCount(clientInfo: ClientUtils.ClientInfo) {
         val key = "${authProperties.signup.redis.ipLimitPrefix}${clientInfo.ipAddress}"
 
         redisTemplate.opsForValue().increment(key)
@@ -182,9 +165,6 @@ class SignUpDataManager(
      * Redis에서 임시 회원가입 데이터 조회
      *
      * 토큰을 키로 사용하여 저장된 JSON 데이터를 조회하고 파싱합니다.
-     *
-     * @param token 이메일 인증 토큰
-     * @return 파싱된 임시 회원가입 데이터, 토큰이 무효하거나 만료된 경우 null
      */
     private fun getTemporarySignupData(token: String): TemporarySignUpData? {
         val key = "${authProperties.signup.redis.signupPrefix}$token"
@@ -228,8 +208,6 @@ class SignUpDataManager(
      *
      * 동시 가입 시도 방지를 위해 설정된 락을 해제합니다.
      * 회원가입 완료 또는 실패 시 호출되어야 합니다.
-     *
-     * @param email 락 해제할 이메일 주소
      */
     private fun releaseEmailLock(email: String) {
         val lockKey = "${authProperties.signup.redis.emailLockPrefix}$email"

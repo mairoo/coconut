@@ -1,6 +1,7 @@
 package kr.pincoin.api.app.inventory.open.request
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import kr.pincoin.api.domain.inventory.enums.ProductStatus
 import java.math.BigDecimal
 
 data class OpenProductSearchRequest(
@@ -23,7 +24,7 @@ data class OpenProductSearchRequest(
     val position: Int? = null,
 
     @field:JsonProperty("status")
-    val status: Int? = null,
+    val status: ProductStatus? = null,
 
     @field:JsonProperty("categoryId")
     val categoryId: Long? = null,

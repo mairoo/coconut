@@ -3,6 +3,7 @@ package kr.pincoin.api.app.inventory.open.controller
 import kr.pincoin.api.app.inventory.open.request.OpenProductSearchRequest
 import kr.pincoin.api.app.inventory.open.response.OpenProductResponse
 import kr.pincoin.api.app.inventory.open.service.OpenProductService
+import kr.pincoin.api.domain.inventory.enums.ProductStatus
 import kr.pincoin.api.global.response.success.ApiResponse
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -51,7 +52,7 @@ class OpenProductController(
         request: OpenProductSearchRequest,
     ): ResponseEntity<ApiResponse<List<OpenProductResponse>>> =
         openProductService.getProductList(
-            request.copy(categoryId = categoryId, status = 0)
+            request.copy(categoryId = categoryId, status = ProductStatus.ENABLED),
         )
             .map(OpenProductResponse::from)
             .let { ApiResponse.of(it) }

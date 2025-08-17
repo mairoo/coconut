@@ -2,6 +2,7 @@ package kr.pincoin.api.infra.inventory.repository.criteria
 
 import kr.pincoin.api.app.inventory.admin.request.AdminProductSearchRequest
 import kr.pincoin.api.app.inventory.open.request.OpenProductSearchRequest
+import kr.pincoin.api.domain.inventory.enums.ProductStatus
 import java.math.BigDecimal
 
 data class ProductSearchCriteria(
@@ -13,7 +14,7 @@ data class ProductSearchCriteria(
     val sellingPrice: BigDecimal? = null,
     val description: String? = null,
     val position: Int? = null,
-    val status: Int? = null,
+    val status: ProductStatus? = null,
     val stock: Int? = null,
     val categoryId: Long? = null,
     val storeId: Long? = null,

@@ -1,8 +1,12 @@
 package kr.pincoin.api.infra.inventory.entity
 
 import jakarta.persistence.*
+import kr.pincoin.api.domain.inventory.enums.ProductStatus
+import kr.pincoin.api.domain.inventory.enums.ProductStock
 import kr.pincoin.api.infra.common.jpa.DateTimeFields
 import kr.pincoin.api.infra.common.jpa.RemovalFields
+import kr.pincoin.api.infra.inventory.converter.ProductStatusConverter
+import kr.pincoin.api.infra.inventory.converter.ProductStockConverter
 import java.math.BigDecimal
 
 @Entity
@@ -41,10 +45,12 @@ class ProductEntity private constructor(
     val position: Int,
 
     @Column(name = "status")
-    val status: Int,
+    @Convert(converter = ProductStatusConverter::class)
+    val status: ProductStatus,
 
     @Column(name = "stock")
-    val stock: Int,
+    @Convert(converter = ProductStockConverter::class)
+    val stock: ProductStock,
 
     @Column(name = "category_id")
     val categoryId: Long,
@@ -95,8 +101,8 @@ class ProductEntity private constructor(
             sellingPrice: BigDecimal,
             description: String = "",
             position: Int = 0,
-            status: Int = 0,
-            stock: Int = 0,
+            status: ProductStatus = ProductStatus.ENABLED,
+            stock: ProductStock = ProductStock.SOLD_OUT,
             categoryId: Long,
             storeId: Long,
             reviewCount: Int = 0,

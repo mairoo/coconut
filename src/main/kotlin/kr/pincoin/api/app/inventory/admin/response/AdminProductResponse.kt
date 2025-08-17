@@ -2,6 +2,8 @@ package kr.pincoin.api.app.inventory.admin.response
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
+import kr.pincoin.api.domain.inventory.enums.ProductStatus
+import kr.pincoin.api.domain.inventory.enums.ProductStock
 import kr.pincoin.api.domain.inventory.model.Product
 import java.math.BigDecimal
 import java.time.LocalDateTime
@@ -42,10 +44,10 @@ data class AdminProductResponse(
     val position: Int,
 
     @field:JsonProperty("status")
-    val status: Int,
+    val status: ProductStatus,
 
     @field:JsonProperty("stock")
-    val stock: Int,
+    val stock: ProductStock,
 
     @field:JsonProperty("categoryId")
     val categoryId: Long,

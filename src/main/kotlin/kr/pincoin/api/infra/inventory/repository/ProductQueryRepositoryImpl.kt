@@ -2,6 +2,7 @@ package kr.pincoin.api.infra.inventory.repository
 
 import com.querydsl.core.types.dsl.BooleanExpression
 import com.querydsl.jpa.impl.JPAQueryFactory
+import kr.pincoin.api.domain.inventory.enums.ProductStatus
 import kr.pincoin.api.infra.inventory.entity.ProductEntity
 import kr.pincoin.api.infra.inventory.entity.QProductEntity
 import kr.pincoin.api.infra.inventory.repository.criteria.ProductSearchCriteria
@@ -85,7 +86,7 @@ class ProductQueryRepositoryImpl(
     private fun eqStoreId(storeId: Long?): BooleanExpression? =
         storeId?.let { product.storeId.eq(it) }
 
-    private fun eqStatus(status: Int?): BooleanExpression? =
+    private fun eqStatus(status: ProductStatus?): BooleanExpression? =
         status?.let { product.status.eq(it) }
 
     private fun eqPg(pg: Boolean?): BooleanExpression? =

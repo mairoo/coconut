@@ -1,5 +1,7 @@
 package kr.pincoin.api.domain.inventory.model
 
+import kr.pincoin.api.domain.inventory.enums.ProductStatus
+import kr.pincoin.api.domain.inventory.enums.ProductStock
 import java.math.BigDecimal
 import java.time.LocalDateTime
 
@@ -15,8 +17,8 @@ class Product private constructor(
     val sellingPrice: BigDecimal,
     val description: String = "",
     val position: Int = 0,
-    val status: Int = 0,
-    val stock: Int = 0,
+    val status: ProductStatus = ProductStatus.ENABLED,
+    val stock: ProductStock = ProductStock.SOLD_OUT,
     val categoryId: Long,
     val storeId: Long,
     val reviewCount: Int = 0,
@@ -40,8 +42,8 @@ class Product private constructor(
         sellingPrice: BigDecimal = this.sellingPrice,
         description: String = this.description,
         position: Int = this.position,
-        status: Int = this.status,
-        stock: Int = this.stock,
+        status: ProductStatus = this.status,
+        stock: ProductStock = this.stock,
         categoryId: Long = this.categoryId,
         storeId: Long = this.storeId,
         reviewCount: Int = this.reviewCount,
@@ -97,8 +99,8 @@ class Product private constructor(
             sellingPrice: BigDecimal,
             description: String = "",
             position: Int = 0,
-            status: Int = 0,
-            stock: Int = 0,
+            status: ProductStatus = ProductStatus.ENABLED,
+            stock: ProductStock = ProductStock.SOLD_OUT,
             categoryId: Long,
             storeId: Long,
             reviewCount: Int = 0,

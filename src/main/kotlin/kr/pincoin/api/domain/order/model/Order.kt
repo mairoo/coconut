@@ -1,5 +1,9 @@
 package kr.pincoin.api.domain.order.model
 
+import kr.pincoin.api.domain.order.enums.OrderCurrency
+import kr.pincoin.api.domain.order.enums.OrderPaymentMethod
+import kr.pincoin.api.domain.order.enums.OrderStatus
+import kr.pincoin.api.domain.order.enums.OrderVisible
 import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.util.*
@@ -13,17 +17,17 @@ class Order private constructor(
     val userAgent: String = "",
     val acceptLanguage: String = "",
     val ipAddress: String,
-    val paymentMethod: Int = 0,
-    val status: Int = 0,
+    val paymentMethod: OrderPaymentMethod = OrderPaymentMethod.BANK_TRANSFER,
+    val status: OrderStatus = OrderStatus.PAYMENT_PENDING,
     val totalListPrice: BigDecimal = BigDecimal.ZERO,
     val totalSellingPrice: BigDecimal = BigDecimal.ZERO,
-    val currency: String = "KRW",
+    val currency: OrderCurrency = OrderCurrency.KRW,
     val message: String = "",
     val parentId: Long? = null,
     val userId: Int? = null,
     val fullname: String,
     val transactionId: String = "",
-    val visible: Int = 1,
+    val visible: OrderVisible = OrderVisible.VISIBLE,
     val suspicious: Boolean = false,
 ) {
     private fun copy(
@@ -32,17 +36,17 @@ class Order private constructor(
         userAgent: String = this.userAgent,
         acceptLanguage: String = this.acceptLanguage,
         ipAddress: String = this.ipAddress,
-        paymentMethod: Int = this.paymentMethod,
-        status: Int = this.status,
+        paymentMethod: OrderPaymentMethod = this.paymentMethod,
+        status: OrderStatus = this.status,
         totalListPrice: BigDecimal = this.totalListPrice,
         totalSellingPrice: BigDecimal = this.totalSellingPrice,
-        currency: String = this.currency,
+        currency: OrderCurrency = this.currency,
         message: String = this.message,
         parentId: Long? = this.parentId,
         userId: Int? = this.userId,
         fullname: String = this.fullname,
         transactionId: String = this.transactionId,
-        visible: Int = this.visible,
+        visible: OrderVisible = this.visible,
         suspicious: Boolean = this.suspicious,
     ): Order = Order(
         id = this.id,
@@ -77,17 +81,17 @@ class Order private constructor(
             userAgent: String = "",
             acceptLanguage: String = "",
             ipAddress: String,
-            paymentMethod: Int = 0,
-            status: Int = 0,
+            paymentMethod: OrderPaymentMethod = OrderPaymentMethod.BANK_TRANSFER,
+            status: OrderStatus = OrderStatus.PAYMENT_PENDING,
             totalListPrice: BigDecimal = BigDecimal.ZERO,
             totalSellingPrice: BigDecimal = BigDecimal.ZERO,
-            currency: String = "KRW",
+            currency: OrderCurrency = OrderCurrency.KRW,
             message: String = "",
             parentId: Long? = null,
             userId: Int? = null,
             fullname: String,
             transactionId: String = "",
-            visible: Int = 1,
+            visible: OrderVisible = OrderVisible.VISIBLE,
             suspicious: Boolean = false,
         ): Order = Order(
             id = id,

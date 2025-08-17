@@ -7,6 +7,6 @@ enum class ProductStatus(val value: Int) {
     companion object {
         fun fromValue(value: Int): ProductStatus =
             ProductStatus.entries.find { it.value == value }
-                ?: throw IllegalArgumentException("Invalid ProductStatus: $value")
+                ?: throw IllegalArgumentException("Invalid ProductStatus value: $value")
     }
 }

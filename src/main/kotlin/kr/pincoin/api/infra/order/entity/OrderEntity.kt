@@ -1,8 +1,16 @@
 package kr.pincoin.api.infra.order.entity
 
 import jakarta.persistence.*
+import kr.pincoin.api.domain.order.enums.OrderCurrency
+import kr.pincoin.api.domain.order.enums.OrderPaymentMethod
+import kr.pincoin.api.domain.order.enums.OrderStatus
+import kr.pincoin.api.domain.order.enums.OrderVisible
 import kr.pincoin.api.infra.common.jpa.DateTimeFields
 import kr.pincoin.api.infra.common.jpa.RemovalFields
+import kr.pincoin.api.infra.order.converter.OrderCurrencyConverter
+import kr.pincoin.api.infra.order.converter.OrderPaymentMethodConverter
+import kr.pincoin.api.infra.order.converter.OrderStatusConverter
+import kr.pincoin.api.infra.order.converter.OrderVisibleConverter
 import org.hibernate.annotations.JdbcTypeCode
 import org.hibernate.type.SqlTypes
 import java.math.BigDecimal
@@ -36,10 +44,12 @@ class OrderEntity private constructor(
     val ipAddress: String,
 
     @Column(name = "payment_method")
-    val paymentMethod: Int,
+    @Convert(converter = OrderPaymentMethodConverter::class)
+    val paymentMethod: OrderPaymentMethod,
 
     @Column(name = "status")
-    val status: Int,
+    @Convert(converter = OrderStatusConverter::class)
+    val status: OrderStatus,
 
     @Column(name = "total_list_price")
     val totalListPrice: BigDecimal,
@@ -48,7 +58,8 @@ class OrderEntity private constructor(
     val totalSellingPrice: BigDecimal,
 
     @Column(name = "currency")
-    val currency: String,
+    @Convert(converter = OrderCurrencyConverter::class)
+    val currency: OrderCurrency,
 
     @Column(name = "message")
     val message: String,
@@ -66,7 +77,8 @@ class OrderEntity private constructor(
     val transactionId: String,
 
     @Column(name = "visible")
-    val visible: Int,
+    @Convert(converter = OrderVisibleConverter::class)
+    val visible: OrderVisible,
 
     @Column(name = "suspicious")
     val suspicious: Boolean,
@@ -78,17 +90,17 @@ class OrderEntity private constructor(
             userAgent: String = "",
             acceptLanguage: String = "",
             ipAddress: String,
-            paymentMethod: Int = 0,
-            status: Int = 0,
+            paymentMethod: OrderPaymentMethod = OrderPaymentMethod.BANK_TRANSFER,
+            status: OrderStatus = OrderStatus.PAYMENT_PENDING,
             totalListPrice: BigDecimal = BigDecimal.ZERO,
             totalSellingPrice: BigDecimal = BigDecimal.ZERO,
-            currency: String = "KRW",
+            currency: OrderCurrency = OrderCurrency.KRW,
             message: String = "",
             parentId: Long? = null,
             userId: Int? = null,
             fullname: String,
             transactionId: String = "",
-            visible: Int = 1,
+            visible: OrderVisible = OrderVisible.VISIBLE,
             suspicious: Boolean = false,
             isRemoved: Boolean = false,
         ) = OrderEntity(

@@ -7,7 +7,6 @@ import kr.pincoin.api.domain.order.enums.OrderStatus
 import kr.pincoin.api.domain.order.enums.OrderVisible
 import kr.pincoin.api.infra.common.jpa.DateTimeFields
 import kr.pincoin.api.infra.common.jpa.RemovalFields
-import kr.pincoin.api.infra.order.converter.OrderCurrencyConverter
 import kr.pincoin.api.infra.order.converter.OrderPaymentMethodConverter
 import kr.pincoin.api.infra.order.converter.OrderStatusConverter
 import kr.pincoin.api.infra.order.converter.OrderVisibleConverter
@@ -57,8 +56,8 @@ class OrderEntity private constructor(
     @Column(name = "total_selling_price")
     val totalSellingPrice: BigDecimal,
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "currency")
-    @Convert(converter = OrderCurrencyConverter::class)
     val currency: OrderCurrency,
 
     @Column(name = "message")

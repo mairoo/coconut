@@ -1,11 +1,15 @@
 package kr.pincoin.api.infra.order.repository
 
 import com.querydsl.core.types.dsl.BooleanExpression
+import com.querydsl.jpa.impl.JPAQuery
 import com.querydsl.jpa.impl.JPAQueryFactory
 import kr.pincoin.api.infra.order.entity.OrderEntity
 import kr.pincoin.api.infra.order.entity.QOrderEntity
 import kr.pincoin.api.infra.order.repository.criteria.OrderSearchCriteria
 import kr.pincoin.api.infra.user.entity.QUserEntity
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
+import org.springframework.data.support.PageableExecutionUtils
 import org.springframework.stereotype.Repository
 import java.util.*
 
@@ -30,7 +34,7 @@ class OrderQueryRepositoryImpl(
     ): OrderEntity? =
         queryFactory
             .selectFrom(order)
-            .leftJoin(user).on(order.userId.eq(user.id.intValue()))
+            .leftJoin(user).on(order.userId.eq(user.id))
             .where(
                 eqId(orderId),
                 *getCommonWhereConditions(criteria),
@@ -42,22 +46,51 @@ class OrderQueryRepositoryImpl(
     ): OrderEntity? =
         queryFactory
             .selectFrom(order)
-            .leftJoin(user).on(order.userId.eq(user.id.intValue()))
+            .leftJoin(user).on(order.userId.eq(user.id))
             .where(*getCommonWhereConditions(criteria))
             .fetchOne()
 
     override fun findOrders(
         criteria: OrderSearchCriteria,
-    ): List<OrderEntity> =
-        queryFactory
-            .selectFrom(order)
-            .leftJoin(user).on(order.userId.eq(user.id.intValue()))
-            .where(*getCommonWhereConditions(criteria))
+        pageable: Pageable,
+    ): Page<OrderEntity> = executePageQuery(
+        criteria,
+        pageable,
+    ) { baseQuery -> baseQuery.select(order) }
+
+    private fun <T> executePageQuery(
+        criteria: OrderSearchCriteria,
+        pageable: Pageable,
+        selectClause: (JPAQuery<*>) -> JPAQuery<T>
+    ): Page<T> {
+        val whereConditions = getCommonWhereConditions(criteria)
+
+        fun createBaseQuery() = queryFactory
+            .from(order)
+            .leftJoin(user).on(order.userId.eq(user.id))
+            .where(*whereConditions)
+
+        val results = selectClause(createBaseQuery())
+            .offset(pageable.offset)
+            .limit(pageable.pageSize.toLong())
             .orderBy(
                 order.dateTimeFields.created.desc(),
                 order.id.desc()
             )
             .fetch()
+
+        val countQuery = {
+            createBaseQuery()
+                .select(order.count())
+                .fetchOne() ?: 0L
+        }
+
+        return PageableExecutionUtils.getPage(
+            results,
+            pageable,
+            countQuery,
+        )
+    }
 
     private fun getCommonWhereConditions(
         criteria: OrderSearchCriteria
@@ -105,7 +138,7 @@ class OrderQueryRepositoryImpl(
     private fun eqPaymentStatus(
         paymentStatus: String?,
     ): BooleanExpression? =
-        paymentStatus?.let { order.status.stringValue().eq(it) } // status와 동일하게 처리
+        paymentStatus?.let { order.status.stringValue().eq(it) }
 
     private fun goeStartDateTime(
         startDateTime: java.time.LocalDateTime?,
@@ -128,9 +161,9 @@ class OrderQueryRepositoryImpl(
         isRemoved?.let { order.removalFields.isRemoved.eq(it) }
 
     private fun eqUserId(
-        userId: Long?,
+        userId: Int?,
     ): BooleanExpression? =
-        userId?.let { order.userId.eq(it.toInt()) }
+        userId?.let { order.userId.eq(it) }
 
     private fun eqUserEmail(
         userEmail: String?,

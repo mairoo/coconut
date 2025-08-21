@@ -17,13 +17,15 @@ data class OrderSearchCriteria(
     val isRemoved: Boolean? = null,
 
     // User 필드 (주문자 정보)
-    val userId: Long? = null,
+    val userId: Int? = null,
     val userEmail: String? = null,
     val userIsActive: Boolean? = null,
     val userIsRemoved: Boolean? = null,
 ) {
     companion object {
-        fun from(request: AdminOrderSearchRequest) = OrderSearchCriteria(
+        fun from(
+            request: AdminOrderSearchRequest,
+        ) = OrderSearchCriteria(
             orderId = request.orderId,
             orderNumber = request.orderNumber,
             status = request.status,
@@ -39,7 +41,9 @@ data class OrderSearchCriteria(
             userIsRemoved = request.userIsRemoved,
         )
 
-        fun from(request: MyOrderSearchRequest) = OrderSearchCriteria(
+        fun from(
+            request: MyOrderSearchRequest,
+        ) = OrderSearchCriteria(
             orderNumber = request.orderNumber,
             status = request.status,
             paymentMethod = request.paymentMethod,
@@ -50,7 +54,7 @@ data class OrderSearchCriteria(
 
         fun from(
             request: MyOrderSearchRequest,
-            userId: Long,
+            userId: Int,
         ) = OrderSearchCriteria(
             orderNumber = request.orderNumber,
             status = request.status,

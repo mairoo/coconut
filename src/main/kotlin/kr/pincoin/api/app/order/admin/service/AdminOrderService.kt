@@ -4,6 +4,8 @@ import kr.pincoin.api.app.order.admin.request.AdminOrderSearchRequest
 import kr.pincoin.api.domain.order.model.Order
 import kr.pincoin.api.domain.order.service.OrderService
 import kr.pincoin.api.infra.order.repository.criteria.OrderSearchCriteria
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Service
 
@@ -20,4 +22,12 @@ class AdminOrderService(
             orderId,
             OrderSearchCriteria.from(request),
         )
+
+    fun getOrders(
+        request: AdminOrderSearchRequest,
+        pageable: Pageable,
+    ): Page<Order> = orderService.findOrders(
+        OrderSearchCriteria.from(request),
+        pageable,
+    )
 }

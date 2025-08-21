@@ -34,7 +34,7 @@ data class AdminOrderSearchRequest(
 
     // User 필드 (주문자 정보)
     @field:JsonProperty("userId")
-    val userId: Long? = null,
+    val userId: Int? = null,
 
     @field:JsonProperty("userEmail")
     val userEmail: String? = null,

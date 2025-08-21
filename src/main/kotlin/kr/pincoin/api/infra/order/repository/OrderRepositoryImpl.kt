@@ -4,8 +4,9 @@ import kr.pincoin.api.domain.order.model.Order
 import kr.pincoin.api.domain.order.repository.OrderRepository
 import kr.pincoin.api.infra.order.mapper.toEntity
 import kr.pincoin.api.infra.order.mapper.toModel
-import kr.pincoin.api.infra.order.mapper.toModelList
 import kr.pincoin.api.infra.order.repository.criteria.OrderSearchCriteria
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
 
 @Repository
@@ -39,6 +40,7 @@ class OrderRepositoryImpl(
 
     override fun findOrders(
         criteria: OrderSearchCriteria,
-    ): List<Order> =
-        queryRepository.findOrders(criteria).toModelList()
+        pageable: Pageable,
+    ): Page<Order> =
+        queryRepository.findOrders(criteria, pageable).map { it.toModel() }
 }

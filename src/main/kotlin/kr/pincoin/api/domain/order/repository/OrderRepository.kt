@@ -2,6 +2,8 @@ package kr.pincoin.api.domain.order.repository
 
 import kr.pincoin.api.domain.order.model.Order
 import kr.pincoin.api.infra.order.repository.criteria.OrderSearchCriteria
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 
 interface OrderRepository {
     fun save(
@@ -23,5 +25,6 @@ interface OrderRepository {
 
     fun findOrders(
         criteria: OrderSearchCriteria,
-    ): List<Order>
+        pageable: Pageable,
+    ): Page<Order>
 }

@@ -5,6 +5,8 @@ import kr.pincoin.api.domain.order.model.Order
 import kr.pincoin.api.domain.order.repository.OrderRepository
 import kr.pincoin.api.global.exception.BusinessException
 import kr.pincoin.api.infra.order.repository.criteria.OrderSearchCriteria
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -28,6 +30,7 @@ class OrderService(
 
     fun findOrders(
         criteria: OrderSearchCriteria,
-    ): List<Order> =
-        orderRepository.findOrders(criteria)
+        pageable: Pageable,
+    ): Page<Order> =
+        orderRepository.findOrders(criteria, pageable)
 }

@@ -21,4 +21,7 @@ data class MyOrderSearchRequest(
 
     @field:JsonProperty("endDateTime")
     val endDateTime: LocalDateTime? = null,
+
+    @field:JsonProperty("userId")
+    val userId: Int? = null,
 )

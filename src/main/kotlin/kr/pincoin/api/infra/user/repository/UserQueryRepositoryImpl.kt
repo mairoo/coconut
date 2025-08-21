@@ -13,6 +13,7 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.support.PageableExecutionUtils
 import org.springframework.stereotype.Repository
+import java.util.*
 
 @Repository
 class UserQueryRepositoryImpl(
@@ -45,6 +46,7 @@ class UserQueryRepositoryImpl(
         val identifierConditions = listOfNotNull(
             criteria.username,
             criteria.email,
+            criteria.keycloakId,
         )
         require(identifierConditions.size == 1) { "검색 조건은 하나만 지정해야 합니다." }
 
@@ -192,6 +194,7 @@ class UserQueryRepositoryImpl(
         eqEmail(criteria.email),
         eqIsActive(criteria.isActive),
         eqIsSuperuser(criteria.isSuperuser),
+        eqKeycloakId(criteria.keycloakId),
     )
 
     private fun eqId(userId: Int?): BooleanExpression? =
@@ -214,4 +217,7 @@ class UserQueryRepositoryImpl(
 
     private fun eqIsSuperuser(isSuperuser: Boolean?): BooleanExpression? =
         isSuperuser?.let { user.isSuperuser.eq(it) }
+
+    private fun eqKeycloakId(keycloakId: UUID?): BooleanExpression? =
+        keycloakId?.let { user.keycloakId.eq(it) }
 }

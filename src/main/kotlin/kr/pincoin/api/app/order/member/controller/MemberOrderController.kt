@@ -1,4 +1,12 @@
 package kr.pincoin.api.app.order.member.controller
 
-class MemberOrderController {
+import kr.pincoin.api.app.order.member.service.MemberOrderService
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
+
+@RestController
+@RequestMapping("/member/orders")
+class MemberOrderController(
+    private val memberOrderService: MemberOrderService,
+) {
 }

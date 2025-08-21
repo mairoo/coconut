@@ -1,4 +1,18 @@
 package kr.pincoin.api.app.order.member.request
 
-class MemberOrderCreateRequest {
-}
+import com.fasterxml.jackson.annotation.JsonProperty
+import java.math.BigDecimal
+
+data class MemberOrderCreateRequest(
+    @field:JsonProperty("paymentMethod")
+    val paymentMethod: Int,
+
+    @field:JsonProperty("products")
+    val products: List<MemberOrderProductRequest>,
+
+    @field:JsonProperty("totalAmount")
+    val totalAmount: BigDecimal,
+
+    @field:JsonProperty("productCount")
+    val productCount: Int
+)

@@ -1,4 +1,4 @@
-package kr.pincoin.api.app.order.admin.response
+package kr.pincoin.api.app.order.member.response
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
@@ -12,7 +12,7 @@ import java.time.LocalDateTime
 import java.util.*
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-data class AdminOrderResponse(
+data class MemberOrderResponse(
     @field:JsonProperty("id")
     val id: Long,
 
@@ -22,20 +22,8 @@ data class AdminOrderResponse(
     @field:JsonProperty("modified")
     val modified: LocalDateTime?,
 
-    @field:JsonProperty("isRemoved")
-    val isRemoved: Boolean,
-
     @field:JsonProperty("orderNo")
     val orderNo: UUID,
-
-    @field:JsonProperty("userAgent")
-    val userAgent: String?,
-
-    @field:JsonProperty("acceptLanguage")
-    val acceptLanguage: String?,
-
-    @field:JsonProperty("ipAddress")
-    val ipAddress: String,
 
     @field:JsonProperty("paymentMethod")
     val paymentMethod: OrderPaymentMethod,
@@ -55,12 +43,6 @@ data class AdminOrderResponse(
     @field:JsonProperty("message")
     val message: String?,
 
-    @field:JsonProperty("parentId")
-    val parentId: Long?,
-
-    @field:JsonProperty("userId")
-    val userId: Int?,
-
     @field:JsonProperty("fullname")
     val fullname: String,
 
@@ -75,23 +57,17 @@ data class AdminOrderResponse(
 ) {
     companion object {
         fun from(order: Order) = with(order) {
-            AdminOrderResponse(
+            MemberOrderResponse(
                 id = id ?: throw IllegalStateException("주문 ID는 필수 입력값입니다"),
                 created = created,
                 modified = modified,
-                isRemoved = isRemoved,
                 orderNo = orderNo,
-                userAgent = userAgent.takeIf { it.isNotBlank() },
-                acceptLanguage = acceptLanguage.takeIf { it.isNotBlank() },
-                ipAddress = ipAddress,
                 paymentMethod = paymentMethod,
                 status = status,
                 totalListPrice = totalListPrice,
                 totalSellingPrice = totalSellingPrice,
                 currency = currency,
                 message = message.takeIf { it.isNotBlank() },
-                parentId = parentId,
-                userId = userId,
                 fullname = fullname,
                 transactionId = transactionId.takeIf { it.isNotBlank() },
                 visible = visible,

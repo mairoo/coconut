@@ -9,4 +9,5 @@ import org.springframework.web.bind.annotation.RestController
 class MemberOrderController(
     private val memberOrderService: MemberOrderService,
 ) {
+    // 주문 생성
 }

@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import kr.pincoin.api.domain.order.enums.OrderCurrency
 import kr.pincoin.api.domain.order.enums.OrderPaymentMethod
 import kr.pincoin.api.domain.order.enums.OrderStatus
-import kr.pincoin.api.domain.order.enums.OrderVisible
 import kr.pincoin.api.domain.order.model.Order
 import java.math.BigDecimal
 import java.time.LocalDateTime
@@ -48,12 +47,6 @@ data class MemberOrderResponse(
 
     @field:JsonProperty("transactionId")
     val transactionId: String?,
-
-    @field:JsonProperty("visible")
-    val visible: OrderVisible,
-
-    @field:JsonProperty("suspicious")
-    val suspicious: Boolean,
 ) {
     companion object {
         fun from(order: Order) = with(order) {
@@ -70,8 +63,6 @@ data class MemberOrderResponse(
                 message = message.takeIf { it.isNotBlank() },
                 fullname = fullname,
                 transactionId = transactionId.takeIf { it.isNotBlank() },
-                visible = visible,
-                suspicious = suspicious,
             )
         }
     }

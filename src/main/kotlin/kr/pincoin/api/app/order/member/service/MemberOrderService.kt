@@ -9,4 +9,5 @@ import org.springframework.stereotype.Service
 class MemberOrderService(
     private val orderService: OrderService,
 ) {
+    // 주문 생성
 }

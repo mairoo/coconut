@@ -4,6 +4,8 @@ import kr.pincoin.api.domain.order.model.Order
 import kr.pincoin.api.domain.order.repository.OrderRepository
 import kr.pincoin.api.infra.order.mapper.toEntity
 import kr.pincoin.api.infra.order.mapper.toModel
+import kr.pincoin.api.infra.order.mapper.toModelList
+import kr.pincoin.api.infra.order.repository.criteria.OrderSearchCriteria
 import org.springframework.stereotype.Repository
 
 @Repository
@@ -23,4 +25,20 @@ class OrderRepositoryImpl(
         id: Long,
     ): Order? =
         queryRepository.findById(id)?.toModel()
+
+    override fun findOrder(
+        orderId: Long,
+        criteria: OrderSearchCriteria,
+    ): Order? =
+        queryRepository.findOrder(orderId, criteria)?.toModel()
+
+    override fun findOrder(
+        criteria: OrderSearchCriteria,
+    ): Order? =
+        queryRepository.findOrder(criteria)?.toModel()
+
+    override fun findOrders(
+        criteria: OrderSearchCriteria,
+    ): List<Order> =
+        queryRepository.findOrders(criteria).toModelList()
 }

@@ -4,7 +4,7 @@ enum class OrderStatus(val value: Int) {
     PAYMENT_PENDING(0),
     PAYMENT_COMPLETED(1),
     UNDER_REVIEW(2),
-    PAYMENT_VERIFY(3),
+    PAYMENT_VERIFIED(3),
     SHIPPED(4),
     REFUND_REQUESTED(5),
     REFUND_PENDING(6),

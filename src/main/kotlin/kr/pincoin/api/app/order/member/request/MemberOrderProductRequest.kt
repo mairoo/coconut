@@ -17,5 +17,5 @@ data class MemberOrderProductRequest(
     val quantity: Int,
 
     @field:JsonProperty("price")
-    val price: BigDecimal
+    val price: BigDecimal,
 )

@@ -26,6 +26,12 @@ class OrderProductService(
             throw BusinessException(OrderProductErrorCode.ALREADY_EXISTS)
         }
 
+    @Transactional
+    fun saveAll(
+        orderProducts: List<OrderProduct>,
+    ) =
+        orderProductRepository.saveAll(orderProducts)
+
     fun get(
         id: Long,
     ): OrderProduct =

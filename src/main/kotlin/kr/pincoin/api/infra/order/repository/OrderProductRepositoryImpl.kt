@@ -13,6 +13,7 @@ import org.springframework.stereotype.Repository
 class OrderProductRepositoryImpl(
     private val jpaRepository: OrderProductJpaRepository,
     private val queryRepository: OrderProductQueryRepository,
+    private val jdbcRepository: OrderProductJdbcRepository,
 ) : OrderProductRepository {
     override fun save(
         orderProduct: OrderProduct,
@@ -21,6 +22,11 @@ class OrderProductRepositoryImpl(
             ?.let { jpaRepository.save(it) }
             ?.toModel()
             ?: throw IllegalArgumentException("주문항목 저장 실패")
+
+    override fun saveAll(
+        orderProducts: List<OrderProduct>,
+    ) =
+        jdbcRepository.batchInsert(orderProducts)
 
     override fun findById(
         id: Long,

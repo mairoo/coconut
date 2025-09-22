@@ -27,4 +27,8 @@ interface OrderProductRepository {
         criteria: OrderProductSearchCriteria,
         pageable: Pageable,
     ): Page<OrderProduct>
+
+    fun saveAll(
+        orderProducts: List<OrderProduct>,
+    )
 }

@@ -13,29 +13,31 @@ import org.springframework.transaction.annotation.Transactional
 class CategoryService(
     private val categoryRepository: CategoryRepository,
 ) {
-    fun findCategory(
+    fun get(
+        id: Long,
+    ): Category =
+        categoryRepository.findById(id)
+            ?: throw BusinessException(CategoryErrorCode.NOT_FOUND)
+
+    fun get(
         categoryId: Long,
         criteria: CategorySearchCriteria,
     ): Category =
         categoryRepository.findCategory(categoryId, criteria)
             ?: throw BusinessException(CategoryErrorCode.NOT_FOUND)
 
-    fun findCategory(
+    fun get(
         criteria: CategorySearchCriteria,
     ): Category =
         categoryRepository.findCategory(criteria)
             ?: throw BusinessException(CategoryErrorCode.NOT_FOUND)
 
-    fun findCategories(
+    fun find(
         criteria: CategorySearchCriteria,
     ): List<Category> =
         categoryRepository.findCategories(criteria)
 
     @Transactional
-    fun createCategory(category: Category): Category =
-        categoryRepository.save(category)
-
-    @Transactional
-    fun updateCategory(category: Category): Category =
+    fun save(category: Category): Category =
         categoryRepository.save(category)
 }

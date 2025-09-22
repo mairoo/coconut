@@ -17,7 +17,7 @@ class OpenProductService(
     fun getProductList(
         request: OpenProductSearchRequest,
     ): List<Product> =
-        productService.findProducts(
+        productService.find(
             ProductSearchCriteria.from(request)
         )
 
@@ -25,7 +25,7 @@ class OpenProductService(
         categoryId: Long,
         request: OpenProductSearchRequest,
     ): List<Product> =
-        productService.findProducts(
+        productService.find(
             ProductSearchCriteria.from(
                 request.copy(
                     categoryId = categoryId,
@@ -40,7 +40,7 @@ class OpenProductService(
     fun getProduct(
         productId: Long,
     ): Product =
-        productService.findProduct(
+        productService.get(
             productId,
             ProductSearchCriteria(),
         )

@@ -18,7 +18,7 @@ class AdminCategoryService(
     fun getCategoryList(
         request: AdminCategorySearchRequest,
     ): List<Category> =
-        categoryService.findCategories(CategorySearchCriteria.from(request))
+        categoryService.find(CategorySearchCriteria.from(request))
 
     /**
      * 카테고리의 상세 정보를 조회합니다.
@@ -26,7 +26,7 @@ class AdminCategoryService(
     fun getCategory(
         categoryId: Long,
     ): Category =
-        categoryService.findCategory(categoryId, CategorySearchCriteria())
+        categoryService.get(categoryId, CategorySearchCriteria())
 
     /**
      * 조건에 맞는 카테고리 정보를 조회합니다.
@@ -34,7 +34,7 @@ class AdminCategoryService(
     fun getCategory(
         request: AdminCategorySearchRequest,
     ): Category =
-        categoryService.findCategory(CategorySearchCriteria.from(request))
+        categoryService.get(CategorySearchCriteria.from(request))
 
     /**
      * 카테고리를 생성합니다.
@@ -42,7 +42,7 @@ class AdminCategoryService(
     fun createCategory(
         category: Category,
     ): Category =
-        categoryService.createCategory(category)
+        categoryService.save(category)
 
     /**
      * 카테고리 정보를 업데이트합니다.
@@ -50,5 +50,5 @@ class AdminCategoryService(
     fun updateCategory(
         category: Category,
     ): Category =
-        categoryService.updateCategory(category)
+        categoryService.save(category)
 }

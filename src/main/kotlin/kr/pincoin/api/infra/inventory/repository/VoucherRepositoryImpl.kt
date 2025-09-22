@@ -13,6 +13,7 @@ import org.springframework.stereotype.Repository
 class VoucherRepositoryImpl(
     private val jpaRepository: VoucherJpaRepository,
     private val queryRepository: VoucherQueryRepository,
+    private val jdbcRepository: VoucherJdbcRepository,
 ) : VoucherRepository {
     override fun save(
         voucher: Voucher,

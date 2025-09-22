@@ -15,20 +15,26 @@ import org.springframework.transaction.annotation.Transactional
 class VoucherService(
     private val voucherRepository: VoucherRepository,
 ) {
-    fun findVoucher(
+    fun get(
+        id: Long,
+    ): Voucher =
+        voucherRepository.findById(id)
+            ?: throw BusinessException(VoucherErrorCode.NOT_FOUND)
+
+    fun get(
         voucherId: Long,
         criteria: VoucherSearchCriteria,
     ): Voucher =
         voucherRepository.findVoucher(voucherId, criteria)
             ?: throw BusinessException(VoucherErrorCode.NOT_FOUND)
 
-    fun findVoucher(
+    fun get(
         criteria: VoucherSearchCriteria,
     ): Voucher =
         voucherRepository.findVoucher(criteria)
             ?: throw BusinessException(VoucherErrorCode.NOT_FOUND)
 
-    fun findVouchers(
+    fun find(
         criteria: VoucherSearchCriteria,
         pageable: Pageable,
     ): Page<Voucher> =

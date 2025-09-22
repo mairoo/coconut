@@ -18,7 +18,7 @@ class AdminProductService(
     fun getProductList(
         request: AdminProductSearchRequest,
     ): List<Product> =
-        productService.findProducts(
+        productService.find(
             ProductSearchCriteria.from(request)
         )
 
@@ -28,7 +28,7 @@ class AdminProductService(
     fun getProduct(
         productId: Long,
     ): Product =
-        productService.findProduct(
+        productService.get(
             productId,
             ProductSearchCriteria(),
         )
@@ -39,7 +39,7 @@ class AdminProductService(
     fun getProduct(
         request: AdminProductSearchRequest,
     ): Product =
-        productService.findProduct(
+        productService.get(
             ProductSearchCriteria.from(request)
         )
 
@@ -49,7 +49,7 @@ class AdminProductService(
     fun createProduct(
         product: Product,
     ): Product =
-        productService.createProduct(product)
+        productService.save(product)
 
     /**
      * 상품 정보를 업데이트합니다.
@@ -57,5 +57,5 @@ class AdminProductService(
     fun updateProduct(
         product: Product,
     ): Product =
-        productService.updateProduct(product)
+        productService.save(product)
 }

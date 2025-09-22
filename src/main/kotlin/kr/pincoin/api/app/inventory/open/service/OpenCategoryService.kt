@@ -16,7 +16,7 @@ class OpenCategoryService(
     fun getCategoryList(
         request: OpenCategorySearchRequest,
     ): List<Category> =
-        categoryService.findCategories(
+        categoryService.find(
             CategorySearchCriteria.from(request)
         )
 
@@ -26,7 +26,7 @@ class OpenCategoryService(
     fun getCategory(
         categoryId: Long,
     ): Category =
-        categoryService.findCategory(
+        categoryService.get(
             categoryId,
             CategorySearchCriteria(),
         )
@@ -37,7 +37,7 @@ class OpenCategoryService(
     fun getCategory(
         slug: String,
     ): Category =
-        categoryService.findCategory(
+        categoryService.get(
             CategorySearchCriteria.from(
                 OpenCategorySearchRequest(
                     slug = slug,

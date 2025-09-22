@@ -13,29 +13,31 @@ import org.springframework.transaction.annotation.Transactional
 class ProductService(
     private val productRepository: ProductRepository,
 ) {
-    fun findProduct(
+    fun get(
+        id: Long,
+    ): Product =
+        productRepository.findById(id)
+            ?: throw BusinessException(ProductErrorCode.NOT_FOUND)
+
+    fun get(
         productId: Long,
         criteria: ProductSearchCriteria,
     ): Product =
         productRepository.findProduct(productId, criteria)
             ?: throw BusinessException(ProductErrorCode.NOT_FOUND)
 
-    fun findProduct(
+    fun get(
         criteria: ProductSearchCriteria,
     ): Product =
         productRepository.findProduct(criteria)
             ?: throw BusinessException(ProductErrorCode.NOT_FOUND)
 
-    fun findProducts(
+    fun find(
         criteria: ProductSearchCriteria,
     ): List<Product> =
         productRepository.findProducts(criteria)
 
     @Transactional
-    fun createProduct(product: Product): Product =
-        productRepository.save(product)
-
-    @Transactional
-    fun updateProduct(product: Product): Product =
+    fun save(product: Product): Product =
         productRepository.save(product)
 }

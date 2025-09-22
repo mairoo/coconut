@@ -5,6 +5,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kr.pincoin.api.app.auth.request.SignUpRequest
 import kr.pincoin.api.domain.user.error.UserErrorCode
+import kr.pincoin.api.domain.user.model.Profile
 import kr.pincoin.api.domain.user.model.User
 import kr.pincoin.api.domain.user.service.ProfileService
 import kr.pincoin.api.domain.user.service.UserService
@@ -14,6 +15,8 @@ import kr.pincoin.api.external.auth.keycloak.service.KeycloakUserService
 import kr.pincoin.api.global.exception.BusinessException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.math.BigDecimal
+import java.time.LocalDateTime
 import java.util.*
 
 @Service
@@ -41,11 +44,50 @@ class UserResourceCoordinator(
             val keycloakUuid = UUID.fromString(keycloakUserId)
 
             // 2. DB에 사용자 생성 (Keycloak ID 연결)
-            val user = userService.save(request, keycloakUuid)
+            val user = User.of(
+                password = "",
+                lastLogin = null,
+                isSuperuser = false,
+                username = request.email,
+                firstName = request.firstName,
+                lastName = request.lastName,
+                email = request.email,
+                isStaff = false,
+                isActive = true,
+                dateJoined = LocalDateTime.now(),
+                keycloakId = keycloakUuid,
+            )
+            val savedUser = userService.save(user)
 
             // 3. Profile 생성
-            profileService.save(user.id!!)
-            user
+            val profile = Profile.of(
+                userId = savedUser.id!!,
+                address = "",
+                phone = null,
+                phoneVerified = false,
+                phoneVerifiedStatus = 0,
+                dateOfBirth = null,
+                domestic = 0,
+                gender = 0,
+                telecom = "",
+                photoId = "",
+                card = "",
+                documentVerified = false,
+                totalOrderCount = 0,
+                firstPurchased = null,
+                lastPurchased = null,
+                maxPrice = BigDecimal.ZERO,
+                averagePrice = BigDecimal.ZERO,
+                totalListPrice = BigDecimal.ZERO,
+                totalSellingPrice = BigDecimal.ZERO,
+                notPurchasedMonths = false,
+                repurchased = null,
+                memo = "",
+                mileage = BigDecimal.ZERO,
+                allowOrder = true,
+            )
+            profileService.save(profile)
+            savedUser
 
         } catch (_: IllegalArgumentException) {
             // UUID 변환 실패시

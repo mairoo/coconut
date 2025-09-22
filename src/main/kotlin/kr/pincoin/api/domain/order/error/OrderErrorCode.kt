@@ -11,4 +11,8 @@ enum class OrderErrorCode(
         HttpStatus.NOT_FOUND,
         "유효한 주문이 없습니다",
     ),
+    ALREADY_EXISTS(
+        HttpStatus.CONFLICT,
+        "이미 존재하는 주문입니다",
+    ),
 }

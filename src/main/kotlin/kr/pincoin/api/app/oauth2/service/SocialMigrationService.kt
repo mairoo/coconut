@@ -151,11 +151,23 @@ class SocialMigrationService(
         email: String,
     ) {
         val keycloakId = UUID.fromString(keycloakUserInfo.sub)
+        val request = createSignUpRequestFromKeycloak(keycloakUserInfo, email)
 
-        userService.save(
-            request = createSignUpRequestFromKeycloak(keycloakUserInfo, email),
+        val user = User.of(
+            password = "",
+            lastLogin = null,
+            isSuperuser = false,
+            username = request.email,
+            firstName = request.firstName,
+            lastName = request.lastName,
+            email = request.email,
+            isStaff = false,
+            isActive = true,
+            dateJoined = LocalDateTime.now(),
             keycloakId = keycloakId,
         )
+
+        userService.save(user)
     }
 
     /**

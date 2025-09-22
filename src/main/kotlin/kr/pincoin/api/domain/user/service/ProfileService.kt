@@ -1,44 +1,30 @@
 package kr.pincoin.api.domain.user.service
 
+import io.github.oshai.kotlinlogging.KotlinLogging
+import kr.pincoin.api.domain.user.error.ProfileErrorCode
 import kr.pincoin.api.domain.user.model.Profile
 import kr.pincoin.api.domain.user.repository.ProfileRepository
+import kr.pincoin.api.global.exception.BusinessException
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.math.BigDecimal
 
 @Service
 @Transactional(readOnly = true)
 class ProfileService(
     private val profileRepository: ProfileRepository,
 ) {
+    private val logger = KotlinLogging.logger {}
+
     @Transactional
-    fun save(userId: Int): Profile =
-        profileRepository.save(
-            Profile.of(
-                userId = userId,
-                address = "",
-                phone = null,
-                phoneVerified = false,
-                phoneVerifiedStatus = 0,
-                dateOfBirth = null,
-                domestic = 0,
-                gender = 0,
-                telecom = "",
-                photoId = "",
-                card = "",
-                documentVerified = false,
-                totalOrderCount = 0,
-                firstPurchased = null,
-                lastPurchased = null,
-                maxPrice = BigDecimal.ZERO,
-                averagePrice = BigDecimal.ZERO,
-                totalListPrice = BigDecimal.ZERO,
-                totalSellingPrice = BigDecimal.ZERO,
-                notPurchasedMonths = false,
-                repurchased = null,
-                memo = "",
-                mileage = BigDecimal.ZERO,
-                allowOrder = true,
-            )
-        )
+    fun save(
+        profile: Profile,
+    ): Profile {
+        try {
+            return profileRepository.save(profile)
+        } catch (_: DataIntegrityViolationException) {
+            logger.error { "프로필 중복: userId=${profile.userId}" }
+            throw BusinessException(ProfileErrorCode.ALREADY_EXISTS)
+        }
+    }
 }

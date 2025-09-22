@@ -21,7 +21,7 @@ class MyOrderService(
         userId: Int,
         request: MyOrderSearchRequest,
     ): Order =
-        orderService.findOrder(
+        orderService.get(
             orderId,
             OrderSearchCriteria.from(request, userId),
         )
@@ -31,7 +31,7 @@ class MyOrderService(
         userId: Int,
         pageable: Pageable,
     ): Page<Order> =
-        orderService.findOrders(
+        orderService.find(
             OrderSearchCriteria.from(request, userId),
             pageable,
         )

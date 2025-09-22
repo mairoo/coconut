@@ -15,20 +15,32 @@ import org.springframework.transaction.annotation.Transactional
 class OrderService(
     private val orderRepository: OrderRepository,
 ) {
-    fun findOrder(
+    @Transactional
+    fun save(
+        order: Order,
+    ): Order =
+        orderRepository.save(order)
+
+    fun get(
+        id: Long,
+    ): Order =
+        orderRepository.findById(id)
+            ?: throw BusinessException(OrderErrorCode.NOT_FOUND)
+
+    fun get(
         orderId: Long,
         criteria: OrderSearchCriteria,
     ): Order =
         orderRepository.findOrder(orderId, criteria)
             ?: throw BusinessException(OrderErrorCode.NOT_FOUND)
 
-    fun findOrder(
+    fun get(
         criteria: OrderSearchCriteria,
     ): Order =
         orderRepository.findOrder(criteria)
             ?: throw BusinessException(OrderErrorCode.NOT_FOUND)
 
-    fun findOrders(
+    fun find(
         criteria: OrderSearchCriteria,
         pageable: Pageable,
     ): Page<Order> =

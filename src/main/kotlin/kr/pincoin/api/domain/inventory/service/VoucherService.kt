@@ -35,6 +35,6 @@ class VoucherService(
         voucherRepository.findVouchers(criteria, pageable)
 
     @Transactional
-    fun createVoucher(voucher: Voucher): Voucher =
+    fun save(voucher: Voucher): Voucher =
         voucherRepository.save(voucher)
 }

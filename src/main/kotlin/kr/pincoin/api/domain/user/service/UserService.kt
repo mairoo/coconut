@@ -25,7 +25,7 @@ class UserService(
     private val logger = KotlinLogging.logger {}
 
     @Transactional
-    fun createUser(
+    fun save(
         request: AdminUserCreateRequest,
         keycloakId: UUID,
     ): User {
@@ -52,7 +52,7 @@ class UserService(
     }
 
     @Transactional
-    fun createUser(
+    fun save(
         request: SignUpRequest,
         keycloakId: UUID,
     ): User {

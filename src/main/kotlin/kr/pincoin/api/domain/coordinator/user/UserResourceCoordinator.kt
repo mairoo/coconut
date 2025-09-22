@@ -41,10 +41,10 @@ class UserResourceCoordinator(
             val keycloakUuid = UUID.fromString(keycloakUserId)
 
             // 2. DB에 사용자 생성 (Keycloak ID 연결)
-            val user = userService.createUser(request, keycloakUuid)
+            val user = userService.save(request, keycloakUuid)
 
             // 3. Profile 생성
-            profileService.createProfile(user.id!!)
+            profileService.save(user.id!!)
             user
 
         } catch (_: IllegalArgumentException) {

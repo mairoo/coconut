@@ -18,7 +18,7 @@ class AdminOrderService(
         orderId: Long,
         request: AdminOrderSearchRequest,
     ): Order =
-        orderService.findOrder(
+        orderService.get(
             orderId,
             OrderSearchCriteria.from(request),
         )
@@ -26,7 +26,7 @@ class AdminOrderService(
     fun getOrders(
         request: AdminOrderSearchRequest,
         pageable: Pageable,
-    ): Page<Order> = orderService.findOrders(
+    ): Page<Order> = orderService.find(
         OrderSearchCriteria.from(request),
         pageable,
     )

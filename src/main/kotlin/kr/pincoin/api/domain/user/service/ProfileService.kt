@@ -12,7 +12,7 @@ class ProfileService(
     private val profileRepository: ProfileRepository,
 ) {
     @Transactional
-    fun createProfile(userId: Int): Profile =
+    fun save(userId: Int): Profile =
         profileRepository.save(
             Profile.of(
                 userId = userId,

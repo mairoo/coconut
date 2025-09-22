@@ -152,7 +152,7 @@ class SocialMigrationService(
     ) {
         val keycloakId = UUID.fromString(keycloakUserInfo.sub)
 
-        userService.createUser(
+        userService.save(
             request = createSignUpRequestFromKeycloak(keycloakUserInfo, email),
             keycloakId = keycloakId,
         )

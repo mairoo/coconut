@@ -3,6 +3,7 @@ package kr.pincoin.api.infra.inventory.repository.criteria
 import kr.pincoin.api.app.inventory.admin.request.AdminProductSearchRequest
 import kr.pincoin.api.app.inventory.open.request.OpenProductSearchRequest
 import kr.pincoin.api.domain.inventory.enums.ProductStatus
+import kr.pincoin.api.domain.inventory.enums.ProductStock
 import java.math.BigDecimal
 
 data class ProductSearchCriteria(
@@ -15,7 +16,7 @@ data class ProductSearchCriteria(
     val description: String? = null,
     val position: Int? = null,
     val status: ProductStatus? = null,
-    val stock: Int? = null,
+    val stock: ProductStock? = null,
     val categoryId: Long? = null,
     val storeId: Long? = null,
     val reviewCount: Int? = null,

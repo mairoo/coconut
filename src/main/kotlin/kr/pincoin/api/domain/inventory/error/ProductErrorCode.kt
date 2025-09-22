@@ -11,4 +11,12 @@ enum class ProductErrorCode(
         HttpStatus.NOT_FOUND,
         "유효한 카테고리가 없습니다",
     ),
+    DISABLED(
+        HttpStatus.BAD_REQUEST,
+        "비활성화된 상품입니다",
+    ),
+    OUT_OF_STOCK(
+        HttpStatus.BAD_REQUEST,
+        "재고가 없는 상품입니다",
+    ),
 }

@@ -3,15 +3,22 @@ package kr.pincoin.api.domain.coordinator.order
 import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.servlet.http.HttpServletRequest
 import kr.pincoin.api.app.order.member.request.MemberOrderCreateRequest
+import kr.pincoin.api.domain.inventory.enums.ProductStatus
+import kr.pincoin.api.domain.inventory.enums.ProductStock
+import kr.pincoin.api.domain.inventory.error.ProductErrorCode
+import kr.pincoin.api.domain.inventory.service.ProductService
 import kr.pincoin.api.domain.inventory.service.VoucherService
 import kr.pincoin.api.domain.order.enums.OrderStatus
 import kr.pincoin.api.domain.order.model.Order
 import kr.pincoin.api.domain.order.model.OrderProduct
 import kr.pincoin.api.domain.order.service.OrderProductService
 import kr.pincoin.api.domain.order.service.OrderService
+import kr.pincoin.api.global.exception.BusinessException
 import kr.pincoin.api.global.utils.IpUtils
+import kr.pincoin.api.infra.inventory.repository.criteria.ProductSearchCriteria
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.math.BigDecimal
 import java.util.*
 
 @Service
@@ -20,6 +27,7 @@ class OrderResourceCoordinator(
     private val orderService: OrderService,
     private val orderProductService: OrderProductService,
     private val orderProductVoucherService: VoucherService,
+    private val productService: ProductService,
 ) {
     private val logger = KotlinLogging.logger {}
 
@@ -30,15 +38,46 @@ class OrderResourceCoordinator(
         httpRequest: HttpServletRequest,
     ): Order {
         try {
-            // TODO: totalListPrice, totalSellingPrice 서버 측 재계산
+            // 1. 서버 측에서 상품 정보 및 가격 검증
+            val validatedProducts = request.products.map { productRequest ->
+                // 먼저 상품 존재 여부 확인
+                val product = productService.get(
+                    criteria = ProductSearchCriteria(
+                        code = productRequest.id,
+                        isRemoved = false,
+                    )
+                )
 
-            // 1. Order 생성
+                // 상품 상태 검증
+                when {
+                    product.status != ProductStatus.ENABLED -> {
+                        throw BusinessException(ProductErrorCode.DISABLED)
+                    }
+
+                    product.stock != ProductStock.IN_STOCK -> {
+                        throw BusinessException(ProductErrorCode.OUT_OF_STOCK)
+                    }
+                }
+
+                // 클라이언트가 보낸 가격과 실제 DB 가격 비교 (보안상 클라이언트 가격 무시)
+                Triple(product, productRequest.quantity, productRequest)
+            }
+
+            // 2. 서버 측에서 총 금액 재계산
+            val calculatedTotalListPrice = validatedProducts.sumOf { (product, quantity, _) ->
+                product.listPrice.multiply(BigDecimal.valueOf(quantity.toLong()))
+            }
+            val calculatedTotalSellingPrice = validatedProducts.sumOf { (product, quantity, _) ->
+                product.sellingPrice.multiply(BigDecimal.valueOf(quantity.toLong()))
+            }
+
+            // 3. Order 생성
             val savedOrder = orderService.save(
                 Order.of(
                     orderNo = UUID.randomUUID(),
                     status = OrderStatus.PAYMENT_PENDING,
-                    totalListPrice = request.totalAmount,
-                    totalSellingPrice = request.totalAmount,
+                    totalListPrice = calculatedTotalListPrice,
+                    totalSellingPrice = calculatedTotalSellingPrice,
                     paymentMethod = request.paymentMethod,
                     fullname = "",
                     ipAddress = IpUtils.getClientIp(httpRequest),
@@ -48,16 +87,16 @@ class OrderResourceCoordinator(
                 )
             )
 
-            // 2. OrderProduct 생성
-            orderProductService.saveAll(request.products.map { productRequest ->
+            // 4. OrderProduct 생성 (서버에서 검증된 가격 사용)
+            orderProductService.saveAll(validatedProducts.map { (product, quantity, _) ->
                 OrderProduct.of(
                     orderId = savedOrder.id!!,
-                    name = productRequest.title,
-                    subtitle = productRequest.subtitle,
-                    code = productRequest.id,
-                    listPrice = productRequest.price,
-                    sellingPrice = productRequest.price,
-                    quantity = productRequest.quantity,
+                    name = product.name,
+                    subtitle = product.subtitle,
+                    code = product.code,
+                    listPrice = product.listPrice,
+                    sellingPrice = product.sellingPrice,
+                    quantity = quantity,
                 )
             })
 

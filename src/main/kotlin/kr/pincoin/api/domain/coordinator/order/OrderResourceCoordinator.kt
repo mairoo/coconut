@@ -38,15 +38,20 @@ class OrderResourceCoordinator(
         httpRequest: HttpServletRequest,
     ): Order {
         try {
-            // 1. 서버 측에서 상품 정보 및 가격 검증
-            val validatedProducts = request.products.map { productRequest ->
-                // 먼저 상품 존재 여부 확인
-                val product = productService.get(
-                    criteria = ProductSearchCriteria(
-                        code = productRequest.id,
-                        isRemoved = false,
-                    )
+            // 1. 서버 측에서 상품 정보 및 가격 검증 (단일 쿼리로 최적화)
+            val productCodes = request.products.map { it.id }
+            val products = productService.find(
+                criteria = ProductSearchCriteria(
+                    codes = productCodes,
+                    isRemoved = false,
                 )
+            )
+
+            // 2. 요청된 모든 상품이 존재하는지 확인
+            val productMap = products.associateBy { it.code }
+            val validatedProducts = request.products.map { productRequest ->
+                val product = productMap[productRequest.id]
+                    ?: throw BusinessException(ProductErrorCode.NOT_FOUND)
 
                 // 상품 상태 검증
                 when {
@@ -63,7 +68,7 @@ class OrderResourceCoordinator(
                 Triple(product, productRequest.quantity, productRequest)
             }
 
-            // 2. 서버 측에서 총 금액 재계산
+            // 3. 서버 측에서 총 금액 재계산
             val calculatedTotalListPrice = validatedProducts.sumOf { (product, quantity, _) ->
                 product.listPrice.multiply(BigDecimal.valueOf(quantity.toLong()))
             }
@@ -71,7 +76,7 @@ class OrderResourceCoordinator(
                 product.sellingPrice.multiply(BigDecimal.valueOf(quantity.toLong()))
             }
 
-            // 3. Order 생성
+            // 4. Order 생성
             val savedOrder = orderService.save(
                 Order.of(
                     orderNo = UUID.randomUUID(),
@@ -87,7 +92,7 @@ class OrderResourceCoordinator(
                 )
             )
 
-            // 4. OrderProduct 생성 (서버에서 검증된 가격 사용)
+            // 5. OrderProduct 생성 (서버에서 검증된 가격 사용)
             orderProductService.saveAll(validatedProducts.map { (product, quantity, _) ->
                 OrderProduct.of(
                     orderId = savedOrder.id!!,

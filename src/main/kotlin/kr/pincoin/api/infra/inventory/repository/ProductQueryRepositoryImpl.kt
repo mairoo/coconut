@@ -61,6 +61,7 @@ class ProductQueryRepositoryImpl(
         likeName(criteria.name),
         likeSubtitle(criteria.subtitle),
         eqCode(criteria.code),
+        inCodes(criteria.codes),
         eqCategoryId(criteria.categoryId),
         eqStoreId(criteria.storeId),
         eqStatus(criteria.status),
@@ -79,6 +80,9 @@ class ProductQueryRepositoryImpl(
 
     private fun eqCode(code: String?): BooleanExpression? =
         code?.let { product.code.eq(it) }
+
+    private fun inCodes(codes: List<String>?): BooleanExpression? =
+        codes?.takeIf { it.isNotEmpty() }?.let { product.code.`in`(it) }
 
     private fun eqCategoryId(categoryId: Long?): BooleanExpression? =
         categoryId?.let { product.categoryId.eq(it) }

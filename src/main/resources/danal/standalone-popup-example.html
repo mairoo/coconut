@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>다날 휴대폰 인증 팝업</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            flex: 1;
+        }
+
+        .auth-btn {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .auth-btn:hover {
+            background-color: #0056b3;
+        }
+
+        .auth-btn:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .info-box {
+            background-color: #e9f4ff;
+            border: 1px solid #b3d9ff;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+
+        .hidden-form {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>다날 휴대폰 인증</h1>
+
+    <div class="info-box">
+        <strong>사용법:</strong><br/>
+        1. 백엔드에서 받은 TID를 입력하세요<br/>
+        2. 인증 방식(팝업/현재창)을 선택하여 인증을 진행하세요
+    </div>
+
+    <div class="form-group">
+        <label for="tid">TID (거래번호) *</label>
+        <input type="text" id="tid" placeholder="백엔드에서 받은 TID를 입력하세요"
+               onpaste="setTimeout(updateButtons, 10)" oninput="updateButtons()">
+    </div>
+
+    <div class="auth-buttons">
+        <button class="auth-btn" onclick="openAuthPopup()" id="popupBtn" disabled>
+            팝업으로 인증
+        </button>
+        <button class="auth-btn" onclick="openAuthCurrentWindow()" id="currentBtn" disabled>
+            현재 창에서 인증
+        </button>
+    </div>
+
+    <!-- 숨겨진 폼 - 다날 웹 서버로 TID 전송용 -->
+    <form name="danalAuthForm" class="hidden-form" method="post" target="danalPopup" accept-charset="EUC-KR">
+        <input type="hidden" name="TID" id="form_tid">
+    </form>
+</div>
+
+<script>
+    const DANAL_AUTH_URL = 'https://wauth.teledit.com/Danal/WebAuth/Web/Start.php';
+
+    // TID 입력 시 버튼 활성화/비활성화
+    function updateButtons() {
+        const tid = document.getElementById('tid').value.trim();
+        const hasValidTid = tid.length > 0;
+
+        document.getElementById('popupBtn').disabled = !hasValidTid;
+        document.getElementById('currentBtn').disabled = !hasValidTid;
+    }
+
+    // 팝업으로 인증
+    function openAuthPopup() {
+        const tid = document.getElementById('tid').value.trim();
+        if (!tid) {
+            alert('TID를 입력해주세요.');
+            return;
+        }
+
+        // 폼 설정
+        document.danalAuthForm.action = DANAL_AUTH_URL;
+        document.danalAuthForm.target = 'danalPopup';
+        document.getElementById('form_tid').value = tid;
+
+        // 팝업 창 옵션
+        const popupOptions = 'width=500,height=700,scrollbars=yes,resizable=yes,left=100,top=100';
+
+        // 팝업 창 열기
+        window.open('about:blank', 'danalPopup', popupOptions);
+
+        // 폼 제출
+        document.danalAuthForm.submit();
+
+        showMessage('인증 팝업이 열렸습니다. 팝업에서 휴대폰 인증을 진행하세요.');
+    }
+
+    // 현재 창에서 인증
+    function openAuthCurrentWindow() {
+        const tid = document.getElementById('tid').value.trim();
+        if (!tid) {
+            alert('TID를 입력해주세요.');
+            return;
+        }
+
+        // 폼 설정
+        document.danalAuthForm.action = DANAL_AUTH_URL;
+        document.danalAuthForm.target = '_self';
+        document.getElementById('form_tid').value = tid;
+
+        // 폼 제출
+        document.danalAuthForm.submit();
+    }
+
+    // 성공 메시지 표시
+    function showMessage(message) {
+        // 기존 메시지 제거
+        const existingMsg = document.querySelector('.success');
+        if (existingMsg) {
+            existingMsg.remove();
+        }
+
+        // 새 메시지 생성
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'success';
+        msgDiv.textContent = message;
+
+        // 버튼 뒤에 추가
+        const authButtons = document.querySelector('.auth-buttons');
+        authButtons.parentNode.insertBefore(msgDiv, authButtons.nextSibling);
+
+        // 3초 후 자동 제거
+        setTimeout(() => {
+            msgDiv.remove();
+        }, 3000);
+    }
+
+    // 팝업 메시지 리스너 (인증 완료 콜백)
+    window.addEventListener('message', function (event) {
+        console.log('팝업에서 메시지 수신:', event.data);
+
+        if (event.data && event.data.type === 'DANAL_AUTH_COMPLETE') {
+            showMessage('휴대폰 인증이 완료되었습니다!');
+            console.log('인증 결과:', event.data);
+        }
+    });
+
+    // 페이지 로드 시 초기화
+    document.addEventListener('DOMContentLoaded', function () {
+        updateButtons(); // 초기 버튼 상태 설정
+    });
+</script>
+</body>
+</html>

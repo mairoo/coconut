@@ -26,15 +26,16 @@ import java.util.*
  * 전체 프로세스를 관리합니다.
  *
  * **마이그레이션 프로세스:**
- * 1. 보안 검증 (reCAPTCHA 등)
- * 2. 레거시 사용자 확인 및 비밀번호 검증
- * 3. 이미 마이그레이션된 사용자 체크
+ * 1. 보안 검증 (reCAPTCHA)
+ * 2. 레거시 사용자 조회 (email, isActive)
+ * 3. 마이그레이션 상태 및 비밀번호 검증 (PBKDF2)
  * 4. Keycloak 사용자 생성 및 DB 연결
  *
- * **예외 처리:**
- * - 사용자 없음/비밀번호 틀림 → INVALID_CREDENTIALS
+ * **예외 처리 (명확한 구분):**
+ * - 사용자 없음 → INVALID_CREDENTIALS
+ * - 비밀번호 틀림 → INVALID_CREDENTIALS
  * - 이미 마이그레이션 완료 → ALREADY_MIGRATED
- * - Keycloak 연동 실패 → 적절한 Keycloak 에러 코드
+ * - Keycloak 연동 실패 → 적절한 Keycloak 에러 코드 (USER_EXISTS, TIMEOUT, SYSTEM_ERROR 등)
  */
 @Component
 class MigrationFacade(
@@ -49,11 +50,6 @@ class MigrationFacade(
      * 레거시 사용자 마이그레이션 프로세스 실행
      *
      * Django allauth 기반 레거시 사용자를 Keycloak으로 마이그레이션합니다.
-     *
-     * @param request 마이그레이션 요청 정보 (이메일, 비밀번호, reCAPTCHA)
-     * @param httpServletRequest HTTP 요청 정보
-     * @return 마이그레이션 완료 응답
-     * @throws BusinessException 마이그레이션 실패, 이미 완료된 경우, 사용자 없음 등
      */
     @Transactional
     fun processMigration(
@@ -65,15 +61,11 @@ class MigrationFacade(
                 // 1. 마이그레이션 보안 검증 (reCAPTCHA)
                 migrationValidator.validateMigrationRequest(request, httpServletRequest)
 
-                // 2. 레거시 사용자 확인 및 검증
-                val legacyUser = findAndValidateLegacyUser(request)
-                    ?: throw BusinessException(UserErrorCode.INVALID_CREDENTIALS)
+                // 2. 레거시 사용자 조회
+                val legacyUser = findLegacyUser(request.email)
 
-                // 3. 이미 마이그레이션된 사용자 확인
-                if (legacyUser.keycloakId != null) {
-                    logger.warn { "이미 마이그레이션 완료된 사용자: email=${request.email}" }
-                    throw BusinessException(UserErrorCode.ALREADY_MIGRATED)
-                }
+                // 3. 마이그레이션 상태 및 비밀번호 검증
+                validateUserForMigration(legacyUser, request)
 
                 // 4. Keycloak 마이그레이션 수행
                 val migratedAt = performKeycloakMigration(legacyUser, request)
@@ -93,45 +85,52 @@ class MigrationFacade(
     }
 
     /**
-     * 레거시 사용자 확인 및 비밀번호 검증
+     * 레거시 사용자 조회
      */
-    private fun findAndValidateLegacyUser(
-        request: MigrationRequest,
-    ): User? {
-        return try {
-            val user = userService.findUser(
-                UserSearchCriteria(email = request.email, isActive = true)
+    private fun findLegacyUser(
+        email: String
+    ): User =
+        try {
+            userService.findUser(
+                UserSearchCriteria(email = email, isActive = true)
             )
-
-            // 이미 마이그레이션된 사용자 체크 (빈 패스워드)
-            if (user.password.isBlank() || user.keycloakId != null) {
-                logger.warn { "이미 마이그레이션된 사용자" }
-                return null
-            }
-
-            // 레거시 패스워드 검증 (PBKDF2)
-            try {
-                if (djangoPasswordEncoder.matches(request.password, user.password)) {
-                    user
-                } else {
-                    logger.warn { "레거시 사용자 비밀번호 검증 실패" }
-                    null
-                }
-            } catch (e: Exception) {
-                // Django 패스워드 검증 자체에서 예외 발생 시 (잘못된 형식 등)
-                logger.warn(e) { "레거시 패스워드 검증 중 예외 발생" }
-                null
-            }
-
         } catch (e: BusinessException) {
             when (e.errorCode) {
                 UserErrorCode.NOT_FOUND -> {
-                    logger.warn { "마이그레이션 대상 사용자 없음: email=${request.email}" }
-                    null
+                    logger.warn { "마이그레이션 대상 사용자 없음: email=$email" }
+                    throw BusinessException(UserErrorCode.INVALID_CREDENTIALS)
                 }
 
                 else -> throw e
             }
+        }
+
+    /**
+     * 마이그레이션 상태 및 비밀번호 검증
+     */
+    private fun validateUserForMigration(
+        user: User,
+        request: MigrationRequest,
+    ) {
+        // 1. 이미 마이그레이션된 사용자 체크
+        if (user.password.isBlank() || user.keycloakId != null) {
+            logger.warn { "이미 마이그레이션 완료된 사용자: email=${request.email}" }
+            throw BusinessException(UserErrorCode.ALREADY_MIGRATED)
+        }
+
+        // 2. 레거시 패스워드 검증 (PBKDF2)
+        try {
+            if (!djangoPasswordEncoder.matches(request.password, user.password)) {
+                logger.warn { "레거시 사용자 비밀번호 검증 실패: email=${request.email}" }
+                throw BusinessException(UserErrorCode.INVALID_CREDENTIALS)
+            }
+        } catch (e: BusinessException) {
+            // BusinessException은 그대로 전파
+            throw e
+        } catch (e: Exception) {
+            // Django 패스워드 검증 자체에서 예외 발생 시 (잘못된 형식 등)
+            logger.warn(e) { "레거시 패스워드 검증 중 예외 발생: email=${request.email}" }
+            throw BusinessException(UserErrorCode.INVALID_CREDENTIALS)
         }
     }
 
@@ -143,22 +142,7 @@ class MigrationFacade(
         request: MigrationRequest,
     ): LocalDateTime {
         // Keycloak에 사용자 생성
-        val keycloakUserId = createKeycloakUserForMigration(user, request)
-
-        // DB에 Keycloak ID 업데이트
-        userService.linkKeycloak(user.id!!, UUID.fromString(keycloakUserId), true)
-
-        return LocalDateTime.now()
-    }
-
-    /**
-     * 마이그레이션용 Keycloak 사용자 생성
-     */
-    private suspend fun createKeycloakUserForMigration(
-        user: User,
-        request: MigrationRequest,
-    ): String {
-        return when (val response = keycloakUserService.createUser(
+        val keycloakUserId = when (val response = keycloakUserService.createUser(
             username = user.email,
             email = user.email,
             firstName = user.firstName,
@@ -176,7 +160,6 @@ class MigrationFacade(
                             "keycloakError=${response.errorCode}, keycloakMessage=${response.errorMessage}"
                 }
 
-                // 간단한 에러 코드 매핑만
                 val errorCode = when (response.errorCode) {
                     "USER_EXISTS", "CONFLICT" -> UserErrorCode.EMAIL_ALREADY_EXISTS
                     "TIMEOUT" -> KeycloakErrorCode.TIMEOUT
@@ -187,5 +170,10 @@ class MigrationFacade(
                 throw BusinessException(errorCode)
             }
         }
+
+        // DB에 Keycloak ID 업데이트
+        userService.linkKeycloak(user.id!!, UUID.fromString(keycloakUserId), true)
+
+        return LocalDateTime.now()
     }
 }

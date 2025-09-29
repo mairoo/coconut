@@ -37,7 +37,7 @@ class OAuth2Controller(
             .let { ResponseEntity.ok(it) }
 
     /**
-     * OAuth2 콜백 처리 및 토큰 교환
+     * OAuth2 코드-토큰 교환 콜백 처리
      * **주의**
      * - Next.js + NextAuth.js 연동에서는 불필요한 엔드포인트
      *
@@ -48,8 +48,8 @@ class OAuth2Controller(
      * 4. **마이그레이션 처리**: 기존 레거시 사용자 계정을 Keycloak과 통합
      * 5. **토큰 응답**: 클라이언트에 JWT 토큰 및 마이그레이션 상태 반환
      */
-    @PostMapping("/callback")
-    fun handleOAuth2Callback(
+    @PostMapping("/exchange")
+    fun handleOAuth2ExchangeCodeForToken(
         @RequestBody request: OAuth2CallbackRequest,
         @ClientInfo clientInfo: ClientUtils.ClientInfo,
     ): ResponseEntity<ApiResponse<OAuth2TokenResponse>> =

@@ -80,9 +80,8 @@ class MigrationFacade(
 
                 MigrationResponse.of(
                     email = request.email,
-                    migratedAt = migratedAt
+                    migratedAt = migratedAt,
                 )
-
             } catch (e: BusinessException) {
                 logger.error { "마이그레이션 오류: email=${request.email}, error=${e.errorCode}" }
                 throw e

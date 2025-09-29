@@ -19,14 +19,19 @@ import java.util.*
 /**
  * 소셜 로그인 사용자 마이그레이션 서비스
  *
- * OAuth2/OIDC를 통한 소셜 로그인 시 기존 레거시 사용자를 Keycloak과 연동하는 마이그레이션을 처리합니다.
+ * NextAuth.js + Keycloak을 통한 소셜 로그인 시 기존 레거시 사용자를 자동으로 마이그레이션합니다.
+ * 모든 케이스는 최종적으로 케이스 3 (정상 상태)로 수렴됩니다.
  *
  * **케이스별 처리 로직:**
- * 1. user.email(O) + user.password(O) + user.keycloakId(O) → 비정상 상태 (데이터 정합성 오류)
- * 2. user.email(O) + user.password(O) + user.keycloakId(X) → 마이그레이션 필요 안내
- * 3. user.email(O) + user.password(X) + user.keycloakId(O) → 정상 로그인 (이미 마이그레이션 완료)
- * 4. user.email(O) + user.password(X) + user.keycloakId(X) → 소셜 전용 사용자, Keycloak 연동 처리
- * 5. user.email(X) → 신규 사용자 생성
+ * 1. password(O) + keycloakId(O) → 데이터 정합성 오류 (에러)
+ * 2. password(O) + keycloakId(X) → 수동 마이그레이션 필요 안내 → 케이스 3
+ * 3. password(X) + keycloakId(O) → 정상 로그인 (목표 상태)
+ * 4. password(X) + keycloakId(X) → 소셜 전용 사용자 연동 → 케이스 3
+ * 5. 사용자 없음 → 신규 사용자 생성 → 케이스 3
+ *
+ * **설계 철학:**
+ * - 백엔드는 "누가 로그인했는가"만 관심, "어떻게 로그인했는가"는 Keycloak 위임
+ * - 모든 인증 방식(ID/PW, 소셜)은 케이스 3에서 동일하게 처리
  *
  * **보안 고려사항:**
  * - 이메일 검증된 소셜 계정만 마이그레이션 허용
@@ -244,7 +249,7 @@ class SocialMigrationService(
                     val existingUser = findExistingUser(keycloakUserInfo.email!!)
                     return SocialMigrationResponse.migrationRequired(
                         userId = existingUser!!.id!!,
-                        email = existingUser.email
+                        email = existingUser.email,
                     )
                 }
 
@@ -268,7 +273,7 @@ class SocialMigrationService(
                 ?: jwt.getClaimAsString("username"),
             givenName = jwt.getClaimAsString("given_name"),
             familyName = jwt.getClaimAsString("family_name"),
-            name = jwt.getClaimAsString("name")
+            name = jwt.getClaimAsString("name"),
         )
     }
 
@@ -290,7 +295,7 @@ class SocialMigrationService(
                 SocialMigrationResponse.newUser(
                     userId = user.id!!,
                     email = email,
-                    keycloakId = keycloakId
+                    keycloakId = keycloakId,
                 )
             }
 
@@ -299,7 +304,7 @@ class SocialMigrationService(
                 SocialMigrationResponse.linked(
                     userId = user.id!!,
                     email = email,
-                    keycloakId = keycloakId
+                    keycloakId = keycloakId,
                 )
             }
 
@@ -308,7 +313,7 @@ class SocialMigrationService(
                 SocialMigrationResponse.alreadyLinked(
                     userId = user.id!!,
                     email = email,
-                    keycloakId = keycloakId
+                    keycloakId = keycloakId,
                 )
             }
         }

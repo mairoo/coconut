@@ -130,6 +130,7 @@ class UserResourceCoordinator(
             lastName = request.lastName,
             password = request.password,
             enabled = true,
+            emailVerified = true, // 백엔드에서 이미 이메일 인증 완료
         )) {
             is KeycloakResponse.Success -> {
                 response.data.userId

@@ -26,6 +26,7 @@ class KeycloakUserService(
         lastName: String,
         password: String? = null,
         enabled: Boolean = true,
+        emailVerified: Boolean = false,
     ): KeycloakResponse<KeycloakCreateUserData> =
         withContext(Dispatchers.IO) {
             try {
@@ -50,6 +51,7 @@ class KeycloakUserService(
                         firstName = firstName,
                         lastName = lastName,
                         enabled = enabled,
+                        emailVerified = emailVerified,
                         credentials = credentials
                     )
 

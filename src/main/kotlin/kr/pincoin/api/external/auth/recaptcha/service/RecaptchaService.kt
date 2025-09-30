@@ -68,7 +68,7 @@ class RecaptchaService(
             try {
                 withTimeout(recaptchaProperties.timeout) {
                     val request = RecaptchaVerifyRequest(token = token)
-                    val result = recaptchaApiClient.verifyToken(request)
+                    val result = recaptchaApiClient.verifyV2Token(request)
 
                     when (result) {
                         is RecaptchaResponse.Success -> {
@@ -116,7 +116,7 @@ class RecaptchaService(
             try {
                 withTimeout(recaptchaProperties.timeout) {
                     val request = RecaptchaVerifyRequest(token = token)
-                    val result = recaptchaApiClient.verifyToken(request)
+                    val result = recaptchaApiClient.verifyV3Token(request)
 
                     when (result) {
                         is RecaptchaResponse.Success -> {

@@ -21,12 +21,31 @@ class RecaptchaApiClient(
     private val objectMapper: ObjectMapper,
 ) {
     /**
-     * reCAPTCHA 토큰 검증
+     * reCAPTCHA v2 토큰 검증
      */
-    suspend fun verifyToken(request: RecaptchaVerifyRequest): RecaptchaResponse<RecaptchaVerifyData> =
+    suspend fun verifyV2Token(
+        request: RecaptchaVerifyRequest,
+    ): RecaptchaResponse<RecaptchaVerifyData> =
+        verifyTokenInternal(request, recaptchaProperties.v2.secretKey)
+
+    /**
+     * reCAPTCHA v3 토큰 검증
+     */
+    suspend fun verifyV3Token(
+        request: RecaptchaVerifyRequest,
+    ): RecaptchaResponse<RecaptchaVerifyData> =
+        verifyTokenInternal(request, recaptchaProperties.v3.secretKey)
+
+    /**
+     * reCAPTCHA 토큰 검증 내부 로직
+     */
+    private suspend fun verifyTokenInternal(
+        request: RecaptchaVerifyRequest,
+        secretKey: String,
+    ): RecaptchaResponse<RecaptchaVerifyData> =
         try {
             val formData = LinkedMultiValueMap<String, String>().apply {
-                add("secret", recaptchaProperties.secretKey)
+                add("secret", secretKey)
                 add("response", request.token)
             }
 
@@ -53,7 +72,9 @@ class RecaptchaApiClient(
     /**
      * 응답 파싱
      */
-    private fun parseResponse(response: String): RecaptchaResponse<RecaptchaVerifyData> =
+    private fun parseResponse(
+        response: String,
+    ): RecaptchaResponse<RecaptchaVerifyData> =
         try {
             val recaptchaResponse = objectMapper.readValue(response, RecaptchaVerifyResponse::class.java)
 

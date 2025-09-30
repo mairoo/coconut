@@ -17,67 +17,117 @@ services:
 
   keycloak:
     container_name: ${PREFIX}-keycloak
+    image: ${PREFIX}-keycloak:local
     build:
-      context: .
+      context: ./keycloak
       dockerfile: Dockerfile.keycloak
     restart: unless-stopped
     ports:
       - "8081:8080"
-    networks:
-      - app-network
     environment:
       - TZ=Asia/Seoul
-      - KC_DB=postgres
-      - KC_DB_URL=jdbc:postgresql://${KEYCLOAK_POSTGRES_HOST}:${KEYCLOAK_POSTGRES_PORT}/${KEYCLOAK_POSTGRES_DATABASE}
+      - KC_DB=${KEYCLOAK_DB}
+      - KC_DB_URL=${KEYCLOAK_DB_URL}
       - KC_DB_USERNAME=${KEYCLOAK_POSTGRES_USER}
       - KC_DB_PASSWORD=${KEYCLOAK_POSTGRES_PASSWORD}
-      # - KC_HOSTNAME=keycloak.example.com # 운영환경: 고정 hostname 설정
-      - KC_HOSTNAME_STRICT=false # 개발환경: 유연한 hostname 처리
-      - KC_PROXY_ADDRESS_FORWARDING=true # 프록시 환경에서 클라이언트 IP 올바르게 인식
-      - KC_PROXY_HEADERS=xforwarded # X-Forwarded-* 헤더 사용 설정
-      - KC_HTTP_ENABLED=true # HTTP 연결 허용 (프록시 환경 필수)
-      - KC_CACHE=local # 단일 인스턴스 로컬 캐시 사용
-    command: start
+      # - KC_HOSTNAME=keycloak.local
+      - KC_HOSTNAME_STRICT=false
+      - KC_PROXY_ADDRESS_FORWARDING=true # v2: 프록시 사용 선언
+      - KC_PROXY_HEADERS=xforwarded # v2: 헤더 형식 지정
+      - KC_HTTP_ENABLED=true # 프록시 환경 필수값
+      # 같은 네트워크의 다른 Keycloak 인스턴스 자동 탐지 시도
+      # JGroups 프로토콜로 7800 포트 통신 시도
+      - KC_CACHE=local # 로컬 캐시만 사용할 뿐 멀티캐스트 탐지는 계속 시도
     volumes:
       - keycloak-data:/opt/keycloak/data
+    networks:
+      app-network:
+        aliases:
+          - keycloak.local
+    depends_on:
+      - mailhog
+    command: start
     logging:
       driver: "json-file"
       options:
         max-size: "20m"
         max-file: "10"
 
+  rabbitmq:
+    container_name: ${PREFIX}-rabbitmq
+    image: rabbitmq:3-management-alpine
+    restart: unless-stopped
+    ports:
+      - "5672:5672"    # AMQP port
+      - "15672:15672"  # Management UI port
+    environment:
+      - TZ=Asia/Seoul
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER:-admin}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD:-admin}
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    networks:
+      - app-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "10"
+
+  mailhog:
+    container_name: ${PREFIX}-mailhog
+    image: mailhog/mailhog:latest
+    platform: linux/amd64
+    restart: unless-stopped
+    ports:
+      - "1025:1025" # SMTP port
+      - "8025:8025" # Web UI port
+    environment:
+      - TZ=Asia/Seoul
+    networks:
+      app-network:
+        aliases:
+          - mailhog.local
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+
   backend:
     container_name: ${PREFIX}-backend
     image: ${PREFIX}-backend:local
     build:
-      context: ./repo
+      context: ./backend
       dockerfile: Dockerfile.local
+    restart: unless-stopped
     working_dir: /app
-    volumes:
-      - ./repo:/app:cached  # 소스코드를 볼륨 마운트
-      - gradle-cache:/root/.gradle
     ports:
       - "8080:8080"
-    depends_on:
-      - redis
-      - keycloak
-    networks:
-      - app-network
     environment:
       - TZ=Asia/Seoul
       - SPRING_PROFILES_ACTIVE=local
       - KEYCLOAK_AUTH_SERVER_URL=http://keycloak:8080
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "50m"
-        max-file: "5"
+    volumes:
+      - ./backend:/app:cached  # 소스코드를 볼륨 마운트
+      - gradle-cache:/root/.gradle
+    networks:
+      - app-network
+    depends_on:
+      - redis
+      - rabbitmq
+      - keycloak
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 60s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
 
 networks:
   app-network:
@@ -91,3 +141,5 @@ volumes:
     name: ${PREFIX}-gradle-cache
   keycloak-data:
     name: ${PREFIX}-keycloak-data
+  rabbitmq-data:
+    name: ${PREFIX}-rabbitmq-data

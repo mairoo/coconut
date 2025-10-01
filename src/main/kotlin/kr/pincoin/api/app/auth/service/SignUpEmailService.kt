@@ -4,8 +4,8 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kr.pincoin.api.app.auth.vo.EmailContent
 import kr.pincoin.api.domain.auth.properties.AuthProperties
 import kr.pincoin.api.domain.user.error.UserErrorCode
-import kr.pincoin.api.external.notification.mailgun.api.request.MailgunRequest
-import kr.pincoin.api.external.notification.mailgun.service.MailgunApiClient
+import kr.pincoin.api.external.notification.smtp.api.request.SmtpRequest
+import kr.pincoin.api.external.notification.smtp.service.SmtpEmailClient
 import kr.pincoin.api.global.exception.BusinessException
 import kr.pincoin.api.global.utils.ClientUtils
 import org.springframework.stereotype.Component
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component
  * 이메일 발송 전담 서비스
  *
  * 회원가입 프로세스에서 필요한 모든 이메일 발송을 담당합니다.
- * Mailgun API를 활용하여 안정적이고 확장 가능한 이메일 서비스를 제공합니다.
+ * SMTP를 활용하여 안정적이고 확장 가능한 이메일 서비스를 제공합니다.
  *
  * **주요 책임:**
  * 1. 인증 이메일 발송
@@ -39,7 +39,7 @@ import org.springframework.stereotype.Component
  */
 @Component
 class SignUpEmailService(
-    private val mailgunApiClient: MailgunApiClient,
+    private val smtpEmailClient: SmtpEmailClient,
     private val authProperties: AuthProperties,
 ) {
     private val logger = KotlinLogging.logger {}
@@ -69,7 +69,7 @@ class SignUpEmailService(
         val verificationUrl = buildVerificationUrl(token, clientInfo)
         val emailContent = buildVerificationEmailContent(verificationUrl)
 
-        val mailgunRequest = MailgunRequest(
+        val smtpRequest = SmtpRequest(
             to = email,
             subject = "이메일 인증을 완료해주세요",
             text = emailContent.text,
@@ -77,7 +77,7 @@ class SignUpEmailService(
         )
 
         try {
-            mailgunApiClient.sendEmail(mailgunRequest).block()
+            smtpEmailClient.sendEmail(smtpRequest).block()
         } catch (e: Exception) {
             logger.error { "인증 이메일 발송 실패: email=$email, error=${e.message}" }
             throw BusinessException(UserErrorCode.EMAIL_SEND_FAILED)
@@ -105,7 +105,7 @@ class SignUpEmailService(
     suspend fun sendWelcomeEmail(email: String, firstName: String) {
         val emailContent = buildWelcomeEmailContent(firstName)
 
-        val mailgunRequest = MailgunRequest(
+        val smtpRequest = SmtpRequest(
             to = email,
             subject = "회원가입을 축하합니다!",
             text = emailContent.text,
@@ -113,7 +113,7 @@ class SignUpEmailService(
         )
 
         try {
-            mailgunApiClient.sendEmail(mailgunRequest).block()
+            smtpEmailClient.sendEmail(smtpRequest).block()
         } catch (e: Exception) {
             logger.warn { "환영 이메일 발송 실패: email=$email, error=${e.message}" }
             // 8. 회원 가입 완료 안내 이메일 발송
